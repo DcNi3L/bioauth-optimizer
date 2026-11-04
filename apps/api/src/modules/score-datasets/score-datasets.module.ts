@@ -28,6 +28,6 @@ import { ScoreDatasetsController } from './presentation/score-datasets.controlle
     UploadScoreDatasetUseCase,
     GetScoreDatasetUseCase,
   ],
-  exports: [SCORE_SAMPLES_READER],
+  exports: [SCORE_SAMPLES_READER, SCORE_DATASET_REPOSITORY],
 })
 export class ScoreDatasetsModule {}

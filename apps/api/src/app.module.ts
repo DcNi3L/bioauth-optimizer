@@ -4,6 +4,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { AuditModule } from './modules/audit/audit.module';
 import { BiometricsModule } from './modules/biometrics/biometrics.module';
+import { CalibrationModule } from './modules/calibration/calibration.module';
 import { ConsentModule } from './modules/consent/consent.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { ExamplesModule } from './modules/examples/examples.module';
@@ -41,6 +42,7 @@ import { LoggingModule } from './shared/logging/logging.module';
     WebAuthnModule,
     EnrollmentModule,
     VerificationModule,
+    CalibrationModule,
     ThresholdModule,
     FactorSelectionModule,
     FactorCatalogsModule,

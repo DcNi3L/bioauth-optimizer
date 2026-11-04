@@ -23,6 +23,6 @@ import { FactorCatalogsController } from './presentation/factor-catalogs.control
     ReplaceFactorCatalogUseCase,
     DeleteFactorCatalogUseCase,
   ],
-  exports: [FACTOR_CATALOG_READER],
+  exports: [FACTOR_CATALOG_READER, CreateFactorCatalogUseCase],
 })
 export class FactorCatalogsModule {}

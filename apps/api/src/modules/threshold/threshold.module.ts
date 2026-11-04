@@ -9,5 +9,6 @@ import { ThresholdController } from './presentation/threshold.controller';
   imports: [ExperimentsModule, ScoreDatasetsModule],
   controllers: [ThresholdController],
   providers: [OptimizeThresholdUseCase],
+  exports: [OptimizeThresholdUseCase],
 })
 export class ThresholdModule {}

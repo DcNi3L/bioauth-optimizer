@@ -45,6 +45,9 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z.string().min(12, { error: 'ADMIN_PASSWORD: не короче 12 символов' }).optional(),
   REQUIRE_STAFF_PASSKEY: booleanFlag.default(true),
   AUTH_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(30),
+  PASSKEY_DECLARED_FAR: z.coerce.number().gt(0).lt(1).default(2e-5),
+  DRIFT_CHECK_HOURS: z.coerce.number().min(0).default(24),
+  DRIFT_WINDOW_DAYS: z.coerce.number().positive().default(7),
   CROSS_IMPOSTOR_LIMIT: z.coerce.number().int().min(0).max(500).default(50),
 });
 

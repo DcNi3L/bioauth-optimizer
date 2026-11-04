@@ -15,6 +15,7 @@ const toFactor = (r: Selectable<FactorTable>): FactorDto => ({
   latencyMs: r.latency_ms,
   cost: r.cost,
   hasPad: r.has_pad,
+  ...(r.provenance ? { provenance: r.provenance } : {}),
 });
 
 const isUniqueViolation = (err: unknown) => (err as { code?: string } | null)?.code === '23505';
@@ -129,6 +130,7 @@ export class KyselyFactorCatalogRepository implements FactorCatalogRepository, F
           latency_ms: f.latencyMs,
           cost: f.cost,
           has_pad: f.hasPad,
+          provenance: f.provenance ?? null,
           position,
         })),
       )

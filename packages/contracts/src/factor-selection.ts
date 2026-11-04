@@ -17,6 +17,8 @@ export const factorSchema = z.strictObject({
   latencyMs: finite('задержка').min(0, { error: 'задержка должна быть ≥ 0' }),
   cost: finite('стоимость').min(0, { error: 'стоимость должна быть ≥ 0' }),
   hasPad: z.boolean(),
+  /** Происхождение чисел: измерены системой (v2), заявлены вендором или взяты из литературы. */
+  provenance: z.enum(['measured', 'declared', 'literature']).nullable().optional(),
 });
 export type FactorDto = z.infer<typeof factorSchema>;
 

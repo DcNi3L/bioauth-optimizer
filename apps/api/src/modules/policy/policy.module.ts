@@ -14,6 +14,6 @@ import { PolicyController } from './presentation/policy.controller';
     { provide: POLICY_READER, useExisting: KyselyPolicyRepository },
     PolicyService,
   ],
-  exports: [POLICY_READER, PolicyService],
+  exports: [POLICY_READER, POLICY_REPOSITORY, PolicyService],
 })
 export class PolicyModule {}

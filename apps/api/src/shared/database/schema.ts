@@ -21,6 +21,7 @@ export interface FactorTable {
   cost: number;
   has_pad: boolean;
   position: number;
+  provenance: 'measured' | 'declared' | 'literature' | null;
 }
 
 export interface ScoreDatasetTable {
@@ -196,6 +197,22 @@ export interface Database {
   auth_attempt: AuthAttemptTable;
   score_sample: ScoreSampleTable;
   audit_event: AuditEventTable;
+  drift_alert: DriftAlertTable;
+}
+
+export interface DriftAlertTable {
+  id: Generated<string>;
+  policy_id: string;
+  model_version: string;
+  window_start: Date;
+  window_end: Date;
+  baseline_frr: number;
+  recent_frr: number;
+  samples: number;
+  z_score: number;
+  acknowledged_by: string | null;
+  acknowledged_at: Date | null;
+  created_at: ColumnType<Date, never, never>;
 }
 
 // ── Журнал аудита (миграция 0003) ──
