@@ -46,6 +46,8 @@ export interface CredentialRepository {
   listForUser(userId: string): Promise<StoredCredential[]>;
   find(credentialId: string): Promise<StoredCredential | null>;
   add(userId: string, c: RegistrationResult): Promise<void>;
+  /** Удаляет passkey пользователя; false — нет такого ключа у этого пользователя. */
+  delete(userId: string, credentialId: string): Promise<boolean>;
   /** Сдвиг счётчика только вперёд (защита от клонирования ключа). */
   touch(credentialId: string, newCounter: number): Promise<void>;
 }

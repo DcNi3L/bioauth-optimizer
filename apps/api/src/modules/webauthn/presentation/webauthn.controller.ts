@@ -1,5 +1,5 @@
 import { webauthnResponseSchema, type z } from '@bioauth/contracts';
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { type AuthUser, CurrentUser } from '../../../shared/auth/auth';
@@ -28,6 +28,19 @@ export class WebAuthnController {
     @Body(responsePipe) body: z.infer<typeof webauthnResponseSchema>,
   ) {
     return this.passkeys.verifyRegistration(user, body);
+  }
+
+  @Get('credentials')
+  @ApiOperation({ summary: 'Мои passkey' })
+  credentials(@CurrentUser() user: AuthUser) {
+    return this.passkeys.list(user);
+  }
+
+  @Delete('credentials/:id')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Удалить свой passkey' })
+  async deleteCredential(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<void> {
+    await this.passkeys.remove(user, id);
   }
 
   @Post('staff/options')

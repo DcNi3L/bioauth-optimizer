@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { AuthUser } from '../../../shared/auth/auth';
-import { ConflictError, UnauthorizedError, ValidationError } from '../../../shared/errors';
+import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '../../../shared/errors';
 import { AUDIT_LOG, type AuditLog } from '../../audit/application/audit-log';
 import { SESSION_STORE, type SessionStore } from '../../identity/application/ports';
 import {
@@ -53,6 +53,22 @@ export class PasskeyService {
     // Сотрудник, впервые зарегистрировавший passkey при обязательном MFA, получает полный доступ в этой сессии.
     if (user.role !== 'subject' && !user.mfaComplete) await this.sessions.completeMfa(user.sessionId);
     return { registered: true };
+  }
+
+  async list(user: AuthUser) {
+    return (await this.credentials.listForUser(user.id)).map((c) => ({
+      id: c.credentialId,
+      deviceType: c.deviceType,
+      backedUp: c.backedUp,
+    }));
+  }
+
+  /** Сотрудник удаляет passkey только после полного входа: иначе второй фактор можно снять паролем. */
+  async remove(user: AuthUser, credentialId: string): Promise<void> {
+    if (user.role !== 'subject' && !user.mfaComplete)
+      throw new UnauthorizedError('сначала подтвердите вход passkey');
+    if (!(await this.credentials.delete(user.id, credentialId))) throw new NotFoundError('passkey не найден');
+    await this.audit.record({ actorId: user.id, action: 'passkey.deleted', target: user.id });
   }
 
   async staffLoginOptions(user: AuthUser): Promise<Record<string, unknown>> {

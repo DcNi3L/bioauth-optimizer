@@ -88,7 +88,7 @@ class StepIn(Model):
 
 class LivenessRequest(Model):
     baseline: list[FrameIn] = Field(min_length=1)
-    steps: list[StepIn] = Field(min_length=1, max_length=5)
+    steps: list[StepIn] = Field(default_factory=list, max_length=5)
 
 
 class StepOut(Model):

@@ -3,14 +3,21 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { isStaff, useViewer } from '@/entities/viewer';
+
 const LINKS = [
   { href: '/threshold', label: 'Порог' },
   { href: '/factors', label: 'Состав факторов' },
   { href: '/experiments', label: 'История' },
+  { href: '/enroll', label: 'Регистрация' },
 ] as const;
+
+const ADMIN_LINK = { href: '/admin', label: 'Администрирование' } as const;
 
 export function AppNav() {
   const pathname = usePathname() ?? '';
+  const viewer = useViewer().data;
+  const links = viewer && isStaff(viewer.role) ? [...LINKS, ADMIN_LINK] : LINKS;
   return (
     <header className="border-rule bg-sheet border-b">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-1 px-4 py-3 sm:px-6">
@@ -21,7 +28,7 @@ export function AppNav() {
           </span>
         </Link>
         <nav aria-label="Разделы" className="-mx-1 flex w-full flex-1 gap-1 overflow-x-auto sm:w-auto">
-          {LINKS.map((l) => {
+          {links.map((l) => {
             const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
             return (
               <Link
@@ -35,6 +42,13 @@ export function AppNav() {
             );
           })}
         </nav>
+        <Link
+          href={viewer ? '/profile' : '/login'}
+          className="text-graphite hover:text-ink text-sm"
+          aria-current={pathname === '/profile' || pathname === '/login' ? 'page' : undefined}
+        >
+          {viewer ? viewer.login : 'Вход'}
+        </Link>
         <a
           href={process.env.NEXT_PUBLIC_SWAGGER_URL ?? 'http://localhost:4000/api/docs'}
           target="_blank"

@@ -93,7 +93,6 @@ export const bioLivenessRequestSchema = z.strictObject({
   baseline: z.array(bioFrameSchema).min(1),
   steps: z
     .array(z.strictObject({ command: livenessCommandSchema, frames: z.array(bioFrameSchema).min(1) }))
-    .min(1)
     .max(5),
 });
 export type BioLivenessRequest = z.infer<typeof bioLivenessRequestSchema>;

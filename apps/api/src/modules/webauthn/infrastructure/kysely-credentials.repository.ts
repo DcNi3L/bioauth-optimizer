@@ -72,6 +72,15 @@ export class KyselyCredentialRepository implements CredentialRepository, Challen
       .execute();
   }
 
+  async delete(userId: string, credentialId: string): Promise<boolean> {
+    const r = await this.db
+      .deleteFrom('webauthn_credential')
+      .where('user_id', '=', userId)
+      .where('credential_id', '=', credentialId)
+      .executeTakeFirst();
+    return r.numDeletedRows > 0n;
+  }
+
   async touch(credentialId: string, newCounter: number): Promise<void> {
     await this.db
       .updateTable('webauthn_credential')
