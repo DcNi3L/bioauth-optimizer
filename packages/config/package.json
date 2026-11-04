@@ -1,1 +1,8 @@
-{ "name": "@bioauth/config", "version": "1.0.0", "private": true, "files": ["tsconfig.base.json"] }
+{
+  "name": "@bioauth/config",
+  "version": "1.0.0",
+  "private": true,
+  "files": [
+    "tsconfig.base.json"
+  ]
+}

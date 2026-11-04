@@ -3,6 +3,8 @@
 
 FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
+# Git-хуки husky в образе не нужны (и .git в контексте сборки нет).
+ENV HUSKY=0
 WORKDIR /repo
 
 FROM base AS pruner

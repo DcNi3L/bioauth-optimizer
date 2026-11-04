@@ -26,18 +26,25 @@ jobs:
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Сообщения коммитов (commitlint)
+        if: github.event_name == 'pull_request'
+        run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+      - name: Форматирование (Prettier)
+        run: pnpm format:check
       - run: pnpm turbo run build
+      - name: Линтер (ESLint strict + steiger FSD)
+        run: pnpm lint
       - run: pnpm turbo run typecheck
       - name: Тесты (ядро, контракты, API с e2e на PostgreSQL)
         run: pnpm turbo run test
-      - name: Архитектура FSD (steiger)
-        run: pnpm --filter @bioauth/web lint
 
   docker:
     name: Docker Compose + e2e (Playwright)

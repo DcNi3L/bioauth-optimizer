@@ -10,3 +10,6 @@ coverage/
 .DS_Store
 playwright-report/
 test-results/
+
+# Архивы make release-zip
+bioauth-optimizer-*.zip

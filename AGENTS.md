@@ -12,7 +12,8 @@
 
 - Ядро пишется **test-first**: сначала золотой тест из `07-testing.md §7.2`, потом реализация.
 - Любой баг в расчётах → сначала регрессионный тест, потом исправление.
-- Перед коммитом: `pnpm lint && pnpm typecheck && pnpm test`.
+- Перед пушем: `make check` (= `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test`) — то же, что проверяет CI.
+- Перед коммитом husky сам запускает lint-staged (ESLint `--fix` + Prettier для изменённых файлов) и commitlint для сообщения.
 
 ## Жёсткие правила
 
@@ -41,3 +42,18 @@
 
 - Файлы: kebab-case с суффиксом роли — `*.use-case.ts`, `*.controller.ts`, `*.repository.ts`, `*.solver.ts`, `*.adapter.ts`.
 - Коммиты: Conventional Commits (`feat(core): certified ilp solver`).
+
+## Инструменты качества
+
+| Инструмент                                 | Конфиг                                   | Что делает                                                                                                                   |
+| ------------------------------------------ | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Prettier + prettier-plugin-tailwindcss     | `prettier.config.mjs`, `.prettierignore` | Единый формат кода, JSON, YAML, Markdown; сортировка классов Tailwind                                                        |
+| ESLint 9 (flat) + typescript-eslint strict | `eslint.config.mjs`                      | Правила с проверкой типов, порядок импортов, React/хуки/a11y/Next.js, Vitest/Jest, архитектурные запреты ADR-0002 и ADR-0009 |
+| steiger                                    | `apps/web/steiger.config.ts`             | Правила Feature-Sliced Design                                                                                                |
+| husky + lint-staged                        | `.husky/`, `lint-staged.config.mjs`      | pre-commit: ESLint `--fix` и Prettier только для изменённых файлов                                                           |
+| commitlint                                 | `commitlint.config.mjs`                  | commit-msg: Conventional Commits, области из списка, заголовок ≤ 100 символов                                                |
+| Makefile                                   | `Makefile`                               | `make help` — все команды разработки, проверки и Docker                                                                      |
+
+Нужен `pnpm build` (или `make setup`) хотя бы раз после клонирования: правила с проверкой типов читают типы пакетов `@bioauth/*` из их `dist`.
+
+Области коммитов: `core`, `contracts`, `api`, `web`, `docs`, `ci`, `build`, `deps`, `docker`, `config`, `release`.

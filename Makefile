@@ -1,0 +1,221 @@
+# BioAuth Optimizer — команды разработки, проверки и запуска.
+# `make` или `make help` показывает список целей. Совместим с GNU Make 3.81 (macOS) и новее.
+#
+# Переменные можно переопределить: make test TEST_DATABASE_URL=... | make logs SERVICE=api
+
+SHELL := /bin/bash
+.DEFAULT_GOAL := help
+
+PNPM    ?= pnpm
+COMPOSE ?= docker compose
+SERVICE ?=
+
+# База из docker-compose.yml опубликована на 127.0.0.1:55432 (редкий порт, чтобы не мешать локальному PostgreSQL).
+DB_PORT           ?= 55432
+DATABASE_URL      ?= postgresql://bioauth:bioauth@localhost:$(DB_PORT)/bioauth
+TEST_DATABASE_URL ?= postgresql://bioauth:bioauth@localhost:$(DB_PORT)/bioauth_test
+
+WEB_URL     ?= http://localhost:3000
+API_URL     ?= http://localhost:4000
+VERSION     := $(shell node -p "require('./package.json').version" 2>/dev/null || echo 0.0.0)
+GIT_SHA     := $(shell git rev-parse --short HEAD 2>/dev/null || echo nogit)
+RELEASE_ZIP ?= bioauth-optimizer-$(VERSION)-$(GIT_SHA).zip
+
+BOLD  := \033[1m
+DIM   := \033[2m
+GREEN := \033[32m
+CYAN  := \033[36m
+RESET := \033[0m
+
+define log
+	@printf "$(GREEN)▶$(RESET) $(BOLD)%s$(RESET)\n" $(1)
+endef
+
+# ─────────────────────────────────────────────────────────────────────────────
+##@ Справка
+
+.PHONY: help
+help: ## Показать эту справку
+	@printf "\n$(BOLD)BioAuth Optimizer$(RESET) $(DIM)v$(VERSION) ($(GIT_SHA))$(RESET)\n"
+	@awk 'BEGIN {FS = ":.*##"} \
+		/^##@/ { printf "\n$(BOLD)%s$(RESET)\n", substr($$0, 5); next } \
+		/^[a-zA-Z0-9_.-]+:.*##/ { printf "  $(CYAN)%-18s$(RESET) %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+	@printf "\n$(DIM)Переменные: DATABASE_URL, TEST_DATABASE_URL, SERVICE, COMPOSE, PNPM$(RESET)\n\n"
+
+# ─────────────────────────────────────────────────────────────────────────────
+##@ Установка
+
+.PHONY: doctor
+doctor: ## Проверить окружение: Node 22+, pnpm, Docker
+	@node -e "const [M]=process.versions.node.split('.');if(+M<22){console.error('Нужен Node.js 22+, сейчас '+process.version);process.exit(1)}console.log('node   ',process.version)"
+	@command -v $(PNPM) >/dev/null || { echo "pnpm не найден: corepack enable && corepack prepare pnpm@10.28.0 --activate"; exit 1; }
+	@printf "pnpm    %s\n" "$$($(PNPM) --version)"
+	@command -v docker >/dev/null && printf "docker  %s\n" "$$(docker --version | cut -d' ' -f3 | tr -d ,)" || echo "docker  не найден (нужен только для make up)"
+
+.PHONY: install
+install: ## Установить зависимости по lockfile (и git-хуки husky)
+	$(call log,"Установка зависимостей")
+	@$(PNPM) install --frozen-lockfile
+
+.PHONY: setup
+setup: doctor install build ## Первая настройка: окружение, зависимости, сборка пакетов
+	@printf "$(GREEN)Готово.$(RESET) Дальше: make db && make migrate && make dev\n"
+
+# ─────────────────────────────────────────────────────────────────────────────
+##@ Разработка
+
+.PHONY: dev
+dev: ## Запустить api (:4000) и web (:3000) в режиме разработки
+	@DATABASE_URL="$(DATABASE_URL)" $(PNPM) dev
+
+.PHONY: db
+db: ## Поднять только PostgreSQL в Docker (для локальной разработки)
+	$(call log,"PostgreSQL на 127.0.0.1:$(DB_PORT)")
+	@$(COMPOSE) up -d --wait db
+	@$(COMPOSE) exec -T db psql -U bioauth -d bioauth -tc "SELECT 1 FROM pg_database WHERE datname='bioauth_test'" | grep -q 1 \
+		|| $(COMPOSE) exec -T db psql -U bioauth -d bioauth -c "CREATE DATABASE bioauth_test" >/dev/null
+	@printf "  DATABASE_URL=%s\n  TEST_DATABASE_URL=%s\n" "$(DATABASE_URL)" "$(TEST_DATABASE_URL)"
+
+.PHONY: migrate
+migrate: ## Применить SQL-миграции и seed каталога СРО1 к DATABASE_URL
+	@$(PNPM) --filter @bioauth/api build >/dev/null
+	@DATABASE_URL="$(DATABASE_URL)" $(PNPM) --filter @bioauth/api migrate
+
+.PHONY: build
+build: ## Собрать все пакеты (turbo, с кэшем)
+	@$(PNPM) build
+
+# ─────────────────────────────────────────────────────────────────────────────
+##@ Качество кода
+
+.PHONY: format
+format: ## Отформатировать весь репозиторий (Prettier)
+	@$(PNPM) format
+
+.PHONY: format-check
+format-check: ## Проверить форматирование без изменений
+	@$(PNPM) format:check
+
+.PHONY: lint
+lint: ## ESLint (strict + проверка типов) и steiger (FSD)
+	@$(PNPM) lint
+
+.PHONY: lint-fix
+lint-fix: ## ESLint с автоисправлением
+	@$(PNPM) lint:fix
+
+.PHONY: typecheck
+typecheck: ## Проверка типов TypeScript во всех пакетах
+	@$(PNPM) typecheck
+
+.PHONY: fix
+fix: format lint-fix ## Исправить всё, что исправляется автоматически
+
+.PHONY: commitlint
+commitlint: ## Проверить сообщения коммитов относительно origin/main
+	@$(PNPM) commitlint
+
+# ─────────────────────────────────────────────────────────────────────────────
+##@ Тесты
+
+.PHONY: test
+test: ## Все тесты; e2e API — на TEST_DATABASE_URL (make db)
+	@TEST_DATABASE_URL="$(TEST_DATABASE_URL)" $(PNPM) test
+
+.PHONY: test-core
+test-core: ## Тесты вычислительного ядра (золотые и property)
+	@$(PNPM) --filter @bioauth/optimization-core test
+
+.PHONY: test-api
+test-api: ## Тесты API (unit + e2e на PostgreSQL)
+	@$(PNPM) --filter @bioauth/optimization-core --filter @bioauth/contracts build >/dev/null
+	@TEST_DATABASE_URL="$(TEST_DATABASE_URL)" $(PNPM) --filter @bioauth/api test
+
+.PHONY: test-web
+test-web: ## Unit-тесты фронтенда
+	@$(PNPM) --filter @bioauth/web test
+
+.PHONY: test-e2e
+test-e2e: ## E2E в браузере (Playwright) против запущенной системы WEB_URL
+	@E2E_BASE_URL="$(WEB_URL)" $(PNPM) --filter @bioauth/web test:e2e
+
+.PHONY: check
+check: format-check lint typecheck test ## Всё, что проверяет CI: формат, линтер, типы, тесты
+
+# ─────────────────────────────────────────────────────────────────────────────
+##@ Docker
+
+.PHONY: up
+up: ## Собрать и запустить всё: db, api, web (ждёт готовности)
+	$(call log,"docker compose up")
+	@$(COMPOSE) up -d --build --wait
+	@$(MAKE) --no-print-directory urls
+
+.PHONY: down
+down: ## Остановить контейнеры (данные сохраняются)
+	@$(COMPOSE) down
+
+.PHONY: restart
+restart: ## Перезапустить сервис: make restart SERVICE=api
+	@$(COMPOSE) restart $(SERVICE)
+
+.PHONY: logs
+logs: ## Логи (все или SERVICE=api|web|db), с отслеживанием
+	@$(COMPOSE) logs -f --tail=200 $(SERVICE)
+
+.PHONY: ps
+ps: ## Состояние контейнеров
+	@$(COMPOSE) ps
+
+.PHONY: config
+config: ## Проверить docker-compose.yml
+	@$(COMPOSE) config -q && echo "docker-compose.yml корректен"
+
+.PHONY: psql
+psql: ## Консоль PostgreSQL в контейнере db
+	@$(COMPOSE) exec db psql -U bioauth -d bioauth
+
+.PHONY: reset-db
+reset-db: ## Удалить контейнеры и том с данными (необратимо)
+	@read -r -p "Удалить все данные PostgreSQL? [y/N] " ans; [ "$$ans" = "y" ] || { echo "Отменено"; exit 1; }
+	@$(COMPOSE) down -v
+
+.PHONY: health
+health: ## Проверить здоровье запущенной системы
+	@curl -fsS $(API_URL)/health/live >/dev/null && echo "api   live   ok" || { echo "api не отвечает"; exit 1; }
+	@curl -fsS $(API_URL)/health/ready >/dev/null && echo "api   ready  ok (БД доступна)" || { echo "api не готов"; exit 1; }
+	@curl -fsS $(WEB_URL)/ >/dev/null && echo "web          ok" || { echo "web не отвечает"; exit 1; }
+	@curl -fsS $(WEB_URL)/api/v1/examples/sro1 >/dev/null && echo "web → api    ok (прокси)" || { echo "прокси web → api не работает"; exit 1; }
+
+.PHONY: smoke
+smoke: up health test-e2e ## Поднять систему, проверить здоровье и прогнать e2e
+
+.PHONY: urls
+urls: ## Адреса интерфейса и API
+	@printf "  Интерфейс  $(CYAN)%s$(RESET)\n  Swagger    $(CYAN)%s/api/docs$(RESET)\n" "$(WEB_URL)" "$(API_URL)"
+
+.PHONY: demo
+demo: ## Загрузить демонстрационный каталог из 10 факторов в запущенный API
+	@curl -fsS -X POST $(API_URL)/api/v1/factor-catalogs -H 'content-type: application/json' \
+		--data @examples/catalog-10-factors.json >/dev/null && echo "Каталог «Расширенный каталог: 10 факторов» загружен" \
+		|| echo "Не удалось: каталог уже загружен или API не запущен (make up)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+##@ Выпуск и очистка
+
+.PHONY: release-zip
+release-zip: ## Архив исходников для сдачи (git archive HEAD, без node_modules)
+	@git diff --quiet || printf "$(BOLD)Внимание:$(RESET) есть незакоммиченные изменения — в архив попадёт только HEAD\n"
+	@git archive --format=zip --prefix=bioauth-optimizer/ -o $(RELEASE_ZIP) HEAD
+	@printf "Создан $(CYAN)%s$(RESET) (%s)\n" "$(RELEASE_ZIP)" "$$(du -h $(RELEASE_ZIP) | cut -f1)"
+
+.PHONY: clean
+clean: ## Удалить артефакты сборки (dist, .next, .turbo, coverage)
+	@find . -path ./node_modules -prune -o \( -name dist -o -name .next -o -name .turbo -o -name coverage \) -type d -prune -print \
+		| grep -v node_modules | xargs rm -rf
+	@echo "Артефакты сборки удалены"
+
+.PHONY: distclean
+distclean: clean ## clean + удалить все node_modules
+	@find . -name node_modules -type d -prune -exec rm -rf {} +
+	@echo "node_modules удалены; заново: make install"

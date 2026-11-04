@@ -11,7 +11,8 @@
     "migrate": "node --env-file-if-exists=.env dist/shared/database/migrate.cli.js",
     "test": "jest --runInBand",
     "test:unit": "jest --runInBand --testPathPattern=test/unit",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . --max-warnings=0"
   },
   "dependencies": {
     "@bioauth/contracts": "workspace:*",

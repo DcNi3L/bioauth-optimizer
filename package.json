@@ -6,17 +6,42 @@
   "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
   "license": "UNLICENSED",
   "packageManager": "pnpm@10.28.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
+    "prepare": "husky",
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck"
+    "lint:fix": "turbo run lint -- --fix",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "commitlint": "commitlint --from origin/main --to HEAD --verbose"
   },
   "devDependencies": {
+    "@commitlint/cli": "19.8.1",
+    "@commitlint/config-conventional": "19.8.1",
+    "@eslint/js": "9.39.5",
+    "@next/eslint-plugin-next": "15.5.29",
+    "@vitest/eslint-plugin": "1.6.28",
+    "eslint": "9.39.5",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-jest": "28.14.0",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-simple-import-sort": "12.1.1",
+    "globals": "16.5.0",
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0",
+    "prettier": "3.6.2",
+    "prettier-plugin-tailwindcss": "0.6.14",
     "turbo": "2.11.10",
     "typescript": "5.9.3",
-    "prettier": "3.6.2"
+    "typescript-eslint": "8.72.1"
   }
 }

@@ -1,0 +1,15 @@
+# Сборка и зависимости
+node_modules
+dist
+.next
+.turbo
+coverage
+test-results
+playwright-report
+**/next-env.d.ts
+
+# Сгенерированные и данные
+pnpm-lock.yaml
+packages/optimization-core/test/fixtures/*.json
+examples/*.csv
+docs/diagrams/*.png

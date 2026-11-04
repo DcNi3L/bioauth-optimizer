@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start -p 3000",
     "typecheck": "tsc --noEmit",
-    "lint": "steiger ./src",
+    "lint": "eslint . --max-warnings=0 && steiger ./src",
     "test:e2e": "playwright test",
     "test": "vitest run"
   },

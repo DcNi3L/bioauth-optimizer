@@ -21,12 +21,12 @@ flowchart LR
 
 ## 6.2. Файлы
 
-| Файл | Назначение |
-| --- | --- |
-| [`docker-compose.yml`](../docker-compose.yml) | Три сервиса: `db`, `api`, `web`; healthcheck'и и порядок запуска |
+| Файл                                                | Назначение                                                                                          |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`docker-compose.yml`](../docker-compose.yml)       | Три сервиса: `db`, `api`, `web`; healthcheck'и и порядок запуска                                    |
 | [`docker/api.Dockerfile`](../docker/api.Dockerfile) | Сборка API: `turbo prune` → `pnpm install --frozen-lockfile` → `turbo build` → `pnpm deploy --prod` |
-| [`docker/web.Dockerfile`](../docker/web.Dockerfile) | Сборка интерфейса: Next.js `output: "standalone"`, запуск `node apps/web/server.js` |
-| [`.dockerignore`](../.dockerignore) | Исключает `node_modules`, `dist`, `.next`, `.git` и секреты |
+| [`docker/web.Dockerfile`](../docker/web.Dockerfile) | Сборка интерфейса: Next.js `output: "standalone"`, запуск `node apps/web/server.js`                 |
+| [`.dockerignore`](../.dockerignore)                 | Исключает `node_modules`, `dist`, `.next`, `.git` и секреты                                         |
 
 ## 6.3. Как устроены образы
 
@@ -38,28 +38,34 @@ flowchart LR
 
 ## 6.4. Переменные окружения
 
-| Переменная | Сервис | По умолчанию | Назначение |
-| --- | --- | --- | --- |
-| `DATABASE_URL` | api | — (обязательна) | Строка подключения PostgreSQL |
-| `PORT` | api | 4000 | Порт HTTP |
-| `CORS_ORIGIN` | api | <http://localhost:3000> | Разрешённый origin |
-| `MAX_UPLOAD_MB` | api | 50 | Лимит размера CSV |
-| `LOG_LEVEL` | api | info | Уровень логов pino |
-| `API_INTERNAL_URL` | web (сборка) | <http://api:4000> | Адрес API для rewrites Next.js |
-| `NEXT_PUBLIC_SWAGGER_URL` | web (сборка) | <http://localhost:4000/api/docs> | Ссылка «API (Swagger)» в шапке |
-| `POSTGRES_PASSWORD` | db, api | bioauth | Пароль БД (для локального запуска; в `.env`, не в git) |
+| Переменная                | Сервис       | По умолчанию                     | Назначение                                             |
+| ------------------------- | ------------ | -------------------------------- | ------------------------------------------------------ |
+| `DATABASE_URL`            | api          | — (обязательна)                  | Строка подключения PostgreSQL                          |
+| `PORT`                    | api          | 4000                             | Порт HTTP                                              |
+| `CORS_ORIGIN`             | api          | <http://localhost:3000>          | Разрешённый origin                                     |
+| `MAX_UPLOAD_MB`           | api          | 50                               | Лимит размера CSV                                      |
+| `LOG_LEVEL`               | api          | info                             | Уровень логов pino                                     |
+| `API_INTERNAL_URL`        | web (сборка) | <http://api:4000>                | Адрес API для rewrites Next.js                         |
+| `NEXT_PUBLIC_SWAGGER_URL` | web (сборка) | <http://localhost:4000/api/docs> | Ссылка «API (Swagger)» в шапке                         |
+| `POSTGRES_PASSWORD`       | db, api      | bioauth                          | Пароль БД (для локального запуска; в `.env`, не в git) |
 
 Все переменные api валидируются zod-схемой при старте: без `DATABASE_URL` процесс завершается с понятной ошибкой.
 
 ## 6.5. Команды
 
+Все команды собраны в `Makefile` (`make help` выводит список с описаниями):
+
 ```bash
-docker compose up --build        # поднять всё
-docker compose down -v           # остановить и удалить данные
-pnpm install && pnpm build       # локальная сборка всех пакетов
-docker compose up db -d          # только база для разработки
-DATABASE_URL=postgresql://bioauth:bioauth@localhost:55432/bioauth pnpm --filter @bioauth/api migrate
-pnpm dev                         # api :4000 и web :3000 в режиме разработки
-pnpm test                        # все тесты (для e2e API задайте TEST_DATABASE_URL)
-pnpm --filter @bioauth/web test:e2e   # e2e в браузере против запущенной системы
+make up              # собрать и поднять db, api, web; дождаться готовности
+make health          # проверить api, БД, web и прокси web → api
+make logs SERVICE=api
+make down            # остановить (данные сохраняются)
+make reset-db        # удалить данные (с подтверждением)
+
+make setup           # окружение, зависимости, сборка пакетов
+make db migrate      # только PostgreSQL на 127.0.0.1:55432 + миграции и seed
+make dev             # api :4000 и web :3000 в режиме разработки
+make check           # формат, линтер, типы, тесты (e2e API — на TEST_DATABASE_URL)
+make smoke           # up + health + e2e в браузере
+make release-zip     # архив исходников для сдачи
 ```
