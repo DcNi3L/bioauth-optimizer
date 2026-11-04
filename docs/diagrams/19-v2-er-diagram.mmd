@@ -1,0 +1,71 @@
+erDiagram
+  APP_USER ||--o{ CONSENT : gives
+  APP_USER ||--o| FACE_TEMPLATE : has
+  APP_USER ||--o{ WEBAUTHN_CREDENTIAL : has
+  APP_USER ||--o{ AUTH_ATTEMPT : makes
+  AUTH_POLICY ||--o{ AUTH_ATTEMPT : "applied in"
+  AUTH_ATTEMPT ||--o{ SCORE_SAMPLE : yields
+  EXPERIMENT |o--o{ AUTH_POLICY : "basis of"
+  APP_USER {
+    uuid id PK
+    text login UK
+    text role "subject|admin|researcher|auditor"
+    timestamptz created_at
+  }
+  CONSENT {
+    uuid id PK
+    uuid user_id FK
+    text text_version
+    timestamptz granted_at
+    timestamptz revoked_at
+  }
+  FACE_TEMPLATE {
+    uuid user_id PK
+    bytea ciphertext "AES-256-GCM(embedding)"
+    bytea iv
+    text key_id
+    text model_version
+    int samples
+    timestamptz created_at
+  }
+  WEBAUTHN_CREDENTIAL {
+    text credential_id PK
+    uuid user_id FK
+    bytea public_key
+    bigint counter
+    text transports
+    timestamptz created_at
+  }
+  AUTH_POLICY {
+    uuid id PK
+    int version UK
+    jsonb steps "факторы и пороги"
+    jsonb costs "cFA, cFR профиля"
+    uuid experiment_id FK
+    text status "proposed|active|retired|rejected"
+    uuid approved_by FK
+    timestamptz approved_at
+  }
+  AUTH_ATTEMPT {
+    uuid id PK
+    uuid user_id FK
+    uuid policy_id FK
+    text factor "face|passkey"
+    text outcome "accept|reject|error|cancel"
+    float8 score
+    float8 liveness
+    bool challenges_ok
+    int duration_ms
+    text reject_reason
+    timestamptz created_at
+  }
+  SCORE_SAMPLE {
+    bigint id PK
+    uuid attempt_id FK
+    text modality "face|fingerprint|pad"
+    text kind "genuine|impostor|attack|bonafide"
+    float8 score
+    text model_version
+    text source "enroll|login|cross|pad_test|batch"
+    timestamptz created_at
+  }

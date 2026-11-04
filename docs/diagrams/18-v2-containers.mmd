@@ -1,0 +1,12 @@
+flowchart LR
+  user(["👤 Субъект / администратор"])
+  subgraph compose["docker compose"]
+    web["<b>web</b><br/>Next.js · FSD<br/>камера, WebAuthn, админка"]
+    api["<b>api</b><br/>NestJS · Clean Architecture<br/>+ identity, consent, enrollment,<br/>verification, webauthn, calibration,<br/>policy, audit"]
+    bio["<b>bio-engine</b><br/>Python · FastAPI · onnxruntime<br/>YuNet, SFace, MiniFASNet, NBIS<br/>без состояния, без БД"]
+    db[("<b>db</b><br/>PostgreSQL 16<br/>+ шаблоны (зашифр.), попытки,<br/>оценки, политики, аудит")]
+  end
+  user -->|"HTTPS, камера, WebAuthn"| web
+  web -->|"REST /api/v1"| api
+  api -->|"HTTP (внутренняя сеть)"| bio
+  api -->|"SQL"| db

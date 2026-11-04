@@ -1,0 +1,21 @@
+sequenceDiagram
+  autonumber
+  actor U as Субъект
+  participant W as web (feature authenticate)
+  participant A as api (verification)
+  participant E as bio-engine
+  participant D as PostgreSQL
+  U->>W: логин
+  W->>A: POST /auth/sessions {login}
+  A->>D: активная политика, шаблон
+  A-->>W: sessionId, шаги, 3 случайные команды liveness, nonce
+  U->>W: выполняет команды перед камерой
+  W->>A: POST /auth/sessions/{id}/face (кадры + nonce)
+  A->>E: /v1/face/verify (кадры, шаблон, команды)
+  E-->>A: s, p_live, выполнение команд, качество, время
+  A->>A: решение: s ≥ τ_face и p_live ≥ τ_pad и все команды
+  A->>D: auth_attempt (оценки, исход, версия политики)
+  A-->>W: шаг пройден / осталось попыток
+  W->>A: WebAuthn assertion (passkey)
+  A->>A: проверка подписи, UV=true, счётчик
+  A-->>W: доступ разрешён, сессия (cookie httpOnly)
