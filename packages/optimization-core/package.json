@@ -1,0 +1,31 @@
+{
+  "name": "@bioauth/optimization-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Вычислительное ядро: оптимальный порог (байесовская стоимость) и выбор состава факторов (ЦЛП)",
+  "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@stdlib/math-base-special-erfc": "0.2.5",
+    "@stdlib/math-base-special-erfcinv": "0.2.4",
+    "@stdlib/math-base-special-expm1": "0.2.4",
+    "@stdlib/math-base-special-log1p": "0.2.4",
+    "highs": "1.15.4"
+  },
+  "devDependencies": {
+    "@bioauth/config": "workspace:*",
+    "@types/node": "22.19.1",
+    "@vitest/coverage-v8": "3.2.7",
+    "fast-check": "3.23.2",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}
