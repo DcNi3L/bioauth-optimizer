@@ -7,6 +7,8 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 PNPM    ?= pnpm
+PYTHON  ?= python3
+BIO_DIR := services/bio-engine
 COMPOSE ?= docker compose
 SERVICE ?=
 
@@ -139,8 +141,16 @@ test-web: ## Unit-тесты фронтенда
 test-e2e: ## E2E в браузере (Playwright) против запущенной системы WEB_URL
 	@E2E_BASE_URL="$(WEB_URL)" $(PNPM) --filter @bioauth/web test:e2e
 
+.PHONY: bio-setup
+bio-setup: ## bio-engine: зависимости Python и модели ONNX (проверка SHA-256)
+	@cd $(BIO_DIR) && $(PYTHON) -m pip install -r requirements-dev.txt && $(PYTHON) scripts/fetch_models.py
+
+.PHONY: test-bio
+test-bio: ## bio-engine: ruff, mypy --strict, pytest (нужен make bio-setup)
+	@cd $(BIO_DIR) && ruff check . && ruff format --check . && $(PYTHON) -m mypy && $(PYTHON) -m pytest -q
+
 .PHONY: check
-check: format-check lint typecheck test ## Всё, что проверяет CI: формат, линтер, типы, тесты
+check: format-check lint typecheck test ## Всё, что проверяет CI: формат, линтер, типы, тесты (bio-engine — make test-bio)
 
 # ─────────────────────────────────────────────────────────────────────────────
 ##@ Docker

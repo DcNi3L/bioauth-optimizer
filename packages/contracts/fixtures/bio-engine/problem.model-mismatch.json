@@ -1,0 +1,7 @@
+{
+  "type": "https://bioauth-optimizer/errors/model_version_mismatch",
+  "title": "Ошибка обработки кадров",
+  "status": 409,
+  "detail": "шаблон построен моделью old, сервис — sface-2021dec+yunet-2023mar",
+  "code": "MODEL_VERSION_MISMATCH"
+}

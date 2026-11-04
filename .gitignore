@@ -13,3 +13,12 @@ test-results/
 
 # Архивы make release-zip
 bioauth-optimizer-*.zip
+
+# bio-engine: модели, скачиваемые scripts/fetch_models.py (MiniFASNet хранится в репозитории)
+services/bio-engine/models/face_detection_yunet_2023mar.onnx
+services/bio-engine/models/face_recognition_sface_2021dec.onnx
+services/bio-engine/models/*.part
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

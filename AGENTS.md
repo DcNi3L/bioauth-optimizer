@@ -56,4 +56,4 @@
 
 Нужен `pnpm build` (или `make setup`) хотя бы раз после клонирования: правила с проверкой типов читают типы пакетов `@bioauth/*` из их `dist`.
 
-Области коммитов: `core`, `contracts`, `api`, `web`, `docs`, `ci`, `build`, `deps`, `docker`, `config`, `release`.
+Области коммитов: `core`, `contracts`, `api`, `web`, `bio-engine`, `db`, `docs`, `ci`, `build`, `deps`, `docker`, `config`, `release`.

@@ -10,7 +10,21 @@ export default {
     'scope-enum': [
       2,
       'always',
-      ['core', 'contracts', 'api', 'web', 'docs', 'ci', 'build', 'deps', 'docker', 'config', 'release'],
+      [
+        'core',
+        'contracts',
+        'api',
+        'web',
+        'bio-engine',
+        'db',
+        'docs',
+        'ci',
+        'build',
+        'deps',
+        'docker',
+        'config',
+        'release',
+      ],
     ],
     // Сообщения пишутся по-русски: проверка регистра латиницы к ним неприменима.
     'subject-case': [0],

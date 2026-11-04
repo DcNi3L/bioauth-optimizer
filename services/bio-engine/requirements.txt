@@ -1,0 +1,9 @@
+# Зависимости времени выполнения (версии зафиксированы).
+fastapi==0.162.0
+starlette==1.7.0
+uvicorn==0.54.0
+pydantic==2.13.5
+pydantic-settings==2.16.2
+numpy==2.5.3
+opencv-python-headless==5.0.0.93
+onnxruntime==1.29.0

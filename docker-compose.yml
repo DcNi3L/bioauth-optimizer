@@ -28,10 +28,15 @@ services:
       MAX_UPLOAD_MB: 50
       LOG_LEVEL: info
       NODE_ENV: production
+      BIO_ENGINE_URL: http://bio-engine:8000
+      BIO_ENGINE_SECRET: ${BIO_ENGINE_SECRET:-dev-bio-secret-change-me}
     ports:
       - "4000:4000"
+    networks: [default, internal]
     depends_on:
       db:
+        condition: service_healthy
+      bio-engine:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health/ready"]
@@ -39,6 +44,17 @@ services:
       timeout: 3s
       retries: 30
       start_period: 10s
+
+  # Сервис распознавания: только во внутренней сети, порт наружу не публикуется (docs/10 §10.8).
+  bio-engine:
+    build:
+      context: services/bio-engine
+    environment:
+      BIO_SECRET: ${BIO_ENGINE_SECRET:-dev-bio-secret-change-me}
+      BIO_LOG_LEVEL: INFO
+    networks: [internal]
+    read_only: true
+    tmpfs: [/tmp]
 
   web:
     build:
@@ -52,6 +68,10 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+networks:
+  internal:
+    internal: true
 
 volumes:
   pgdata:

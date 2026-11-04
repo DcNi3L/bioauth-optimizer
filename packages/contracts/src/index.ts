@@ -1,3 +1,4 @@
+export * from './bio-engine';
 export * from './catalogs';
 export * from './common';
 export * from './datasets';

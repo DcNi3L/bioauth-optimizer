@@ -1,0 +1,24 @@
+{
+  "pLiveMedian": 0.9502219119371751,
+  "pLive": [
+    0.9156464653455912, 0.9502219119371751, 0.9516422453647778, 0.9156464653455912, 0.9896248533241327
+  ],
+  "commands": [
+    {
+      "command": "MOVE_CLOSER",
+      "passed": true,
+      "measure": 1.4136096364941757,
+      "failure": null
+    },
+    {
+      "command": "TURN_LEFT",
+      "passed": false,
+      "measure": 0.0,
+      "failure": "NOT_PERFORMED"
+    }
+  ],
+  "identityConsistent": true,
+  "minPairwiseSimilarity": 0.9616052349537333,
+  "modelVersion": "sface-2021dec+yunet-2023mar",
+  "padVersion": "minifasnet-v2-2.7_80x80+minifasnet-v1se-4.0_80x80"
+}

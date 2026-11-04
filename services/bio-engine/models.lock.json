@@ -1,0 +1,41 @@
+{
+  "$comment": "Модели bio-engine. Скачиваются при сборке образа (scripts/fetch_models.py) с проверкой SHA-256; MiniFASNet хранится в репозитории (конвертирован tools/minifasnet/convert.py).",
+  "models": [
+    {
+      "name": "yunet",
+      "version": "2023mar",
+      "file": "face_detection_yunet_2023mar.onnx",
+      "url": "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx",
+      "sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+      "license": "MIT",
+      "source": "https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet"
+    },
+    {
+      "name": "sface",
+      "version": "2021dec",
+      "file": "face_recognition_sface_2021dec.onnx",
+      "url": "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx",
+      "sha256": "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79",
+      "license": "Apache-2.0",
+      "source": "https://github.com/opencv/opencv_zoo/tree/main/models/face_recognition_sface"
+    },
+    {
+      "name": "minifasnet-v2",
+      "version": "2.7_80x80",
+      "file": "minifasnet_v2_2.7_80x80.onnx",
+      "url": null,
+      "sha256": "05a805aab6138ce34b6583b48e082f12de94b1f750bd285a252b709852104bc1",
+      "license": "Apache-2.0",
+      "source": "https://github.com/minivision-ai/Silent-Face-Anti-Spoofing (2.7_80x80_MiniFASNetV2.pth)"
+    },
+    {
+      "name": "minifasnet-v1se",
+      "version": "4.0_80x80",
+      "file": "minifasnet_v1se_4.0_80x80.onnx",
+      "url": null,
+      "sha256": "1c62180b3a4aee7b1f2c4a3c78ad0593b2db02d1dd1632e68616f41663fcd4d0",
+      "license": "Apache-2.0",
+      "source": "https://github.com/minivision-ai/Silent-Face-Anti-Spoofing (4_0_0_80x80_MiniFASNetV1SE.pth)"
+    }
+  ]
+}

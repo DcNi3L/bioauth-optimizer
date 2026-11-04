@@ -1,0 +1,35 @@
+[project]
+name = "bio-engine"
+version = "2.0.0"
+description = "BioAuth Optimizer: сервис распознавания лиц (YuNet, SFace, MiniFASNet на ONNX Runtime) без состояния"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["tools/minifasnet"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "SIM", "RUF", "PT", "C4", "PL"]
+ignore = ["PLR0913", "PLR2004", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "PLR2004", "PT018"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["app"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["cv2", "cv2.*", "onnxruntime", "onnxruntime.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["models: тесты с настоящими моделями ONNX (нужен scripts/fetch_models.py)"]
+filterwarnings = ["error::pytest.PytestUnraisableExceptionWarning"]

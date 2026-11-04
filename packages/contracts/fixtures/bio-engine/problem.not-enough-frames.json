@@ -1,0 +1,15 @@
+{
+  "type": "https://bioauth-optimizer/errors/not_enough_good_frames",
+  "title": "Ошибка обработки кадров",
+  "status": 422,
+  "detail": "годных кадров 0, нужно не менее 3",
+  "code": "NOT_ENOUGH_GOOD_FRAMES",
+  "frames": [
+    {
+      "faces": 0,
+      "face": null,
+      "quality": null,
+      "issues": ["NO_FACE"]
+    }
+  ]
+}

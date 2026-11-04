@@ -46,11 +46,41 @@ jobs:
       - name: Тесты (ядро, контракты, API с e2e на PostgreSQL)
         run: pnpm turbo run test
 
+  bio-engine:
+    name: bio-engine (Python, модели ONNX)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/bio-engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/bio-engine/requirements*.txt
+      - uses: actions/cache@v4
+        with:
+          path: |
+            services/bio-engine/models/face_detection_yunet_2023mar.onnx
+            services/bio-engine/models/face_recognition_sface_2021dec.onnx
+          key: bio-models-${{ hashFiles('services/bio-engine/models.lock.json') }}
+      - run: pip install -r requirements-dev.txt
+      - name: Модели (проверка SHA-256)
+        run: python scripts/fetch_models.py
+      - name: Линтер и форматирование (ruff)
+        run: ruff check . && ruff format --check .
+      - name: Типы (mypy --strict)
+        run: mypy
+      - name: Тесты (unit, контракт, модели на эталонных изображениях)
+        run: pytest -v
+
   docker:
     name: Docker Compose + e2e (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    needs: test
+    needs: [test, bio-engine]
     steps:
       - uses: actions/checkout@v4
       - name: Сборка и запуск всех сервисов
