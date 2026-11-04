@@ -1,0 +1,24 @@
+{
+  "name": "@bioauth/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Единые zod-схемы запросов и ответов API (ADR-0009)",
+  "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "4.1.13"
+  },
+  "devDependencies": {
+    "@bioauth/config": "workspace:*",
+    "@types/node": "22.19.1",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

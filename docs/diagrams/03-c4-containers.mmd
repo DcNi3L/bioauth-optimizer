@@ -7,4 +7,4 @@ flowchart LR
   end
   user -->|HTTP| web
   web -->|"REST /api/v1 (JSON)<br/>через rewrites Next.js"| api
-  api -->|"Prisma (SQL)"| db
+  api -->|"Kysely + pg (SQL)"| db

@@ -13,7 +13,7 @@
 - Перед коммитом: `pnpm lint && pnpm typecheck && pnpm test`.
 
 ## Жёсткие правила
-- `optimization-core`: никаких `@nestjs/*`, `next`, `react`, `@prisma/*`, `process.env`, `fs`, `Date.now()` в расчётах, `Math.random()` без явного seed.
+- `optimization-core`: никаких `@nestjs/*`, `next`, `react`, `kysely`, `pg`, `process.env`, `fs`, `Date.now()` в расчётах, `Math.random()` без явного seed.
 - Вероятности хвостов — только `erfc`/`erfcinv`; произведения — в лог-пространстве; сравнения `≤` — только через `leq()` из `numeric/tolerance.ts` (ADR-0008).
 - Нельзя округлять числа в ядре и API.
 - `apps/web` не импортирует `optimization-core` (ADR-0009).

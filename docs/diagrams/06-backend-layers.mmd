@@ -10,7 +10,7 @@ flowchart TB
     CORE["ScoreModel · ThresholdOptimizer<br/>SubsetEvaluator · FactorSelectionSolver"]
   end
   subgraph I["Infrastructure"]
-    REPO["Prisma repositories"]
+    REPO["Kysely repositories"]
     CSV["CsvScoreFileParser"]
   end
   C --> UC

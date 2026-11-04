@@ -29,7 +29,7 @@ flowchart LR
   end
   user -->|HTTP| web
   web -->|"REST /api/v1 (JSON)<br/>через rewrites Next.js"| api
-  api -->|"Prisma (SQL)"| db
+  api -->|"Kysely + pg (SQL)"| db
 ```
 
 ## 3.4. Пакеты монорепозитория и правила зависимостей
@@ -48,7 +48,7 @@ flowchart TB
 ```
 
 Правила проверяются `eslint-plugin-boundaries` и `dependency-cruiser` в CI:
-- `optimization-core` не импортирует ничего из `apps/*`, `@nestjs/*`, `next`, `react`, `@prisma/*`.
+- `optimization-core` не импортирует ничего из `apps/*`, `@nestjs/*`, `next`, `react`, `kysely`, `pg`.
 - `web` не импортирует `optimization-core`: все вычисления выполняются на сервере, это единственный источник правды.
 - `contracts` зависит только от `zod`.
 
@@ -162,7 +162,7 @@ apps/api/src/
 ├── main.ts · app.module.ts
 ├── shared/
 │   ├── config/            # валидация env через zod
-│   ├── prisma/            # PrismaService
+│   ├── database/          # Kysely, мигратор SQL-файлов, migrate.cli (ADR-0011)
 │   ├── http/              # ZodValidationPipe, ProblemDetailsFilter (RFC 7807), RequestIdMiddleware
 │   ├── logging/           # pino, структурные логи с request_id
 │   └── health/            # /health/live, /health/ready (проверка БД)
@@ -178,15 +178,15 @@ apps/api/src/
     ├── factor-catalogs/
     │   ├── presentation/  factor-catalogs.controller.ts
     │   ├── application/   create/update/get/list use-cases, ports/factor-catalog.repository.ts
-    │   └── infrastructure/prisma-factor-catalog.repository.ts
+    │   └── infrastructure/kysely-factor-catalog.repository.ts
     ├── score-datasets/
     │   ├── presentation/  score-datasets.controller.ts (multipart)
     │   ├── application/   upload-dataset.use-case.ts, ports/score-dataset.repository.ts, ports/score-file-parser.ts
-    │   └── infrastructure/csv-score-file.parser.ts (потоковый), prisma-score-dataset.repository.ts
+    │   └── infrastructure/csv-score-file.parser.ts (потоковый), kysely-score-dataset.repository.ts
     ├── experiments/
     │   ├── presentation/  experiments.controller.ts
     │   ├── application/   ports/experiment.repository.ts, experiment-recorder.ts, list/get use-cases
-    │   └── infrastructure/prisma-experiment.repository.ts
+    │   └── infrastructure/kysely-experiment.repository.ts
     └── examples/          # GET пресетов статьи (данные из core/examples)
 ```
 
@@ -203,7 +203,7 @@ flowchart TB
     CORE["ScoreModel · ThresholdOptimizer<br/>SubsetEvaluator · FactorSelectionSolver"]
   end
   subgraph I["Infrastructure"]
-    REPO["Prisma repositories"]
+    REPO["Kysely repositories"]
     CSV["CsvScoreFileParser"]
   end
   C --> UC
@@ -214,7 +214,7 @@ flowchart TB
   REPO --> DB[(PostgreSQL)]
 ```
 
-**Правило зависимостей:** стрелки направлены только внутрь. Use case знает интерфейс `ExperimentRepository`, но не знает Prisma. Подстановку реализаций делает `*.module.ts` через DI-токены NestJS.
+**Правило зависимостей:** стрелки направлены только внутрь. Use case знает интерфейс `ExperimentRepository`, но не знает Kysely. Подстановку реализаций делает `*.module.ts` через DI-токены NestJS.
 
 ## 3.7. Фронтенд: Next.js App Router + Feature-Sliced Design
 
@@ -354,7 +354,7 @@ flowchart TD
 | **O** — открытость/закрытость | Новый решатель (например, NSGA-II), правило объединения («ИЛИ») или модель оценок (бета-распределение) добавляется новой реализацией интерфейса `FactorSelectionSolver` / `FusionRule` / `ScoreModel` без правки существующего кода. `SolverSelector` получает реестр решателей через DI |
 | **L** — подстановка Лисков | Любой `FactorSelectionSolver` возвращает `SelectionResult` с одинаковым контрактом (оптимум, допустимость, метаданные). Property-тест гоняет одну и ту же спецификацию на всех реализациях |
 | **I** — разделение интерфейсов | `ScoreModel` содержит только `far/frr`; кривые строит отдельный `CurveBuilder`. Порты репозиториев узкие: `ExperimentRepository { save, findById, list }` без лишних методов |
-| **D** — инверсия зависимостей | Use cases зависят от портов (`ExperimentRepository`, `MilpPort`), реализации (Prisma, HiGHS) подставляются через DI. `CertifiedIlpSolver` не знает о HiGHS: в тестах ему подставляется заглушка `MilpPort` |
+| **D** — инверсия зависимостей | Use cases зависят от портов (`ExperimentRepository`, `MilpPort`), реализации (Kysely, HiGHS) подставляются через DI. `CertifiedIlpSolver` не знает о HiGHS: в тестах ему подставляется заглушка `MilpPort` |
 
 ## 3.10. Сквозные аспекты
 

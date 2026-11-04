@@ -1,0 +1,10 @@
+{
+  "extends": "@bioauth/config/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node", "jest"]
+  },
+  "include": ["src", "test"]
+}

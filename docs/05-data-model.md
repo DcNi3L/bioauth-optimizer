@@ -1,4 +1,4 @@
-# 05. Модель данных (PostgreSQL 16, Prisma)
+# 05. Модель данных (PostgreSQL 16, Kysely)
 
 ## 5.1. Принципы
 
@@ -130,5 +130,5 @@ CREATE INDEX experiment_dataset_idx      ON experiment (score_dataset_id);
 
 ## 5.5. Миграции
 
-- `prisma migrate deploy` выполняется при старте контейнера `api` до запуска сервера (см. 06-deployment).
+- SQL-миграции из `apps/api/migrations` применяет мигратор `migrate.cli.ts` при старте контейнера `api`, до запуска сервера (ADR-0011, 06-deployment).
 - Миграции только вперёд; каждая следующая миграция должна быть совместима с кодом предыдущей версии (expand → migrate → contract).

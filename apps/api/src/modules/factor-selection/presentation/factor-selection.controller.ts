@@ -1,0 +1,43 @@
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  budgetSweepRequestSchema,
+  budgetSweepResponseSchema,
+  factorSelectionRequestSchema,
+  factorSelectionResponseSchema,
+  type BudgetSweepCommand,
+  type BudgetSweepResponse,
+  type FactorSelectionCommand,
+  type FactorSelectionResponse,
+} from '@bioauth/contracts';
+import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
+import { ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
+import { BudgetSweepUseCase } from '../application/budget-sweep.use-case';
+import { SolveFactorSelectionUseCase } from '../application/solve-factor-selection.use-case';
+
+@ApiTags('Состав факторов')
+@Controller('factor-selection')
+export class FactorSelectionController {
+  constructor(
+    private readonly solveUseCase: SolveFactorSelectionUseCase,
+    private readonly sweepUseCase: BudgetSweepUseCase,
+  ) {}
+
+  @Post('solve')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Оптимальный состав факторов: полный перебор или сертифицированное ЦЛП (формулы 2–3 СРО1)' })
+  @ApiZodBody(factorSelectionRequestSchema)
+  @ApiZodOk(factorSelectionResponseSchema)
+  solve(@Body(new ZodValidationPipe(factorSelectionRequestSchema)) cmd: FactorSelectionCommand): Promise<FactorSelectionResponse> {
+    return this.solveUseCase.execute(cmd);
+  }
+
+  @Post('budget-sweep')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Анализ чувствительности оптимума к бюджету' })
+  @ApiZodBody(budgetSweepRequestSchema)
+  @ApiZodOk(budgetSweepResponseSchema)
+  sweep(@Body(new ZodValidationPipe(budgetSweepRequestSchema)) cmd: BudgetSweepCommand): Promise<BudgetSweepResponse> {
+    return this.sweepUseCase.execute(cmd);
+  }
+}
