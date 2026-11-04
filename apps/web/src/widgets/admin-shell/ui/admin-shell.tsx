@@ -16,6 +16,7 @@ const TABS = [
   { href: '/admin/policies', label: 'Политики' },
   { href: '/admin/attempts', label: 'Попытки' },
   { href: '/admin/pad-test', label: 'Испытание PAD' },
+  { href: '/admin/batch', label: 'Пакетный режим' },
   { href: '/admin/audit', label: 'Аудит' },
 ] as const;
 

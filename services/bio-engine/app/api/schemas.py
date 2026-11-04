@@ -108,6 +108,30 @@ class LivenessResponse(Model):
     pad_version: str
 
 
+class BatchSkipped(Model):
+    file: str
+    reason: str
+
+
+class BatchProtocolOut(Model):
+    seed: int
+    impostor_total: int = Field(description='Число всех возможных impostor-пар')
+    impostor_sampled: bool = Field(description='impostor-пары взяты случайной выборкой с seed')
+
+
+class BatchResponse(Model):
+    modality: str
+    model_version: str
+    subjects: int
+    images: int
+    images_used: int
+    skipped: list[BatchSkipped] = Field(description='Не более 200 первых пропущенных файлов')
+    skipped_total: int
+    genuine: list[float]
+    impostor: list[float]
+    protocol: BatchProtocolOut
+
+
 class Problem(Model):
     type: str
     title: str

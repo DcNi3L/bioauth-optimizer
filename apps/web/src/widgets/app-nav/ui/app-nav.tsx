@@ -23,7 +23,7 @@ export function AppNav() {
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-1 px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-baseline gap-2">
           <span className="font-serif text-lg font-semibold">BioAuth Optimizer</span>
-          <span className="text-graphite hidden text-sm xl:inline">
+          <span className="text-graphite hidden text-sm 2xl:inline">
             оптимизация биометрической аутентификации
           </span>
         </Link>

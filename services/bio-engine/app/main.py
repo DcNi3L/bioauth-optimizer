@@ -6,17 +6,19 @@ import logging
 from collections.abc import Callable
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Query, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from .adapters.archive import read_images
 from .adapters.opencv_models import MiniFasNetLiveness, OpenCvImageMetrics, SFaceEmbedder, YuNetDetector
 from .api import schemas as s
 from .api.middleware import AccessLogMiddleware, BodyLimitMiddleware, SecretMiddleware
 from .config import Settings, get_settings
 from .errors import BioError
 from .logging_setup import setup_logging
-from .service import FaceService
+from .service import FaceService, batch_face
 
 log = logging.getLogger('bio')
 PROBLEM = 'application/problem+json'
@@ -55,7 +57,9 @@ def create_app(
         'Все методы /v1 требуют заголовок X-Bio-Secret.',
     )
     app.add_middleware(SecretMiddleware, secret=cfg.secret.get_secret_value())
-    app.add_middleware(BodyLimitMiddleware, max_bytes=cfg.max_body_bytes)
+    app.add_middleware(
+        BodyLimitMiddleware, max_bytes=cfg.max_body_bytes, prefix_limits={'/v1/batch/': cfg.max_batch_bytes}
+    )
     app.add_middleware(AccessLogMiddleware)
 
     app.state.service = service
@@ -142,5 +146,39 @@ def create_app(
     )
     def liveness(req: s.LivenessRequest, service: Svc) -> s.LivenessResponse:
         return service.liveness(req)
+
+    @app.post(
+        '/v1/batch/face',
+        tags=['batch'],
+        response_model=s.BatchResponse,
+        response_model_by_alias=True,
+        responses=responses,
+        summary='Пакетная оценка набора изображений лиц (zip «<субъект>/<файл>»)',
+        openapi_extra={
+            'requestBody': {
+                'content': {'application/zip': {'schema': {'type': 'string', 'format': 'binary'}}}
+            }
+        },
+    )
+    async def batch_face_endpoint(
+        request: Request,
+        service: Svc,
+        seed: Annotated[int, Query(ge=0, le=2**32 - 1, description='Seed выборки impostor-пар')] = 0,
+        max_impostor: Annotated[
+            int, Query(alias='maxImpostor', ge=1, description='Сколько impostor-пар взять, если всех больше')
+        ] = 100_000,
+    ) -> s.BatchResponse:
+        if max_impostor > cfg.max_batch_impostor:
+            raise BioError(422, 'VALIDATION_ERROR', f'maxImpostor: не более {cfg.max_batch_impostor}')
+        raw = await request.body()
+        images = read_images(
+            raw,
+            max_files=cfg.max_batch_files,
+            max_file_bytes=cfg.max_frame_bytes,
+            max_total_bytes=cfg.max_batch_unpacked_bytes,
+        )
+        return await run_in_threadpool(
+            batch_face, service, images, seed=seed, max_impostor=max_impostor, max_side=cfg.max_frame_side
+        )
 
     return app

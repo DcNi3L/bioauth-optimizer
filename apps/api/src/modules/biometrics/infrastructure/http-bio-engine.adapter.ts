@@ -1,4 +1,6 @@
 import {
+  type BioBatchResponse,
+  bioBatchResponseSchema,
   type BioLivenessRequest,
   type BioLivenessResponse,
   bioLivenessResponseSchema,
@@ -12,8 +14,8 @@ import {
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { APP_CONFIG, type AppConfig } from '../../../shared/config/env';
-import { ConflictError, ServiceUnavailableError } from '../../../shared/errors';
-import { type FaceEngine, FaceRejectedError, type Frame } from '../application/ports';
+import { ConflictError, ServiceUnavailableError, UnprocessableError } from '../../../shared/errors';
+import { type BatchFaceOptions, type FaceEngine, FaceRejectedError, type Frame } from '../application/ports';
 
 const REJECTION_CODES = new Set(['NOT_ENOUGH_GOOD_FRAMES', 'NO_USABLE_FRAMES', 'INVALID_IMAGE']);
 
@@ -41,6 +43,38 @@ export class HttpBioEngineAdapter implements FaceEngine {
 
   liveness(req: BioLivenessRequest): Promise<BioLivenessResponse> {
     return this.call('/v1/face/liveness', req, bioLivenessResponseSchema);
+  }
+
+  /** Без повторов: архив большой, а обработка долгая; отказ по содержимому архива — 422 с кодом bio-engine. */
+  async batchFace(archive: Buffer, opts: BatchFaceOptions, signal: AbortSignal): Promise<BioBatchResponse> {
+    const url = new URL('/v1/batch/face', this.config.BIO_ENGINE_URL);
+    url.searchParams.set('seed', String(opts.seed));
+    url.searchParams.set('maxImpostor', String(opts.maxImpostor));
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/zip', 'x-bio-secret': this.config.BIO_ENGINE_SECRET },
+        body: new Uint8Array(archive),
+        signal: AbortSignal.any([signal, AbortSignal.timeout(this.config.BATCH_TIMEOUT_MS)]),
+      });
+    } catch (err) {
+      if (signal.aborted) throw err;
+      this.logger.error({ path: url.pathname, err: (err as Error).name }, 'bio-engine недоступен');
+      throw new ServiceUnavailableError('сервис распознавания недоступен, повторите позже');
+    }
+    const json: unknown = await res.json().catch(() => null);
+    if (res.ok) {
+      const parsed = bioBatchResponseSchema.safeParse(json);
+      if (parsed.success) return parsed.data;
+      this.logger.error({ path: url.pathname }, 'ответ bio-engine не соответствует контракту');
+      throw new ServiceUnavailableError('сервис распознавания вернул некорректный ответ');
+    }
+    const problem = bioProblemSchema.safeParse(json);
+    if ((res.status === 422 || res.status === 413) && problem.success)
+      throw new UnprocessableError(problem.data.detail, problem.data.code);
+    this.logger.error({ path: url.pathname, status: res.status }, 'ошибка bio-engine');
+    throw new ServiceUnavailableError('ошибка сервиса распознавания');
   }
 
   private async call<S extends z.ZodType>(path: string, body: unknown, schema: S): Promise<z.output<S>> {

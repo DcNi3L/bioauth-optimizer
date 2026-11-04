@@ -1,6 +1,9 @@
 import {
   type AttemptsPageDto,
   attemptsPageSchema,
+  type BatchJobDto,
+  batchJobRequestSchema,
+  batchJobSchema,
   calibrateRequestSchema,
   calibrateResponseSchema,
   calibrationOverviewSchema,
@@ -13,14 +16,31 @@ import {
   proposeFromCalibrationSchema,
   z,
 } from '@bioauth/contracts';
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Post,
+  Query,
+  Res,
+  StreamableFile,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Response as ExpressResponse } from 'express';
 
 import { type AuthUser, CurrentUser, RequireMfa, Roles } from '../../../shared/auth/auth';
 import { NotFoundError, ValidationError } from '../../../shared/errors';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import { AttemptsService } from '../application/attempts.service';
+import { BatchJobsService } from '../application/batch-jobs.service';
 import { CalibrationService } from '../application/calibration.service';
 import { DriftService } from '../application/drift.service';
 import { PadTestService } from '../application/pad-test.service';
@@ -169,5 +189,84 @@ export class AttemptsController {
     @Query(new ZodValidationPipe(attemptsQuery)) q: z.output<typeof attemptsQuery>,
   ): Promise<AttemptsPageDto> {
     return this.attempts.page(user, q);
+  }
+}
+
+@ApiTags('Пакетный режим')
+@Controller('calibration/batch')
+export class BatchController {
+  constructor(private readonly batch: BatchJobsService) {}
+
+  @Post()
+  @HttpCode(202)
+  @Roles('admin', 'researcher')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: 'Пакетная оценка: zip «<субъект>/<файл>» → набор оценок для расчёта порога (UC-9)',
+    description:
+      'Задача выполняется в фоне; состояние — GET /calibration/batch/{id}. Genuine — все пары изображений ' +
+      'одного субъекта; impostor — все пары разных субъектов или выборка maxImpostor с seed.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        name: { type: 'string' },
+        seed: { type: 'integer', default: 0 },
+        maxImpostor: { type: 'integer', default: 100000 },
+        includeInCalibration: { type: 'boolean', default: false },
+      },
+    },
+  })
+  @ApiZodOk(batchJobSchema)
+  start(
+    @CurrentUser() user: AuthUser,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @Body(new ZodValidationPipe(batchJobRequestSchema)) body: z.output<typeof batchJobRequestSchema>,
+  ): BatchJobDto {
+    if (!file) throw new ValidationError('нужно приложить zip-архив в поле file', 'file');
+    return this.batch.start(user, {
+      archive: file.buffer,
+      filename: file.originalname,
+      name: body.name,
+      seed: body.seed,
+      maxImpostor: body.maxImpostor,
+      includeInCalibration: body.includeInCalibration,
+    });
+  }
+
+  @Get()
+  @Roles('admin', 'researcher')
+  @ApiOperation({ summary: 'Пакетные задачи с момента запуска сервера, новые сверху' })
+  list(): BatchJobDto[] {
+    return this.batch.list();
+  }
+
+  @Get(':id')
+  @Roles('admin', 'researcher')
+  @ApiZodOk(batchJobSchema)
+  get(@Param('id', UuidPipe) id: string): BatchJobDto {
+    return this.batch.get(id);
+  }
+
+  @Get(':id/csv')
+  @Roles('admin', 'researcher')
+  @ApiOperation({ summary: 'CSV оценок (score,label) — для воспроизведения расчёта' })
+  csv(@Param('id', UuidPipe) id: string, @Res({ passthrough: true }) res: ExpressResponse): StreamableFile {
+    const { filename, content } = this.batch.csv(id);
+    res.setHeader('content-type', 'text/csv; charset=utf-8');
+    res.setHeader('content-disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
+    return new StreamableFile(content);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @Roles('admin', 'researcher')
+  @ApiOperation({ summary: 'Отменить выполняющуюся задачу' })
+  cancel(@Param('id', UuidPipe) id: string): void {
+    this.batch.cancel(id);
   }
 }

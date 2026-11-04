@@ -33,6 +33,17 @@ const envSchema = z.object({
   BIO_ENGINE_URL: z.url().default('http://localhost:8000'),
   BIO_ENGINE_SECRET: z.string().default('dev-bio-secret-change-me'),
   BIO_ENGINE_TIMEOUT_MS: z.coerce.number().int().positive().default(15000),
+  /** Пакетный режим: предельный размер zip-архива и время обработки набора bio-engine. */
+  BATCH_MAX_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(256 * 1024 * 1024),
+  BATCH_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(30 * 60 * 1000),
   TEMPLATE_KEYS: z.preprocess((v) => (v === '' ? undefined : v), templateKeysSchema.optional()),
   TEMPLATE_ACTIVE_KEY: z.string().optional(),
   TEMPLATE_CANCELABLE: booleanFlag.default(true),

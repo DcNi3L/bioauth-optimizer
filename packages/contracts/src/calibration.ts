@@ -203,3 +203,48 @@ export const attemptsPageSchema = z.object({
   nextCursor: z.string().nullable(),
 });
 export type AttemptsPageDto = z.infer<typeof attemptsPageSchema>;
+
+// ── Пакетный режим (UC-9): набор изображений → набор оценок v1 ──
+
+export const batchJobStateSchema = z.enum(['running', 'done', 'failed', 'cancelled']);
+
+export const batchJobSchema = z.object({
+  id: z.uuid(),
+  state: batchJobStateSchema,
+  stage: z.enum(['scoring', 'saving']).nullable(),
+  filename: z.string(),
+  name: z.string(),
+  seed: z.number().int(),
+  maxImpostor: z.number().int(),
+  includeInCalibration: z.boolean(),
+  startedAt: z.string(),
+  finishedAt: z.string().nullable(),
+  error: z.string().nullable(),
+  result: z
+    .object({
+      datasetId: z.uuid(),
+      modelVersion: z.string(),
+      subjects: z.number().int(),
+      images: z.number().int(),
+      imagesUsed: z.number().int(),
+      skipped: z.array(z.object({ file: z.string(), reason: z.string() })),
+      skippedTotal: z.number().int(),
+      genuineCount: z.number().int(),
+      impostorCount: z.number().int(),
+      impostorTotal: z.number().int(),
+      impostorSampled: z.boolean(),
+    })
+    .nullable(),
+});
+export type BatchJobDto = z.infer<typeof batchJobSchema>;
+
+/** Поля формы загрузки архива (multipart, вместе с файлом в поле file). */
+export const batchJobRequestSchema = z.object({
+  name: z.string().trim().max(200).optional(),
+  seed: z.coerce.number().int().min(0).max(4_294_967_295).default(0),
+  maxImpostor: z.coerce.number().int().min(1).max(900_000).default(100_000),
+  includeInCalibration: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+});

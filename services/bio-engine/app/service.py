@@ -7,11 +7,12 @@ from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 
-from .adapters.images import decode_frame
+from .adapters.archive import ArchiveImage
+from .adapters.images import decode_bytes, decode_frame
 from .api import schemas as s
 from .config import Settings
 from .domain import liveness as lv
-from .domain import matching
+from .domain import matching, pairs
 from .domain.geometry import Pose, pose
 from .domain.quality import Issue, QualityInput, assess
 from .errors import BioError
@@ -52,6 +53,14 @@ class FaceService:
     @property
     def pad_version(self) -> str:
         return self._pad.version
+
+    @property
+    def detector(self) -> FaceDetector:
+        return self._det
+
+    @property
+    def embedder(self) -> FaceEmbedder:
+        return self._emb
 
     def versions(self) -> dict[str, str]:
         return {'detector': self._det.version, 'embedder': self._emb.version, 'liveness': self._pad.version}
@@ -218,3 +227,65 @@ class FaceService:
             model_version=self.model_version,
             pad_version=self.pad_version,
         )
+
+
+MAX_SKIPPED_REPORTED = 200
+
+
+def batch_face(
+    service: FaceService,
+    images: list[ArchiveImage],
+    *,
+    seed: int,
+    max_impostor: int,
+    max_side: int,
+) -> s.BatchResponse:
+    """Пакетная оценка (UC-9): эмбеддинг лица на каждом изображении (лицо с наибольшей уверенностью
+    детектора), затем сходство по протоколу пар. Изображение без лица пропускается с причиной."""
+    subjects: list[str] = []
+    embeddings: list[npt.NDArray[np.float64]] = []
+    skipped: list[s.BatchSkipped] = []
+    for img in images:
+        try:
+            image = decode_bytes(img.data, img.name, max_side=max_side)
+        except BioError:
+            skipped.append(s.BatchSkipped(file=img.name, reason='INVALID_IMAGE'))
+            continue
+        faces = service.detector.detect(image)
+        if not faces:
+            skipped.append(s.BatchSkipped(file=img.name, reason='NO_FACE'))
+            continue
+        embeddings.append(matching.l2_normalize(service.embedder.embed(image, faces[0])))
+        subjects.append(img.subject)
+    protocol = pairs.build_protocol(subjects, max_impostor, seed)
+    if not protocol.genuine:
+        raise BioError(
+            422,
+            'NO_GENUINE_PAIRS',
+            'нет genuine-пар: нужен хотя бы один субъект с двумя изображениями, где найдено лицо',
+        )
+    if not protocol.impostor:
+        raise BioError(422, 'NO_IMPOSTOR_PAIRS', 'нет impostor-пар: нужно не менее двух субъектов')
+    m = np.vstack(embeddings) if embeddings else np.empty((0, 128))
+
+    def scores(ps: list[pairs.Pair]) -> list[float]:
+        if not ps:
+            return []
+        idx = np.asarray(ps, dtype=np.int64)
+        sims = np.einsum('ij,ij->i', m[idx[:, 0]], m[idx[:, 1]])
+        return [round(float(x), 6) for x in np.clip(sims, -1.0, 1.0)]
+
+    return s.BatchResponse(
+        modality='face',
+        model_version=service.model_version,
+        subjects=len({img.subject for img in images}),
+        images=len(images),
+        images_used=len(embeddings),
+        skipped=skipped[:MAX_SKIPPED_REPORTED],
+        skipped_total=len(skipped),
+        genuine=scores(protocol.genuine),
+        impostor=scores(protocol.impostor),
+        protocol=s.BatchProtocolOut(
+            seed=seed, impostor_total=protocol.impostor_total, impostor_sampled=protocol.sampled
+        ),
+    )

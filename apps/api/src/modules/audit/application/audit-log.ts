@@ -19,7 +19,8 @@ export type AuditAction =
   | 'subject.registered'
   | 'templates.rekeyed'
   | 'pad_test.recorded'
-  | 'face.enroll_failed';
+  | 'face.enroll_failed'
+  | 'batch.scored';
 
 export interface AuditEventInput {
   readonly actorId: string | null;

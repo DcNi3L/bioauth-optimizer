@@ -7,16 +7,18 @@ JPEG/PNG в base64 и возвращает числа: проблемы каче
 
 ## Методы
 
-| Метод                               | Назначение                                                                                                  |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `POST /v1/face/analyze`             | Детекция YuNet и контроль качества каждого кадра: одно лицо, размер, резкость, яркость, поза                |
-| `POST /v1/face/template`            | Шаблон регистрации по годным кадрам (≥ 3): нормированное среднее эмбеддингов SFace, genuine-оценки пар, PAD |
-| `POST /v1/face/verify`              | Медиана косинусного сходства кадров попытки с шаблоном, согласованность кадров, эмбеддинг пробы             |
-| `POST /v1/face/liveness`            | Пассивная PAD (MiniFASNet), 1–5 активных команд относительно нейтральных кадров, согласованность личности   |
-| `GET /health/live`, `/health/ready` | Проверки здоровья (без секрета); ready возвращает версии моделей                                            |
+| Метод                                    | Назначение                                                                                                  |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `POST /v1/face/analyze`                  | Детекция YuNet и контроль качества каждого кадра: одно лицо, размер, резкость, яркость, поза                |
+| `POST /v1/face/template`                 | Шаблон регистрации по годным кадрам (≥ 3): нормированное среднее эмбеддингов SFace, genuine-оценки пар, PAD |
+| `POST /v1/face/verify`                   | Медиана косинусного сходства кадров попытки с шаблоном, согласованность кадров, эмбеддинг пробы             |
+| `POST /v1/face/liveness`                 | Пассивная PAD (MiniFASNet), 1–5 активных команд относительно нейтральных кадров, согласованность личности   |
+| `POST /v1/batch/face?seed=&maxImpostor=` | Пакетный режим: zip «<субъект>/<файл>» → genuine- и impostor-оценки по протоколу пар с seed                 |
+| `GET /health/live`, `/health/ready`      | Проверки здоровья (без секрета); ready возвращает версии моделей                                            |
 
 Ошибки — `application/problem+json` с машинным кодом: `VALIDATION_ERROR`, `INVALID_IMAGE`, `TOO_MANY_FRAMES`,
-`PAYLOAD_TOO_LARGE`, `NOT_ENOUGH_GOOD_FRAMES`, `NO_USABLE_FRAMES`, `MODEL_VERSION_MISMATCH`, `UNAUTHORIZED`.
+`PAYLOAD_TOO_LARGE`, `NOT_ENOUGH_GOOD_FRAMES`, `INVALID_ARCHIVE`, `EMPTY_ARCHIVE`, `INVALID_LAYOUT`,
+`TOO_MANY_FILES`, `FILE_TOO_LARGE`, `ARCHIVE_TOO_LARGE`, `NO_GENUINE_PAIRS`, `NO_IMPOSTOR_PAIRS`, `NO_USABLE_FRAMES`, `MODEL_VERSION_MISMATCH`, `UNAUTHORIZED`.
 Контракт с api зафиксирован примерами в `packages/contracts/fixtures/bio-engine`: их проверяют и pydantic-схемы
 сервиса, и zod-схемы api.
 

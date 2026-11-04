@@ -24,6 +24,7 @@ SCHEMAS: dict[str, type[BaseModel]] = {
     'verify.response.json': s.VerifyResponse,
     'liveness.request.json': s.LivenessRequest,
     'liveness.response.json': s.LivenessResponse,
+    'batch-face.response.json': s.BatchResponse,
     'problem.not-enough-frames.json': s.Problem,
     'problem.model-mismatch.json': s.Problem,
 }

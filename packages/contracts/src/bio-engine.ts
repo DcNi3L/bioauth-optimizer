@@ -124,3 +124,23 @@ export const bioProblemSchema = z.looseObject({
   frames: z.array(frameAnalysisSchema).optional(),
 });
 export type BioProblem = z.infer<typeof bioProblemSchema>;
+
+// ── Пакетный режим (UC-9): zip «<субъект>/<файл>» → genuine/impostor-оценки ──
+
+export const bioBatchResponseSchema = z.object({
+  modality: z.literal('face'),
+  modelVersion: z.string(),
+  subjects: z.number().int(),
+  images: z.number().int(),
+  imagesUsed: z.number().int(),
+  skipped: z.array(z.object({ file: z.string(), reason: z.string() })),
+  skippedTotal: z.number().int(),
+  genuine: z.array(z.number()),
+  impostor: z.array(z.number()),
+  protocol: z.object({
+    seed: z.number().int(),
+    impostorTotal: z.number().int(),
+    impostorSampled: z.boolean(),
+  }),
+});
+export type BioBatchResponse = z.infer<typeof bioBatchResponseSchema>;

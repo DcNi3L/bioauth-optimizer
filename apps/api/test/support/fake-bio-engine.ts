@@ -62,6 +62,37 @@ export async function startFakeBioEngine(): Promise<FakeBioEngine> {
         send(401, { type: 't', title: 'Нет доступа', status: 401, detail: 'secret', code: 'UNAUTHORIZED' });
         return;
       }
+      if (req.url?.startsWith('/v1/batch/face')) {
+        // Архив не разбирается: содержимое-маркер задаёт сценарий (EMPTY — отказ, SLOW — долгая обработка).
+        const url = new URL(req.url, 'http://x');
+        const seed = Number(url.searchParams.get('seed'));
+        if (body.includes('EMPTY')) {
+          send(422, {
+            type: 't',
+            title: 'Ошибка',
+            status: 422,
+            detail: 'в архиве нет изображений',
+            code: 'EMPTY_ARCHIVE',
+          });
+          return;
+        }
+        const reply = () =>
+          send(200, {
+            modality: 'face',
+            modelVersion: 'fake-sface+fake-yunet',
+            subjects: 3,
+            images: 7,
+            imagesUsed: 6,
+            skipped: [{ file: 'c/blurred.jpg', reason: 'NO_FACE' }],
+            skippedTotal: 1,
+            genuine: [0.9, 0.85, 0.8],
+            impostor: [0.1, 0.05 + seed / 1000, 0.2, -0.1],
+            protocol: { seed, impostorTotal: 12, impostorSampled: true },
+          });
+        if (body.includes('SLOW')) setTimeout(reply, 1500);
+        else reply();
+        return;
+      }
       const json = JSON.parse(body) as Record<string, unknown>;
       const version = 'fake-sface+fake-yunet';
       if (req.url === '/v1/face/template') {

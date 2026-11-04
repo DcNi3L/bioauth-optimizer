@@ -1,4 +1,5 @@
 import type {
+  BioBatchResponse,
   BioLivenessRequest,
   BioLivenessResponse,
   BioTemplateResponse,
@@ -34,6 +35,13 @@ export interface FaceEngine {
     template: { embedding: number[]; modelVersion: string },
   ): Promise<BioVerifyResponse>;
   liveness(req: BioLivenessRequest): Promise<BioLivenessResponse>;
+  /** Пакетная оценка набора изображений (UC-9); отмена — через signal. */
+  batchFace(archive: Buffer, opts: BatchFaceOptions, signal: AbortSignal): Promise<BioBatchResponse>;
+}
+
+export interface BatchFaceOptions {
+  readonly seed: number;
+  readonly maxImpostor: number;
 }
 
 /** Отказ bio-engine по содержанию кадров (нет лица, мало годных кадров) — не ошибка сервиса. */

@@ -1,3 +1,5 @@
+import { type BatchJobDto, batchJobSchema } from '@bioauth/contracts';
+
 import { frame } from '../support/fake-bio-engine';
 import {
   type Agent,
@@ -286,5 +288,89 @@ describeDb('API v2.2 e2e: калибровка, PAD, дрейф (PostgreSQL)', (
     expect(ov.body.drift).toHaveLength(1);
     await admin.post(`/api/v1/calibration/drift/${ov.body.drift[0].id}/acknowledge`).expect(204);
     expect((await admin.get('/api/v1/calibration/overview').expect(200)).body.drift).toHaveLength(0);
+  });
+  it('пакетный режим: архив → набор оценок v1 и калибровка; отказ, отмена, одна задача за раз', async () => {
+    const zip = (marker: string) => Buffer.concat([Buffer.from('PK\u0003\u0004'), Buffer.from(marker)]);
+    const wait = async (id: string): Promise<BatchJobDto> => {
+      for (let i = 0; i < 100; i++) {
+        const r = await admin.get(`/api/v1/calibration/batch/${id}`).expect(200);
+        const job = batchJobSchema.parse(r.body);
+        if (job.state !== 'running') return job;
+        await new Promise((res) => setTimeout(res, 50));
+      }
+      throw new Error('задача не завершилась');
+    };
+
+    const s = ctx.agent();
+    await registerSubject(s, 'batch-subject', false);
+    await s.post('/api/v1/calibration/batch').attach('file', zip('ok'), 'set.zip').expect(403);
+    await admin.post('/api/v1/calibration/batch').field('seed', '1').expect(400);
+
+    const started = await admin
+      .post('/api/v1/calibration/batch')
+      .attach('file', zip('ok'), 'lfw-subset.zip')
+      .field('seed', '7')
+      .field('maxImpostor', '4')
+      .field('includeInCalibration', 'true')
+      .expect(202);
+    expect(started.body).toMatchObject({
+      state: 'running',
+      name: 'lfw-subset',
+      seed: 7,
+      includeInCalibration: true,
+    });
+    const done = await wait(started.body.id);
+    expect(done).toMatchObject({
+      state: 'done',
+      error: null,
+      result: {
+        genuineCount: 3,
+        impostorCount: 4,
+        skippedTotal: 1,
+        impostorSampled: true,
+        impostorTotal: 12,
+      },
+    });
+
+    // Набор оценок v1: CSV score,label → расчёт порога в эмпирическом режиме (критерий этапа 6).
+    const ds = await admin.get(`/api/v1/score-datasets/${done.result!.datasetId}`).expect(200);
+    expect(ds.body).toMatchObject({ genuineCount: 3, impostorCount: 4 });
+    const t = await admin
+      .post('/api/v1/threshold/optimize')
+      .send({ model: { kind: 'empirical', datasetId: done.result!.datasetId }, costs: { cFA: 1, cFR: 1 } })
+      .expect(200);
+    expect(t.body.optimal.frr).toBe(0);
+    const csv = await admin.get(`/api/v1/calibration/batch/${started.body.id}/csv`).expect(200);
+    expect(csv.headers['content-type']).toContain('text/csv');
+    expect(csv.text.split('\n')[0]).toBe('score,label');
+    expect(csv.text).toContain('0.057,impostor');
+
+    const overview = await admin.get('/api/v1/calibration/overview').expect(200);
+    const face = overview.body.data.find(
+      (d: { modality: string; modelVersion: string }) => d.modality === 'face' && d.modelVersion === MODEL,
+    );
+    expect(face.bySource['batch:genuine']).toBe(3);
+    expect(face.bySource['batch:impostor']).toBe(4);
+    const audit = await admin.get('/api/v1/audit/events?limit=5').expect(200);
+    expect(audit.body.map((e: { action: string }) => e.action)).toContain('batch.scored');
+
+    const empty = await admin
+      .post('/api/v1/calibration/batch')
+      .attach('file', zip('EMPTY'), 'e.zip')
+      .expect(202);
+    expect(await wait(empty.body.id)).toMatchObject({ state: 'failed', error: 'в архиве нет изображений' });
+
+    const slow = await admin
+      .post('/api/v1/calibration/batch')
+      .attach('file', zip('SLOW'), 's.zip')
+      .expect(202);
+    await admin.post('/api/v1/calibration/batch').attach('file', zip('ok'), 'x.zip').expect(409);
+    await admin.delete(`/api/v1/calibration/batch/${slow.body.id}`).expect(204);
+    expect((await admin.get(`/api/v1/calibration/batch/${slow.body.id}`).expect(200)).body.state).toBe(
+      'cancelled',
+    );
+    await admin.delete(`/api/v1/calibration/batch/${slow.body.id}`).expect(409);
+    const list = await admin.get('/api/v1/calibration/batch').expect(200);
+    expect(list.body[0].id).toBe(slow.body.id);
   });
 });

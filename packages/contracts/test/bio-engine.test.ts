@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   bioAnalyzeResponseSchema,
+  bioBatchResponseSchema,
   bioFramesRequestSchema,
   bioLivenessRequestSchema,
   bioLivenessResponseSchema,
@@ -27,6 +28,7 @@ const SCHEMAS: Record<string, z.ZodType> = {
   'verify.response.json': bioVerifyResponseSchema,
   'liveness.request.json': bioLivenessRequestSchema,
   'liveness.response.json': bioLivenessResponseSchema,
+  'batch-face.response.json': bioBatchResponseSchema,
   'problem.not-enough-frames.json': bioProblemSchema,
   'problem.model-mismatch.json': bioProblemSchema,
 };

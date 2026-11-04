@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     max_frame_bytes: int = 4 * 1024 * 1024
     max_frame_side: int = 1920
     min_template_frames: int = 3
+    max_batch_bytes: int = 256 * 1024 * 1024
+    """Размер zip-архива пакетного режима (тело запроса /v1/batch/*)."""
+    max_batch_files: int = 5000
+    max_batch_unpacked_bytes: int = 1024 * 1024 * 1024
+    max_batch_impostor: int = 1_000_000
     log_level: str = 'INFO'
     quality: QualityThresholds = QualityThresholds()
     liveness: LivenessThresholds = LivenessThresholds()

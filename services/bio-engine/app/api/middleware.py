@@ -59,20 +59,26 @@ class SecretMiddleware:
 
 
 class BodyLimitMiddleware:
-    """Отклоняет тела больше max_bytes: и по Content-Length, и при потоковой передаче."""
+    """Отклоняет тела больше лимита: и по Content-Length, и при потоковой передаче.
+    Для путей с префиксом из prefix_limits действует свой лимит (архивы пакетного режима)."""
 
-    def __init__(self, app: ASGIApp, max_bytes: int) -> None:
+    def __init__(self, app: ASGIApp, max_bytes: int, prefix_limits: dict[str, int] | None = None) -> None:
         self.app = app
-        self.max_bytes = max_bytes
+        self.default = max_bytes
+        self.prefix_limits = prefix_limits or {}
+
+    def _limit(self, path: str) -> int:
+        return next((v for p, v in self.prefix_limits.items() if path.startswith(p)), self.default)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
             await self.app(scope, receive, send)
             return
+        max_bytes = self._limit(scope['path'])
         length = dict(scope['headers']).get(b'content-length')
-        if length is not None and length.isdigit() and int(length) > self.max_bytes:
+        if length is not None and length.isdigit() and int(length) > max_bytes:
             await _problem(
-                send, 413, 'PAYLOAD_TOO_LARGE', 'Слишком большой запрос', f'больше {self.max_bytes} байт'
+                send, 413, 'PAYLOAD_TOO_LARGE', 'Слишком большой запрос', f'больше {max_bytes} байт'
             )
             return
         received = 0
@@ -82,7 +88,7 @@ class BodyLimitMiddleware:
             message = await receive()
             if message['type'] == 'http.request':
                 received += len(message.get('body', b''))
-                if received > self.max_bytes:
+                if received > max_bytes:
                     raise _TooLargeError
             return message
 
@@ -90,7 +96,7 @@ class BodyLimitMiddleware:
             await self.app(scope, limited, send)
         except _TooLargeError:
             await _problem(
-                send, 413, 'PAYLOAD_TOO_LARGE', 'Слишком большой запрос', f'больше {self.max_bytes} байт'
+                send, 413, 'PAYLOAD_TOO_LARGE', 'Слишком большой запрос', f'больше {max_bytes} байт'
             )
 
 

@@ -112,12 +112,19 @@ export class KyselyFaceTemplateRepository implements FaceTemplateRepository {
   }
 }
 
+const SAMPLE_CHUNK = 5000;
+
 @Injectable()
 export class KyselyScoreSampleRepository implements ScoreSampleRepository {
   constructor(@Inject(KYSELY) private readonly db: Db) {}
 
   async add(samples: readonly ScoreSampleInput[]): Promise<void> {
-    if (samples.length === 0) return;
+    // Пакетный режим даёт сотни тысяч строк: вставка частями (лимит параметров PostgreSQL — 65535).
+    for (let i = 0; i < samples.length; i += SAMPLE_CHUNK)
+      await this.insert(samples.slice(i, i + SAMPLE_CHUNK));
+  }
+
+  private async insert(samples: readonly ScoreSampleInput[]): Promise<void> {
     await this.db
       .insertInto('score_sample')
       .values(

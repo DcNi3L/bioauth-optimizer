@@ -1,0 +1,12 @@
+{
+  "modality": "face",
+  "modelVersion": "sface-2021dec+yunet-2023mar",
+  "subjects": 2,
+  "images": 7,
+  "imagesUsed": 6,
+  "skipped": [{ "file": "hopper/blurred.jpg", "reason": "NO_FACE" }],
+  "skippedTotal": 1,
+  "genuine": [0.912345, 0.87821, 0.901, 0.95, 0.8897, 0.9123],
+  "impostor": [0.041, -0.0212, 0.0833, 0.012, 0.0567],
+  "protocol": { "seed": 5, "impostorTotal": 9, "impostorSampled": true }
+}
