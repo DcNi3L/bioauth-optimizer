@@ -13,7 +13,8 @@
     "test:unit": "jest --runInBand --testPathPattern=test/unit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --max-warnings=0",
-    "rekey": "node --env-file-if-exists=.env dist/modules/biometrics/rekey.cli.js"
+    "rekey": "node --env-file-if-exists=.env dist/modules/biometrics/rekey.cli.js",
+    "staff": "node --env-file-if-exists=.env dist/modules/identity/staff.cli.js"
   },
   "dependencies": {
     "@bioauth/contracts": "workspace:*",
