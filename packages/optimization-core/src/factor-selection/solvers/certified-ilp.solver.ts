@@ -1,14 +1,15 @@
-import { EPS, expm1 } from '../../numeric';
+import { EPS, expm1, log1p } from '../../numeric';
 import { SubsetEvaluator, compareSubsets } from '../subset-evaluator';
 import { TopK } from '../top-k';
 import type { FactorSelectionProblem, SelectionResult, SolveOptions, SubsetMetrics } from '../types';
 import { MAX_FACTORS, validateProblem } from '../validation';
 import { type FactorSelectionSolver, resolveRankingLimit } from './factor-selection-solver';
-import type { MilpConstraint, MilpModel, MilpPort } from './milp-port';
+import type { MilpConstraint, MilpModel, MilpPort, MilpSolution } from './milp-port';
 
-/** Консервативные запасы на численный допуск MILP при вычислении нижней оценки. */
-const S_SAFETY = 1e-9;
-const L_SAFETY = 1e-9;
+/** Запас на численный допуск MILP при вычислении нижней оценки (консервативно уменьшает Λ). */
+const LAMBDA_SAFETY = 1e-9;
+/** Допуск «ничьей» по Λ в лексикографическом шаге и запас границы Парето по L (в сторону включения наборов). */
+const TIE_TOLERANCE = 1e-9;
 const DEFAULT_MAX_ITERATIONS = 10_000;
 
 export interface CertifiedIlpOptions {
@@ -18,16 +19,19 @@ export interface CertifiedIlpOptions {
 const slackRhs = (rhs: number) => rhs + EPS * Math.max(1, Math.abs(rhs));
 
 /**
- * Решатель B (док. 02, §2.2.3) — метод СРО1: линеаризованное ЦЛП
- *   min S(x) = Σ FRR_i·x_i  при  Σ x_i·ln FAR_i ≤ ln FAR_max  и линейных ограничениях (3),
- * дополненное сертификатом оптимальности для исходной нелинейной E(x) = cFA·FAR(x) + cFR·FRR(x).
+ * Решатель B (док. 02, §2.2.3) — метод СРО1: логарифмирование сводит задачу (2)–(3) к ЦЛП.
  *
- * На каждой итерации по ещё не отсечённым наборам решаются две задачи MILP:
- *   S_min = min Σ FRR_i·x_i   и   L_min = min Σ ln(FAR_i)·x_i.
- * Каждое слагаемое E не меньше своего минимума, поэтому для любого оставшегося x
- *   E(x) ≥ LB = cFR·(1 − e^{−S_min}) + cFA·e^{L_min}.
- * Оба найденных набора оцениваются точно и отсекаются («no-good»); остановка — когда LB ≥ лучшего E.
- * Вторая задача нужна, когда FRR малы: без неё оценка вырождается в 0 и решатель перебирает все наборы.
+ * Обе ошибки набора — монотонные функции двух ЛИНЕЙНЫХ форм от x:
+ *   L(x) = Σ ln(FAR_i)·x_i,             FAR(x) = e^{L(x)}
+ *   Λ(x) = −Σ ln(1 − FRR_i)·x_i ≥ 0,    FRR(x) = 1 − e^{−Λ(x)}   (точнее приближения Σ FRR_i·x_i из статьи)
+ * поэтому E(x) = cFA·e^{L} + cFR·(1 − e^{−Λ}) возрастает по обеим и оптимум лежит на фронте Парето (Λ, L).
+ *
+ * Фронт обходится методом ε-ограничений:
+ *   1) x̂ = argmin Λ  при  L(x) ≤ L_bound  (+ ограничения (3) и отсечения уже просмотренных наборов);
+ *   2) среди наборов с Λ ≤ Λ(x̂) берётся argmin L — эффективная точка x̂′ (разрешение «ничьих» по Λ);
+ *   3) L_bound ← L(x̂′): все наборы с бóльшим L доминируются x̂′ и исключаются.
+ * Каждый следующий шаг даёт Λ не меньше предыдущего, поэтому LB = cFR·(1 − e^{−Λ(x̂)}) — нижняя граница E
+ * для всех ещё не просмотренных наборов. Остановка: LB ≥ лучшего E (оптимум доказан) или наборов не осталось.
  */
 export class CertifiedIlpSolver implements FactorSelectionSolver {
   readonly id = 'ilp' as const;
@@ -48,38 +52,48 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
     const top = new TopK<SubsetMetrics>(limit, (a, b) => compareSubsets(a, b, codeOf));
 
     const base = this.baseModel(problem);
+    const lambda = problem.factors.map((f) => -log1p(-f.frr));
     const logFar = problem.factors.map((f) => Math.log(f.far));
+    const lambdaOf = (indices: readonly number[]) => indices.reduce((s, i) => s + lambda[i]!, 0);
+    const toIndices = (s: Extract<MilpSolution, { status: 'optimal' }>) => s.values.flatMap((v, i) => (v > 0.5 ? [i] : []));
+
     const cuts: MilpConstraint[] = [];
     const seen = new Set<string>();
+    let paretoBound: number | null = null;
     let best: SubsetMetrics | null = null;
     let iterations = 0;
-    let lowerBound: number | null = null;
+    let certifiedBound: number | null = null;
     let proven = false;
-    const toIndices = (values: readonly number[]) => values.flatMap((v, i) => (v > 0.5 ? [i] : []));
 
     while (iterations < maxIterations) {
       const constraints = [...base.constraints, ...cuts];
-      const bySum = await this.milp.solve({ ...base, constraints });
-      if (bySum.status === 'infeasible') {
-        proven = true; // допустимое множество исчерпано
-        lowerBound = null;
+      if (paretoBound !== null) {
+        constraints.push({ name: 'pareto', coeffs: logFar, sense: '<=', rhs: paretoBound + TIE_TOLERANCE });
+      }
+      // Шаг 1: минимальное Λ среди оставшихся наборов.
+      const byLambda = await this.milp.solve({ ...base, objective: lambda, constraints });
+      if (byLambda.status === 'infeasible') {
+        proven = true; // недоминируемых наборов больше нет
         break;
       }
-      const byFar = await this.milp.solve({ ...base, objective: logFar, constraints });
       iterations++;
-      const candidates = [evaluator.evaluate(toIndices(bySum.values))];
-      if (byFar.status === 'optimal') candidates.push(evaluator.evaluate(toIndices(byFar.values)));
-
-      // Нижняя оценка по всем ещё не отсечённым наборам (минимумы пересчитаны точно по найденным решениям).
-      const sMin = candidates[0]!.frrSum;
-      const lMin = Math.min(...candidates.map((m) => m.logFar));
-      lowerBound =
-        problem.costs.cFR * -expm1(-Math.max(0, sMin - S_SAFETY)) + problem.costs.cFA * Math.exp(lMin - L_SAFETY);
+      const first = evaluator.evaluate(toIndices(byLambda));
+      const lambdaK = lambdaOf(first.indices);
+      const lowerBound = problem.costs.cFR * -expm1(-Math.max(0, lambdaK - LAMBDA_SAFETY));
       if (best !== null && lowerBound >= best.objective) {
+        certifiedBound = lowerBound;
         proven = true;
         break;
       }
-      for (const m of candidates) {
+      // Шаг 2: среди «ничьих» по Λ — набор с минимальным FAR (эффективная точка фронта).
+      const byFar = await this.milp.solve({
+        ...base,
+        objective: logFar,
+        constraints: [...constraints, { name: 'lex', coeffs: lambda, sense: '<=', rhs: lambdaK + TIE_TOLERANCE * Math.max(1, lambdaK) }],
+      });
+      const efficient = byFar.status === 'optimal' ? evaluator.evaluate(toIndices(byFar)) : first;
+
+      for (const m of [first, efficient]) {
         const key = m.indices.join(',');
         if (seen.has(key)) continue;
         seen.add(key);
@@ -90,6 +104,8 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
         }
         cuts.push(this.noGoodCut(m.indices, n, cuts.length));
       }
+      // Шаг 3: сдвиг границы Парето — только по точно допустимому набору (иначе можно отсечь допустимые).
+      if (evaluator.isFeasible(efficient)) paretoBound = efficient.logFar;
     }
 
     const ranking = top.toArray().map((m) => evaluator.toSolution(m));
@@ -101,7 +117,7 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
       stats: { factorsCount: n, subsetsTotal: 2 ** n - 1, feasibleCount: null, rejectedBy: null },
       solver: {
         used: 'ilp',
-        certificate: { iterations, lowerBound, bestObjective: best?.objective ?? null, proven },
+        certificate: { iterations, lowerBound: certifiedBound, bestObjective: best?.objective ?? null, proven },
       },
     };
   }
@@ -123,7 +139,7 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
       // Точная линейная форма ограничения FAR(x) ≤ FAR_max в логарифмах.
       constraints.push({ name: 'far', coeffs: factors.map((f) => Math.log(f.far)), sense: '<=', rhs: Math.log(c.farMax) + EPS });
     }
-    return { numVars: n, objective: factors.map((f) => f.frr), constraints };
+    return { numVars: n, objective: factors.map(() => 0), constraints };
   }
 
   /** Σ_{i∈x̂} (1 − x_i) + Σ_{i∉x̂} x_i ≥ 1  ⇔  Σ_{i∉x̂} x_i − Σ_{i∈x̂} x_i ≥ 1 − |x̂|. */

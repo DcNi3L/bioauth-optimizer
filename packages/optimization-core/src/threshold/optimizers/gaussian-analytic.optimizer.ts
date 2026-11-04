@@ -44,6 +44,9 @@ export function gaussianEerThreshold(input: Pick<GaussianThresholdInput, 'genuin
   return (i.mean * g.std + g.mean * i.std) / (g.std + i.std);
 }
 
+/** Относительный выигрыш над вырожденным решением, ниже которого конечный порог не имеет практического смысла. */
+export const DEGENERATE_RELATIVE = 1e-9;
+
 interface Candidate {
   readonly tau: number | null;
   readonly far: number;
@@ -101,6 +104,12 @@ export class GaussianAnalyticOptimizer implements ThresholdOptimizer<GaussianThr
 
     let best = candidates[0] as Candidate;
     for (const cand of candidates) if (cand.cost < best.cost) best = cand;
+    // Корень, который лучше вырожденного решения меньше чем на DEGENERATE_RELATIVE, практически неотличим от него:
+    // такой τ лежит в дальнем хвосте, где E(τ) плоская до машинной точности. Сообщаем вырожденное решение.
+    const limit = candidates.filter((c) => c.degenerate !== null).reduce((a, b) => (b.cost < a.cost ? b : a));
+    if (best.degenerate === null && !best.constrainedByFarMax && best.cost >= limit.cost * (1 - DEGENERATE_RELATIVE)) {
+      best = limit;
+    }
 
     const optimal: OptimalPoint = {
       tau: best.tau,

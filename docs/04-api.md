@@ -96,7 +96,7 @@
   "meta": { "coreVersion": "1.0.0", "durationMs": 1 }
 }
 ```
-Для `ilp`: `"solver": { "used": "ilp", "certificate": { "iterations": 2, "lowerBound": 0.024690, "bestObjective": 0.019925 } }`, `rankingComplete: false`.
+Для `ilp`: `"solver": { "used": "ilp", "certificate": { "iterations": 2, "lowerBound": 0.068929, "bestObjective": 0.019925, "proven": true } }`, `rankingComplete: false`.
 
 Если допустимых наборов нет — **422** `infeasible-problem` с полем `rejectedBy` (сколько подмножеств отсекло каждое ограничение; одно подмножество может нарушать несколько).
 ## 4.4. `POST /factor-selection/budget-sweep`

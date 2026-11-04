@@ -9,14 +9,14 @@ sequenceDiagram
   UC->>SS: select(problem, mode)
   SS-->>UC: CertifiedIlpSolver
   UC->>S: solve(problem)
-  loop пока LB < best
-    S->>M: MILP 1: min Σ FRRᵢxᵢ (с отсечениями 𝒞)
-    M-->>S: x̂_S, S_min
-    S->>M: MILP 2: min Σ ln FARᵢ·xᵢ (с отсечениями 𝒞)
-    M-->>S: x̂_L, L_min
-    S->>E: evaluate(x̂_S), evaluate(x̂_L) — точное E
-    E-->>S: E(x̂)
-    S->>S: best = min(best, E), добавить x̂ в 𝒞
+  loop пока LB = cFR·(1 − e^(−Λ)) < best
+    S->>M: MILP 1: min Λ(x) при L(x) ≤ L_bound
+    M-->>S: x̂, Λ(x̂)
+    S->>M: MILP 2: min L(x) при Λ(x) ≤ Λ(x̂)
+    M-->>S: x̂′
+    S->>E: evaluate(x̂), evaluate(x̂′) — точное E
+    E-->>S: E
+    S->>S: best = min(best, E), 𝒞 ∪= {x̂, x̂′}, L_bound = L(x̂′)
   end
   S-->>UC: optimum + certificate {iterations, lowerBound}
   UC->>R: save(experiment)

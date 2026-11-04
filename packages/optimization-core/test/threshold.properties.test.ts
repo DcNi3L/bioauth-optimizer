@@ -95,6 +95,21 @@ describe('граничные случаи порога', () => {
     expect(r.optimal.frr).toBe(1);
   });
 
+  it('регрессия: корень в дальнем хвосте, неотличимый от «отвергать всех», считается вырожденным', () => {
+    // Найдено property-тестом P4: E(τ≈2,8) меньше cFR лишь на ~1e-39, численная проверка не сходилась → HTTP 500.
+    const cases = [
+      { genuine: { mean: 0.5, std: 0.17863845985300694 }, impostor: { mean: 0.45, std: 0.17555974475589173 }, costs: { cFA: 120.32486353370145, cFR: 0.14897545285327154 } },
+      { genuine: { mean: 0.5, std: 0.2 }, impostor: { mean: 0.3476715875900269, std: 0.1932318891995079 }, costs: { cFA: 464.59794247654725, cFR: 0.1 } },
+      { genuine: { mean: 0.5, std: 0.12216332309143697 }, impostor: { mean: 0.45, std: 0.12272556757015513 }, costs: { cFA: 331.62167361020454, cFR: 7.114604689950118 } },
+    ];
+    for (const input of cases) {
+      const r = optimizer.optimize(input);
+      expect(r.optimal.degenerate).toBe('rejectAll');
+      expect(r.optimal.cost).toBe(input.costs.cFR);
+      expect(r.verification.status).toBe('skipped');
+    }
+  });
+
   it('FAR_max делает безусловный оптимум недопустимым → τ* = τ_min, FAR(τ*) = FAR_max', () => {
     const r = optimizer.optimize({ ...base, farMax: 1e-4 });
     expect(r.optimal.constrainedByFarMax).toBe(true);

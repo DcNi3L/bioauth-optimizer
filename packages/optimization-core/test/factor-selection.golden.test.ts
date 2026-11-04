@@ -83,14 +83,14 @@ describe('G-F3 — регрессия плавающей точки (ADR-0008)',
 });
 
 describe('G-F4 — сертифицированное ЦЛП (метод СРО1)', () => {
-  it('2 итерации MILP, нижняя оценка 0,02469, оптимум доказан и совпадает с перебором', async () => {
+  it('2 итерации, нижняя оценка 0,068929 (FRR тройки F2+F4+F5), оптимум доказан и совпадает с перебором', async () => {
     const r = await ilp.solve(SRO1_FACTOR_EXAMPLE);
     expect(r.optimum!.codes).toEqual(['F2', 'F5']);
     expectRel(r.optimum!.objective, 0.0199250005, 1e-12);
     expect(r.solver.used).toBe('ilp');
     expect(r.solver.certificate!.iterations).toBe(2);
     expect(r.solver.certificate!.proven).toBe(true);
-    expectRel(r.solver.certificate!.lowerBound!, 1 - Math.exp(-0.025), 1e-7);
+    expectRel(r.solver.certificate!.lowerBound!, 0.06892875, 1e-7);
     expect(r.rankingComplete).toBe(false);
   });
 

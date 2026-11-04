@@ -318,34 +318,33 @@ sequenceDiagram
   UC->>SS: select(problem, mode)
   SS-->>UC: CertifiedIlpSolver
   UC->>S: solve(problem)
-  loop пока LB < best
-    S->>M: MILP 1: min Σ FRRᵢxᵢ (с отсечениями 𝒞)
-    M-->>S: x̂_S, S_min
-    S->>M: MILP 2: min Σ ln FARᵢ·xᵢ (с отсечениями 𝒞)
-    M-->>S: x̂_L, L_min
-    S->>E: evaluate(x̂_S), evaluate(x̂_L) — точное E
-    E-->>S: E(x̂)
-    S->>S: best = min(best, E), добавить x̂ в 𝒞
+  loop пока LB = cFR·(1 − e^(−Λ)) < best
+    S->>M: MILP 1: min Λ(x) при L(x) ≤ L_bound
+    M-->>S: x̂, Λ(x̂)
+    S->>M: MILP 2: min L(x) при Λ(x) ≤ Λ(x̂)
+    M-->>S: x̂′
+    S->>E: evaluate(x̂), evaluate(x̂′) — точное E
+    E-->>S: E
+    S->>S: best = min(best, E), 𝒞 ∪= {x̂, x̂′}, L_bound = L(x̂′)
   end
   S-->>UC: optimum + certificate {iterations, lowerBound}
   UC->>R: save(experiment)
 ```
 
-### Алгоритм сертифицированного ЦЛП
+### Алгоритм ЦЛП с сертификатом (обход фронта Парето)
 
 ```mermaid
 flowchart TD
-  A([Старт]) --> B["best ← ∞, 𝒞 ← ∅"]
-  B --> C["MILP 1: x̂_S = argmin Σ FRRᵢxᵢ<br/>по наборам вне 𝒞"]
+  A([Старт]) --> B["best ← ∞, L_bound ← +∞, 𝒞 ← ∅"]
+  B --> C["MILP 1: x̂ = argmin Λ(x)<br/>при L(x) ≤ L_bound, вне 𝒞"]
   C --> D{Допустимо?}
-  D -- нет --> Z([Стоп: best — оптимум<br/>или задача недопустима])
-  D -- да --> C2["MILP 2: x̂_L = argmin Σ ln FARᵢ·xᵢ<br/>по тем же наборам"]
-  C2 --> E["LB = cFR·(1 − e^(−S_min)) + cFA·e^(L_min)"]
+  D -- нет --> Z([Стоп: фронт пройден,<br/>best — оптимум])
+  D -- да --> E["LB = cFR·(1 − e^(−Λ(x̂)))"]
   E --> F{LB ≥ best?}
   F -- да --> Z2([Стоп: оптимум доказан])
-  F -- нет --> G["Точное E(x̂_S), E(x̂_L) в лог-пространстве"]
-  G --> H["best ← min(best, E)"]
-  H --> I["𝒞 ← 𝒞 ∪ {x̂_S, x̂_L} (no-good cuts)"]
+  F -- нет --> G["MILP 2: x̂′ = argmin L(x)<br/>при Λ(x) ≤ Λ(x̂)"]
+  G --> H["Точное E(x̂), E(x̂′); best ← min"]
+  H --> I["𝒞 ← 𝒞 ∪ {x̂, x̂′}; L_bound ← L(x̂′)"]
   I --> C
 ```
 
