@@ -17,7 +17,7 @@ export function AdminPoliciesPage() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
       <Panel
         title="Версии политики"
-        description="Активна ровно одна версия. Утверждает администратор, не предлагавший версию (четыре глаза)."
+        description="Активна ровно одна версия. Если администраторов несколько, предложение утверждает не его автор (четыре глаза)."
       >
         <div className="px-5 py-4">
           <ApiErrorNotice error={policies.error} />

@@ -1,16 +1,30 @@
 erDiagram
-  APP_USER ||--o{ CONSENT : gives
-  APP_USER ||--o| FACE_TEMPLATE : has
-  APP_USER ||--o{ WEBAUTHN_CREDENTIAL : has
-  APP_USER ||--o{ AUTH_ATTEMPT : makes
-  AUTH_POLICY ||--o{ AUTH_ATTEMPT : "applied in"
-  AUTH_ATTEMPT ||--o{ SCORE_SAMPLE : yields
-  EXPERIMENT |o--o{ AUTH_POLICY : "basis of"
+  APP_USER ||--o{ USER_SESSION : "входит"
+  APP_USER ||--o{ CONSENT : "даёт"
+  APP_USER ||--o| FACE_TEMPLATE : "имеет"
+  APP_USER ||--o{ WEBAUTHN_CREDENTIAL : "имеет"
+  APP_USER |o--o{ AUTH_SESSION : "проходит вход"
+  AUTH_POLICY ||--o{ AUTH_SESSION : "задаёт шаги"
+  AUTH_SESSION |o--o{ AUTH_ATTEMPT : "попытки"
+  AUTH_POLICY |o--o{ AUTH_ATTEMPT : "решение по"
+  AUTH_ATTEMPT |o--o{ SCORE_SAMPLE : "оценки"
+  EXPERIMENT |o--o{ AUTH_POLICY : "обоснование"
+  AUTH_POLICY ||--o{ DRIFT_ALERT : "дрейф FRR"
   APP_USER {
     uuid id PK
     text login UK
+    text display_name
     text role "subject|admin|researcher|auditor"
-    timestamptz created_at
+    text password_hash "scrypt, только сотрудники"
+    int failed_attempts
+    timestamptz locked_until
+  }
+  USER_SESSION {
+    uuid id PK
+    uuid user_id FK
+    char64 token_hash UK "sha256 токена cookie"
+    bool mfa_complete
+    timestamptz expires_at
   }
   CONSENT {
     uuid id PK
@@ -21,51 +35,80 @@ erDiagram
   }
   FACE_TEMPLATE {
     uuid user_id PK
-    bytea ciphertext "AES-256-GCM(embedding)"
+    bytea ciphertext "AES-256-GCM"
     bytea iv
     text key_id
+    bool cancelable "проекция P·e"
     text model_version
     int samples
-    timestamptz created_at
   }
   WEBAUTHN_CREDENTIAL {
     text credential_id PK
     uuid user_id FK
     bytea public_key
     bigint counter
-    text transports
-    timestamptz created_at
+    text device_type
   }
   AUTH_POLICY {
     uuid id PK
     int version UK
-    jsonb steps "факторы и пороги"
-    jsonb costs "cFA, cFR профиля"
+    jsonb steps "лицо: τ_face, τ_pad, команды; passkey"
+    jsonb costs "cFA, cFR"
     uuid experiment_id FK
     text status "proposed|active|retired|rejected"
-    uuid approved_by FK
-    timestamptz approved_at
+    uuid proposed_by FK
+    uuid decided_by FK
+  }
+  AUTH_SESSION {
+    uuid id PK
+    uuid user_id FK "NULL — неизвестный логин"
+    uuid policy_id FK
+    char32 nonce
+    text_array commands
+    int failures
+    text state "pending|accepted|rejected|expired"
   }
   AUTH_ATTEMPT {
     uuid id PK
     uuid user_id FK
     uuid policy_id FK
+    uuid session_id FK
     text factor "face|passkey"
     text outcome "accept|reject|error|cancel"
     float8 score
     float8 liveness
-    bool challenges_ok
     int duration_ms
     text reject_reason
-    timestamptz created_at
   }
   SCORE_SAMPLE {
     bigint id PK
     uuid attempt_id FK
     text modality "face|fingerprint|pad"
-    text kind "genuine|impostor|attack|bonafide"
+    text kind "genuine|impostor|bonafide|attack"
     float8 score
     text model_version
     text source "enroll|login|cross|pad_test|batch"
-    timestamptz created_at
+    text attack_type
+  }
+  EXPERIMENT {
+    uuid id PK
+    text type
+    jsonb input
+    jsonb result
+  }
+  DRIFT_ALERT {
+    uuid id PK
+    uuid policy_id FK
+    float8 baseline_frr
+    float8 recent_frr
+    float8 z_score
+    timestamptz acknowledged_at
+  }
+  AUDIT_EVENT {
+    bigint seq UK
+    text action
+    text target
+    jsonb details
+    char64 prev_hash
+    char64 hash UK
   }

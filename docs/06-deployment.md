@@ -9,24 +9,27 @@ flowchart LR
     WEB["web<br/>node:22-alpine<br/>next start · :3000"]
     API["api<br/>node:22-alpine<br/>migrate.cli → node dist/main · :4000"]
     DB[("db<br/>postgres:16-alpine<br/>:5432")]
+    BIO["bio-engine<br/>python:3.12-slim<br/>uvicorn · :8000<br/>только сеть internal"]
     VOL[["volume: pgdata"]]
   end
   WEB -- "/api/* → http://api:4000" --> API
   API --> DB
+  API -- "X-Bio-Secret" --> BIO
   DB --- VOL
   SW["Swagger<br/>localhost:4000/api/docs"] -.-> API
 ```
 
-Порядок запуска гарантируется `depends_on: condition: service_healthy`: db → api (миграции + seed, затем healthcheck `/health/ready`) → web.
+Порядок запуска гарантируется `depends_on: condition: service_healthy`: db и bio-engine → api (миграции + seed, затем healthcheck `/health/ready`) → web. bio-engine подключён только к внутренней сети `internal` без выхода наружу, файловая система контейнера — только для чтения, модели лежат в образе (проверка SHA-256 при сборке).
 
 ## 6.2. Файлы
 
-| Файл                                                | Назначение                                                                                          |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [`docker-compose.yml`](../docker-compose.yml)       | Три сервиса: `db`, `api`, `web`; healthcheck'и и порядок запуска                                    |
-| [`docker/api.Dockerfile`](../docker/api.Dockerfile) | Сборка API: `turbo prune` → `pnpm install --frozen-lockfile` → `turbo build` → `pnpm deploy --prod` |
-| [`docker/web.Dockerfile`](../docker/web.Dockerfile) | Сборка интерфейса: Next.js `output: "standalone"`, запуск `node apps/web/server.js`                 |
-| [`.dockerignore`](../.dockerignore)                 | Исключает `node_modules`, `dist`, `.next`, `.git` и секреты                                         |
+| Файл                                                                  | Назначение                                                                                          |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`docker-compose.yml`](../docker-compose.yml)                         | Три сервиса: `db`, `api`, `web`; healthcheck'и и порядок запуска                                    |
+| [`docker/api.Dockerfile`](../docker/api.Dockerfile)                   | Сборка API: `turbo prune` → `pnpm install --frozen-lockfile` → `turbo build` → `pnpm deploy --prod` |
+| [`docker/web.Dockerfile`](../docker/web.Dockerfile)                   | Сборка интерфейса: Next.js `output: "standalone"`, запуск `node apps/web/server.js`                 |
+| [`services/bio-engine/Dockerfile`](../services/bio-engine/Dockerfile) | Сервис распознавания: зависимости Python, загрузка моделей по `models.lock.json`, запуск uvicorn    |
+| [`.dockerignore`](../.dockerignore)                                   | Исключает `node_modules`, `dist`, `.next`, `.git` и секреты                                         |
 
 ## 6.3. Как устроены образы
 
@@ -48,6 +51,26 @@ flowchart LR
 | `API_INTERNAL_URL`        | web (сборка) | <http://api:4000>                | Адрес API для rewrites Next.js                         |
 | `NEXT_PUBLIC_SWAGGER_URL` | web (сборка) | <http://localhost:4000/api/docs> | Ссылка «API (Swagger)» в шапке                         |
 | `POSTGRES_PASSWORD`       | db, api      | bioauth                          | Пароль БД (для локального запуска; в `.env`, не в git) |
+
+**v2 (живая биометрия):**
+
+| Переменная                                   | Сервис          | По умолчанию                       | Назначение                                                                               |
+| -------------------------------------------- | --------------- | ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| `BIO_ENGINE_URL`                             | api             | <http://localhost:8000>            | Адрес bio-engine                                                                         |
+| `BIO_ENGINE_SECRET` / `BIO_SECRET`           | api, bio-engine | dev-bio-secret-change-me           | Общий секрет заголовка `X-Bio-Secret` (обязательно сменить вне демо)                     |
+| `BIO_ENGINE_TIMEOUT_MS`                      | api             | 15000                              | Тайм-аут вызова bio-engine                                                               |
+| `TEMPLATE_KEYS`, `TEMPLATE_ACTIVE_KEY`       | api             | —                                  | Ключи AES-256 шаблонов `{"k1":"<base64 32 байта>"}`; без них — только с `ALLOW_DEV_KEYS` |
+| `TEMPLATE_CANCELABLE`                        | api             | true                               | Хранить отменяемую проекцию эмбеддинга (ADR-0014)                                        |
+| `SESSION_TTL_HOURS`, `COOKIE_SECURE`         | api             | 12, авто                           | Срок сессии; флаг Secure cookie (по умолчанию — если RP_ORIGIN на https)                 |
+| `RP_ID`, `RP_ORIGIN`                         | api             | localhost, <http://localhost:3000> | Relying Party WebAuthn — домен и origin интерфейса                                       |
+| `ADMIN_LOGIN`, `ADMIN_PASSWORD`              | api             | admin, —                           | Первый администратор (создаётся при старте, если администраторов нет)                    |
+| `REQUIRE_STAFF_PASSKEY`                      | api             | true                               | Требовать passkey вторым фактором сотрудника                                             |
+| `AUTH_RATE_LIMIT_PER_MIN`                    | api             | 30                                 | Ограничение частоты запросов входа                                                       |
+| `CROSS_IMPOSTOR_LIMIT`                       | api             | 50                                 | Сколько чужих шаблонов сравнивать с пробой попытки (impostor-оценки)                     |
+| `PASSKEY_DECLARED_FAR`                       | api             | 2·10⁻⁵                             | Заявленный FAR passkey для измеренного каталога                                          |
+| `DRIFT_CHECK_HOURS`, `DRIFT_WINDOW_DAYS`     | api             | 24, 7                              | Периодичность и окно проверки дрейфа FRR                                                 |
+| `BATCH_MAX_BYTES`, `BATCH_TIMEOUT_MS`        | api             | 256 МБ, 30 мин                     | Пакетный режим: размер архива и время обработки                                          |
+| `BIO_MAX_BATCH_BYTES`, `BIO_MAX_BATCH_FILES` | bio-engine      | 256 МБ, 5000                       | Лимиты архива в bio-engine (также `BIO_MAX_BATCH_UNPACKED_BYTES`)                        |
 
 Все переменные api валидируются zod-схемой при старте: без `DATABASE_URL` процесс завершается с понятной ошибкой.
 

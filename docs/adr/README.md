@@ -15,7 +15,9 @@
 | [0009](0009-shared-zod-contracts.md)                 | Единые zod-контракты; все вычисления на сервере                                       | Принято                         |
 | [0010](0010-docker-compose.md)                       | Развёртывание через Docker Compose                                                    | Принято                         |
 | [0011](0011-kysely-instead-of-prisma.md)             | Kysely + pg и SQL-миграции вместо Prisma                                              | Принято (заменяет часть 0005)   |
-| [0012](0012-bio-engine-onnx.md)                      | Распознавание лица и PAD — сервис bio-engine (Python, ONNX: YuNet, SFace, MiniFASNet) | Предложено (v2)                 |
-| [0013](0013-fingerprint-webauthn-nbis.md)            | Отпечаток: passkey с платформенным аутентификатором и NBIS для изображений            | Предложено (v2)                 |
-| [0014](0014-biometric-template-protection.md)        | Защита биометрических шаблонов: шифрование, отменяемые шаблоны, удаление              | Предложено (v2)                 |
-| [0015](0015-closed-loop-calibration.md)              | Замкнутый контур калибровки: измерение → ядро v1 → утверждаемая политика              | Предложено (v2)                 |
+| [0012](0012-bio-engine-onnx.md)                      | Распознавание лица и PAD — сервис bio-engine (Python, ONNX: YuNet, SFace, MiniFASNet) | Принято (v2.1)                  |
+| [0013](0013-fingerprint-webauthn-nbis.md)            | Отпечаток: passkey с платформенным аутентификатором и NBIS для изображений            | Принято частично (NBIS отложен) |
+| [0014](0014-biometric-template-protection.md)        | Защита биометрических шаблонов: шифрование, отменяемые шаблоны, удаление              | Принято (v2.1)                  |
+| [0015](0015-closed-loop-calibration.md)              | Замкнутый контур калибровки: измерение → ядро v1 → утверждаемая политика              | Принято с уточнением (v2.2)     |
+| [0016](0016-sessions-roles-mfa.md)                   | Сессии в httpOnly cookie, роли, MFA сотрудников                                       | Принято                         |
+| [0017](0017-audit-hash-chain.md)                     | Журнал аудита: только добавление, цепочка SHA-256                                     | Принято                         |

@@ -132,3 +132,25 @@ CREATE INDEX experiment_dataset_idx      ON experiment (score_dataset_id);
 
 - SQL-миграции из `apps/api/migrations` применяет мигратор `migrate.cli.ts` при старте контейнера `api`, до запуска сервера (ADR-0011, 06-deployment).
 - Миграции только вперёд; каждая следующая миграция должна быть совместима с кодом предыдущей версии (expand → migrate → contract).
+
+## 5.6. Схема v2 (миграции 0002–0004)
+
+![ER-диаграмма v2](diagrams/19-v2-er-diagram.png)
+
+| Миграция                   | Таблицы                                                                                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0002_identity_biometrics` | `app_user`, `user_session`, `consent`, `face_template`, `webauthn_credential`, `auth_policy` (+ версия 1), `auth_session`, `auth_attempt`, `score_sample` |
+| `0003_audit`               | `audit_event` + триггеры, запрещающие `UPDATE`, `DELETE`, `TRUNCATE`                                                                                      |
+| `0004_calibration`         | `factor.provenance` (measured / declared / literature), `drift_alert`                                                                                     |
+
+Инварианты в схеме, а не только в коде:
+
+- ровно одна активная политика — частичный уникальный индекс по `status = 'active'`;
+- шаблон лица — один на пользователя (`face_template.user_id` — первичный ключ), IV ровно 12 байт;
+- оценки в `[−1, 1]`, `model_version NOT NULL` — оценки разных моделей не смешиваются при калибровке;
+- источники оценок `enroll | login | cross | pad_test | batch`, виды `genuine | impostor | bonafide | attack`;
+- уведомление о дрейфе — не более одного на политику и окно (`UNIQUE (policy_id, window_end)`);
+- хэши аудита — 64 шестнадцатеричных символа, `hash` уникален.
+
+Изображения лиц и эмбеддинги в открытом виде в БД не хранятся: только шифротекст шаблона и числовые оценки. При отзыве
+согласия шаблон и passkey удаляются, у оценок обнуляется `user_id`.

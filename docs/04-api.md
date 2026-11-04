@@ -206,7 +206,50 @@
 }
 ```
 
-## 4.5. Формат ошибок (RFC 7807)
+## 4.5. API v2: живая биометрия и замкнутый контур
+
+v2 закрыт по умолчанию: глобальная проверка сессии (cookie `bioauth_session`, httpOnly, SameSite=Lax), роли
+(`subject`, `admin`, `researcher`, `auditor`) и требование двухфакторного входа для изменений политик (ADR-0016).
+Эндпоинты v1 из §4.1 остаются открытыми (`@Public`). Для запросов с cookie, меняющих состояние, проверяется заголовок
+`Origin` (защита от CSRF). Полные схемы — в Swagger.
+
+| Метод        | Путь                                        | Доступ                     | Назначение                                                         |
+| ------------ | ------------------------------------------- | -------------------------- | ------------------------------------------------------------------ |
+| POST         | `/identity/subjects`                        | открыт                     | Регистрация субъекта (логин, имя) — сразу открывает сессию         |
+| POST         | `/identity/login`                           | открыт                     | Вход сотрудника по паролю (первый фактор)                          |
+| POST         | `/identity/logout`                          | открыт                     | Выход                                                              |
+| GET          | `/identity/me`                              | сессия                     | Текущий пользователь: роль, согласие, шаблон, passkey, MFA         |
+| GET          | `/consent/text`                             | открыт                     | Текст согласия на обработку биометрии                              |
+| POST, DELETE | `/consent`                                  | сессия                     | Дать согласие / отозвать (удаляет биометрию)                       |
+| POST, DELETE | `/enrollment/face`                          | субъект, согласие          | Регистрация лица по 5 кадрам / удаление шаблона                    |
+| POST         | `/webauthn/register/options`, `/verify`     | сессия                     | Регистрация passkey                                                |
+| GET, DELETE  | `/webauthn/credentials[/:id]`               | сессия                     | Свои passkey                                                       |
+| POST         | `/webauthn/staff/options`, `/verify`        | сотрудник                  | Второй фактор сотрудника                                           |
+| POST         | `/auth/sessions`                            | открыт                     | Начать вход субъекта: шаги политики, nonce, случайные команды      |
+| POST         | `/auth/sessions/:id/face`                   | открыт                     | Кадры лица: нейтральные + по шагам команд → решение                |
+| POST         | `/auth/sessions/:id/passkey/*`              | открыт                     | Второй шаг: options / verify / cancel                              |
+| GET          | `/policies[/:id]`                           | admin, researcher, auditor | Версии политики                                                    |
+| POST         | `/policies`                                 | admin, researcher + MFA    | Предложить версию                                                  |
+| POST         | `/policies/:id/approve` `reject` `rollback` | admin + MFA                | Решение (утверждает не автор предложения)                          |
+| GET          | `/audit/events`, `/audit/verify`            | admin, auditor             | Журнал аудита; проверка цепочки хэшей                              |
+| GET          | `/calibration/overview`                     | admin, researcher, auditor | Накопленные оценки по версиям моделей, действующая политика, дрейф |
+| POST         | `/calibration/threshold`                    | admin, researcher          | Калибровка τ_face / τ_pad ядром v1 + проверка достаточности        |
+| POST         | `/calibration/propose`                      | admin, researcher + MFA    | Политика из экспериментов калибровки                               |
+| GET          | `/calibration/factors`                      | admin, researcher, auditor | Измеренные характеристики факторов                                 |
+| POST         | `/calibration/factors/catalog`              | admin, researcher          | Каталог факторов из измерений для решателя v1                      |
+| GET          | `/calibration/report`                       | admin, researcher, auditor | Протокол §10.11: «до/после калибровки» с интервалами               |
+| POST         | `/calibration/drift/check`                  | admin, researcher          | Проверить дрейф FRR сейчас (обычно по расписанию)                  |
+| POST         | `/calibration/drift/:id/acknowledge`        | admin                      | Принять уведомление о дрейфе                                       |
+| POST, GET    | `/calibration/batch[/:id]`                  | admin, researcher          | Пакетный режим: zip → набор оценок (фоновая задача)                |
+| GET, DELETE  | `/calibration/batch/:id/csv`, `/:id`        | admin, researcher          | CSV оценок / отмена задачи                                         |
+| POST         | `/pad-test/samples`                         | admin, researcher          | Испытание PAD: подлинное предъявление или атака                    |
+| GET          | `/pad-test/report?threshold=`               | admin, researcher, auditor | APCER по видам атак, BPCER                                         |
+| GET          | `/attempts`                                 | admin, researcher, auditor | Журнал попыток (keyset-пагинация); аудитору оценки не показываются |
+
+Внутренний сервис bio-engine (`/v1/face/*`, `/v1/batch/face`) доступен только из сети docker compose по общему
+секрету `X-Bio-Secret`; его контракт описан в `services/bio-engine/README.md` и `packages/contracts/src/bio-engine.ts`.
+
+## 4.6. Формат ошибок (RFC 7807)
 
 ```json
 {
@@ -219,3 +262,7 @@
   "errors": [{ "path": "model.genuine.mean", "message": "должно быть больше impostor.mean" }]
 }
 ```
+
+Коды ответов v2 дополнительно используют `401` (нет сессии), `403` (роль, MFA или Origin), `409` (конфликт версии
+модели, уже выполняется задача), `413` (размер), `422` с машинным полем `code` (например, качество кадров — с массивом
+`frames`) и `429` (блокировка после неудачных попыток, поле `lockedUntil`).

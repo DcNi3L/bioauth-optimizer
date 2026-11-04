@@ -1,0 +1,34 @@
+sequenceDiagram
+  autonumber
+  actor U as Субъект
+  participant W as web (enroll)
+  participant A as api
+  participant B as bio-engine
+  participant D as PostgreSQL
+  U->>W: логин и имя
+  W->>A: POST /identity/subjects
+  A->>D: app_user + user_session
+  A-->>W: Set-Cookie bioauth_session
+  U->>W: читает текст, отмечает согласие
+  W->>A: POST /consent {textVersion}
+  A->>D: consent + audit_event consent.granted
+  U->>W: «Снять лицо» (обратный отсчёт, 5 кадров)
+  W->>A: POST /enrollment/face {frames}
+  A->>B: POST /v1/face/template (X-Bio-Secret)
+  B->>B: YuNet → качество → SFace → MiniFASNet
+  alt мало годных кадров или атака
+    B-->>A: 422 NOT_ENOUGH_GOOD_FRAMES + замечания
+    A-->>W: 422 + подсказки по кадрам
+  else годные кадры
+    B-->>A: эмбеддинг, pairScores, pLive
+    A->>A: проекция P·e, AES-256-GCM (AAD)
+    A->>D: face_template, score_sample (genuine, enroll)
+    A->>D: audit_event face.enrolled
+    A-->>W: 201 {samples, modelVersion}
+  end
+  U->>W: «Зарегистрировать passkey»
+  W->>A: POST /webauthn/register/options
+  A-->>W: challenge (UV required, platform)
+  W->>U: Touch ID / Windows Hello
+  W->>A: POST /webauthn/register/verify
+  A->>D: webauthn_credential + audit_event

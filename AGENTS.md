@@ -38,6 +38,18 @@
 - Корневой `app/` — только маршрутизация (реэкспорт из `src/pages`).
 - Числа выводить через `shared/lib/format` (научная нотация с «·10⁻ⁿ», запятая как десятичный разделитель).
 
+## v2: живая биометрия
+
+- Запуск локально: `make bio-setup` (Python 3.12, модели с проверкой SHA-256), затем bio-engine на :8000 с
+  `BIO_SECRET`, равным `BIO_ENGINE_SECRET` api. Камера и WebAuthn работают только на localhost или по HTTPS.
+- bio-engine: `ruff`, `mypy --strict`, `pytest`; домен (`app/domain`) — чистые функции без OpenCV и HTTP.
+- Изображения, эмбеддинги и шаблоны никогда не пишутся в логи и не сохраняются на диск (NFR-B6, тест в CI).
+- Изменение контракта bio-engine = правка pydantic-схемы, zod-схемы в `packages/contracts/src/bio-engine.ts`
+  и примера в `packages/contracts/fixtures/bio-engine` в одном коммите.
+- Новый маршрут api закрыт по умолчанию; открытый помечается `@Public()`, права — `@Roles()`, изменения политик —
+  `@RequireMfa()` (ADR-0016). Значимые действия с биометрией и политиками записываются в журнал аудита.
+- Оценки разных версий модели не смешиваются: всё, что пишет `score_sample`, передаёт `model_version`.
+
 ## Именование
 
 - Файлы: kebab-case с суффиксом роли — `*.use-case.ts`, `*.controller.ts`, `*.repository.ts`, `*.solver.ts`, `*.adapter.ts`.

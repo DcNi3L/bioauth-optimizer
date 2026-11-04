@@ -7,7 +7,7 @@ import { PolicyActions } from '@/features/manage-policy';
 import { formatDateTime, formatNumber } from '@/shared/lib';
 
 /**
- * Версии политики аутентификации, новые сверху. Принцип четырёх глаз: утверждает другой администратор
+ * Версии политики аутентификации, новые сверху. Принцип четырёх глаз: при нескольких администраторах утверждает не автор
  * (проверяет сервер); решения и комментарии попадают в журнал аудита.
  */
 export function PolicyList({ policies, canDecide }: { policies: AuthPolicyDto[]; canDecide: boolean }) {
