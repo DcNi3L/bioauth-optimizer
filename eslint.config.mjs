@@ -186,6 +186,8 @@ export default tseslint.config(
     ...jest.configs['flat/recommended'],
     rules: {
       ...jest.configs['flat/recommended'].rules,
+      // supertest: .expect(статус) — тоже проверка
+      'jest/expect-expect': ['error', { assertFunctionNames: ['expect', 'request.**.expect', '**.expect'] }],
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',

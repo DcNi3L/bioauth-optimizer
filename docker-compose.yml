@@ -30,6 +30,13 @@ services:
       NODE_ENV: production
       BIO_ENGINE_URL: http://bio-engine:8000
       BIO_ENGINE_SECRET: ${BIO_ENGINE_SECRET:-dev-bio-secret-change-me}
+      # Ключи шаблонов (ADR-0014): задайте TEMPLATE_KEYS='{"k1":"<base64 32 байта>"}' вне демо-стенда.
+      TEMPLATE_KEYS: ${TEMPLATE_KEYS:-}
+      ALLOW_DEV_KEYS: ${ALLOW_DEV_KEYS:-true}
+      ADMIN_LOGIN: ${ADMIN_LOGIN:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-admin-123}
+      RP_ID: ${RP_ID:-localhost}
+      RP_ORIGIN: ${RP_ORIGIN:-http://localhost:3000}
     ports:
       - "4000:4000"
     networks: [default, internal]

@@ -7,11 +7,14 @@ import {
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { Public } from '../../../shared/auth/auth';
 import { ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import { OptimizeThresholdUseCase } from '../application/optimize-threshold.use-case';
 
 @ApiTags('Порог')
+// v1 — расчётный инструмент проектировщика, открыт без входа (ADR-0005); v2 закрыт по умолчанию.
+@Public()
 @Controller('threshold')
 export class ThresholdController {
   constructor(private readonly optimize: OptimizeThresholdUseCase) {}

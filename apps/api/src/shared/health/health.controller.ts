@@ -3,9 +3,12 @@ import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/co
 import { ApiTags } from '@nestjs/swagger';
 import { sql } from 'kysely';
 
+import { Public } from '../auth/auth';
 import { type Db, KYSELY } from '../database/kysely';
 
 @ApiTags('Служебное')
+// v1 — расчётный инструмент проектировщика, открыт без входа (ADR-0005); v2 закрыт по умолчанию.
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(@Inject(KYSELY) private readonly db: Db) {}

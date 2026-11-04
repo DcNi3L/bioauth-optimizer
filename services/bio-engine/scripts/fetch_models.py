@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
@@ -24,6 +25,30 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: f.read(1 << 20), b''):
             h.update(chunk)
     return h.hexdigest()
+
+
+def download(url: str, target: Path, expected: str, attempts: int = 4) -> bool:
+    """Скачивание с повторами: обрыв соединения даёт усечённый файл, поэтому сверяются длина и хеш."""
+    tmp = target.with_suffix('.part')
+    for attempt in range(1, attempts + 1):
+        try:
+            with urllib.request.urlopen(url, timeout=120) as resp, tmp.open('wb') as out:  # noqa: S310
+                length = int(resp.headers.get('Content-Length') or 0)
+                while chunk := resp.read(1 << 20):
+                    out.write(chunk)
+            size = tmp.stat().st_size
+            if length and size != length:
+                print(f'  попытка {attempt}: получено {size} из {length} байт', file=sys.stderr)
+            elif sha256(tmp) != expected:
+                print(f'  попытка {attempt}: неверный хеш ({size} байт)', file=sys.stderr)
+            else:
+                tmp.replace(target)
+                return True
+        except OSError as exc:
+            print(f'  попытка {attempt}: {exc}', file=sys.stderr)
+        time.sleep(2 * attempt)
+    tmp.unlink(missing_ok=True)
+    return False
 
 
 def main() -> int:
@@ -39,11 +64,9 @@ def main() -> int:
                 print(f'{model["file"]}: нет файла или неверный хеш, а URL не задан', file=sys.stderr)
                 return 1
             print(f'скачиваю {model["name"]} {model["version"]}')
-            tmp = target.with_suffix('.part')
-            with urllib.request.urlopen(model['url'], timeout=120) as resp, tmp.open('wb') as out:  # noqa: S310
-                while chunk := resp.read(1 << 20):
-                    out.write(chunk)
-            tmp.replace(target)
+            if not download(model['url'], target, model['sha256']):
+                print(f'{model["file"]}: не удалось скачать с верным хешем', file=sys.stderr)
+                return 1
         actual = sha256(target)
         if actual != model['sha256']:
             print(f'{model["file"]}: SHA-256 {actual} не совпадает с {model["sha256"]}', file=sys.stderr)

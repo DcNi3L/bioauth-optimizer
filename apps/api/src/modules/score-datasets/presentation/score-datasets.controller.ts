@@ -3,12 +3,15 @@ import { Body, Controller, Get, HttpCode, Param, Post, UploadedFile, UseIntercep
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { Public } from '../../../shared/auth/auth';
 import { ValidationError } from '../../../shared/errors';
 import { UuidPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodOk } from '../../../shared/swagger/api-zod';
 import { GetScoreDatasetUseCase, UploadScoreDatasetUseCase } from '../application/score-dataset.use-cases';
 
 @ApiTags('Наборы оценок')
+// v1 — расчётный инструмент проектировщика, открыт без входа (ADR-0005); v2 закрыт по умолчанию.
+@Public()
 @Controller('score-datasets')
 export class ScoreDatasetsController {
   constructor(

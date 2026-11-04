@@ -9,6 +9,7 @@ import {
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { Public } from '../../../shared/auth/auth';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import {
@@ -22,6 +23,8 @@ import {
 const upsertPipe = new ZodValidationPipe(factorCatalogUpsertSchema);
 
 @ApiTags('Каталоги факторов')
+// v1 — расчётный инструмент проектировщика, открыт без входа (ADR-0005); v2 закрыт по умолчанию.
+@Public()
 @Controller('factor-catalogs')
 export class FactorCatalogsController {
   constructor(

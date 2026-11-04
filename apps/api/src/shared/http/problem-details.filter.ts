@@ -12,9 +12,14 @@ import type { Request, Response } from 'express';
 
 import {
   ConflictError,
+  ForbiddenError,
   InfeasibleProblemError,
   InternalConsistencyError,
   NotFoundError,
+  ServiceUnavailableError,
+  TooManyAttemptsError,
+  UnauthorizedError,
+  UnprocessableError,
   ValidationError,
 } from '../errors';
 import { RequestValidationError } from './zod-validation.pipe';
@@ -93,6 +98,31 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       return { type: PROBLEM_TYPES.notFound, title: 'Не найдено', status: 404, detail: e.message };
     if (e instanceof ConflictError)
       return { type: PROBLEM_TYPES.conflict, title: 'Конфликт', status: 409, detail: e.message };
+    if (e instanceof UnauthorizedError)
+      return { type: PROBLEM_TYPES.unauthorized, title: 'Нужен вход', status: 401, detail: e.message };
+    if (e instanceof ForbiddenError)
+      return { type: PROBLEM_TYPES.forbidden, title: 'Доступ запрещён', status: 403, detail: e.message };
+    if (e instanceof UnprocessableError) {
+      return {
+        type: PROBLEM_TYPES.unprocessable,
+        title: 'Запрос не может быть выполнен',
+        status: 422,
+        detail: e.message,
+        extra: { code: e.code, ...e.extra },
+      };
+    }
+    if (e instanceof TooManyAttemptsError) {
+      return {
+        type: PROBLEM_TYPES.tooManyAttempts,
+        title: 'Слишком много попыток',
+        status: 429,
+        detail: e.message,
+        extra: { lockedUntil: e.lockedUntil?.toISOString() ?? null },
+      };
+    }
+    if (e instanceof ServiceUnavailableError) {
+      return { type: PROBLEM_TYPES.unavailable, title: 'Сервис недоступен', status: 503, detail: e.message };
+    }
     if (e instanceof InternalConsistencyError) {
       return {
         type: PROBLEM_TYPES.internalConsistency,
@@ -112,6 +142,8 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       }
       if (status === HttpStatus.NOT_FOUND.valueOf())
         return { type: PROBLEM_TYPES.notFound, title: 'Не найдено', status, detail };
+      if (status === HttpStatus.TOO_MANY_REQUESTS.valueOf())
+        return { type: PROBLEM_TYPES.tooManyAttempts, title: 'Слишком много запросов', status, detail };
       if (status < 500)
         return { type: PROBLEM_TYPES.validation, title: 'Некорректный запрос', status, detail };
     }

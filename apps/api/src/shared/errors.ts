@@ -32,3 +32,47 @@ export class InfeasibleProblemError extends Error {
 export class InternalConsistencyError extends Error {
   override name = 'InternalConsistencyError';
 }
+
+/** Нет действующей сессии (HTTP 401). */
+export class UnauthorizedError extends Error {
+  override name = 'UnauthorizedError';
+}
+
+/** Сессия есть, но прав недостаточно, или запрос с чужого источника (HTTP 403). */
+export class ForbiddenError extends Error {
+  override name = 'ForbiddenError';
+  constructor(
+    message: string,
+    readonly code = 'forbidden',
+  ) {
+    super(message);
+  }
+}
+
+/** Внешний сервис (bio-engine) недоступен (HTTP 503). */
+export class ServiceUnavailableError extends Error {
+  override name = 'ServiceUnavailableError';
+}
+
+/** Ошибка с машинным кодом и дополнительными полями ответа (например, проблемы качества кадров). */
+export class UnprocessableError extends Error {
+  override name = 'UnprocessableError';
+  constructor(
+    message: string,
+    readonly code: string,
+    readonly extra: Record<string, unknown> = {},
+  ) {
+    super(message);
+  }
+}
+
+/** Слишком много попыток (HTTP 429). */
+export class TooManyAttemptsError extends Error {
+  override name = 'TooManyAttemptsError';
+  constructor(
+    message: string,
+    readonly lockedUntil: Date | null,
+  ) {
+    super(message);
+  }
+}

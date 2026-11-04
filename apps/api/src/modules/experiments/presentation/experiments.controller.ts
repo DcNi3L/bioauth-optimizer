@@ -9,11 +9,14 @@ import {
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 
+import { Public } from '../../../shared/auth/auth';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodOk } from '../../../shared/swagger/api-zod';
 import { GetExperimentUseCase, ListExperimentsUseCase } from '../application/experiment-queries';
 
 @ApiTags('Эксперименты')
+// v1 — расчётный инструмент проектировщика, открыт без входа (ADR-0005); v2 закрыт по умолчанию.
+@Public()
 @Controller('experiments')
 export class ExperimentsController {
   constructor(

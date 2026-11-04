@@ -10,6 +10,9 @@ export const problemDetailsSchema = z.object({
   requestId: z.string().optional(),
   errors: z.array(z.object({ path: z.string(), message: z.string() })).optional(),
   rejectedBy: z.record(z.string(), z.number()).optional(),
+  code: z.string().optional(),
+  frames: z.array(z.object({ issues: z.array(z.string()) }).loose()).optional(),
+  lockedUntil: z.string().nullable().optional(),
 });
 export type ProblemDetails = z.infer<typeof problemDetailsSchema>;
 
@@ -21,4 +24,9 @@ export const PROBLEM_TYPES = {
   conflict: 'conflict',
   internalConsistency: 'internal-consistency-error',
   internal: 'internal-error',
+  unauthorized: 'unauthorized',
+  forbidden: 'forbidden',
+  unavailable: 'service-unavailable',
+  unprocessable: 'unprocessable',
+  tooManyAttempts: 'too-many-attempts',
 } as const;

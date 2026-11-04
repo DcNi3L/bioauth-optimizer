@@ -3,7 +3,11 @@ import { SRO1_FACTOR_EXAMPLE, SRO1_THRESHOLD_EXAMPLE } from '@bioauth/optimizati
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { Public } from '../../../shared/auth/auth';
+
 @ApiTags('Примеры')
+// v1 — расчётный инструмент проектировщика, открыт без входа (ADR-0005); v2 закрыт по умолчанию.
+@Public()
 @Controller('examples')
 export class ExamplesController {
   @Get('sro1')

@@ -7,14 +7,23 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 
 import { AppModule } from './app.module';
+
+export { AppModule };
 import { APP_CONFIG, type AppConfig } from './shared/config/env';
 
 /** Сборка приложения отдельно от прослушивания порта — используется и в main.ts, и в e2e-тестах. */
 export async function createApp(): Promise<INestApplication> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
+  return configureApp(app);
+}
+
+/** Общая настройка HTTP-слоя; e2e-тесты применяют её к приложению с подменёнными адаптерами. */
+export function configureApp(nest: INestApplication): INestApplication {
+  const app = nest as NestExpressApplication;
   app.useLogger(app.get(Logger));
   const config = app.get<AppConfig>(APP_CONFIG);
-  app.useBodyParser('json', { limit: '2mb' });
+  // Кадры камеры передаются в JSON (base64): до 16 кадров по ~200 КБ с запасом.
+  app.useBodyParser('json', { limit: '20mb' });
   app.setGlobalPrefix('api/v1', { exclude: [{ path: 'health/(.*)', method: RequestMethod.GET }] });
   app.enableCors({ origin: config.CORS_ORIGIN });
   app.enableShutdownHooks();
