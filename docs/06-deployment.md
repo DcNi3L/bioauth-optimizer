@@ -22,7 +22,7 @@ flowchart LR
 ## 6.2. Файлы
 
 | Файл | Назначение |
-|---|---|
+| --- | --- |
 | [`docker-compose.yml`](../docker-compose.yml) | Три сервиса: `db`, `api`, `web`; healthcheck'и и порядок запуска |
 | [`docker/api.Dockerfile`](../docker/api.Dockerfile) | Сборка API: `turbo prune` → `pnpm install --frozen-lockfile` → `turbo build` → `pnpm deploy --prod` |
 | [`docker/web.Dockerfile`](../docker/web.Dockerfile) | Сборка интерфейса: Next.js `output: "standalone"`, запуск `node apps/web/server.js` |
@@ -39,14 +39,14 @@ flowchart LR
 ## 6.4. Переменные окружения
 
 | Переменная | Сервис | По умолчанию | Назначение |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `DATABASE_URL` | api | — (обязательна) | Строка подключения PostgreSQL |
 | `PORT` | api | 4000 | Порт HTTP |
-| `CORS_ORIGIN` | api | http://localhost:3000 | Разрешённый origin |
+| `CORS_ORIGIN` | api | <http://localhost:3000> | Разрешённый origin |
 | `MAX_UPLOAD_MB` | api | 50 | Лимит размера CSV |
 | `LOG_LEVEL` | api | info | Уровень логов pino |
-| `API_INTERNAL_URL` | web (сборка) | http://api:4000 | Адрес API для rewrites Next.js |
-| `NEXT_PUBLIC_SWAGGER_URL` | web (сборка) | http://localhost:4000/api/docs | Ссылка «API (Swagger)» в шапке |
+| `API_INTERNAL_URL` | web (сборка) | <http://api:4000> | Адрес API для rewrites Next.js |
+| `NEXT_PUBLIC_SWAGGER_URL` | web (сборка) | <http://localhost:4000/api/docs> | Ссылка «API (Swagger)» в шапке |
 | `POSTGRES_PASSWORD` | db, api | bioauth | Пароль БД (для локального запуска; в `.env`, не в git) |
 
 Все переменные api валидируются zod-схемой при старте: без `DATABASE_URL` процесс завершается с понятной ошибкой.

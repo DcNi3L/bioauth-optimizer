@@ -5,7 +5,7 @@
 ## 4.1. Сводка эндпоинтов
 
 | Метод | Путь | Назначение |
-|---|---|---|
+| --- | --- | --- |
 | POST | `/threshold/optimize` | Оптимальный порог (параметрический режим или по сохранённому набору оценок) |
 | POST | `/score-datasets` | Загрузка CSV с оценками (multipart, поле `file`) |
 | GET | `/score-datasets/:id` | Метаданные набора (n_G, n_I, min/max, гистограмма) |
@@ -21,6 +21,7 @@
 ## 4.2. `POST /threshold/optimize`
 
 **Запрос (параметрический режим, пример статьи):**
+
 ```json
 {
   "model": { "kind": "gaussian", "genuine": { "mean": 0.72, "std": 0.09 }, "impostor": { "mean": 0.30, "std": 0.11 } },
@@ -29,11 +30,13 @@
   "curve": { "points": 200, "from": 0.3, "to": 0.8 }
 }
 ```
+
 Эмпирический режим: `"model": { "kind": "empirical", "datasetId": "…uuid…" }`.
 
 **Валидация:** std > 0; genuine.mean > impostor.mean; cFA, cFR > 0; farMax ∈ (0, 1) или null; points ∈ [10, 2000].
 
 **Ответ 200:**
+
 ```json
 {
   "experimentId": "0f6c…",
@@ -50,11 +53,13 @@
   "meta": { "coreVersion": "1.0.0", "durationMs": 3 }
 }
 ```
+
 В эмпирическом режиме `optimal.interval = [t_{k−1}, t_k]`, а `optimal.tau` — середина интервала.
 
 ## 4.3. `POST /factor-selection/solve`
 
 **Запрос (пример статьи):**
+
 ```json
 {
   "factors": [
@@ -71,11 +76,13 @@
   "rankingLimit": 100
 }
 ```
+
 Вместо `factors` можно передать `"catalogId": "…"`.
 
 **Валидация:** 1 ≤ n ≤ 50; коды уникальны; far ∈ (0,1); frr ∈ [0,1); latencyMs, cost ≥ 0; `solver = "exhaustive"` требует n ≤ 20 (иначе 413 `problem-too-large`).
 
 **Ответ 200:**
+
 ```json
 {
   "experimentId": "7a1d…",
@@ -96,9 +103,11 @@
   "meta": { "coreVersion": "1.0.0", "durationMs": 1 }
 }
 ```
+
 Для `ilp`: `"solver": { "used": "ilp", "certificate": { "iterations": 2, "lowerBound": 0.068929, "bestObjective": 0.019925, "proven": true } }`, `rankingComplete: false`.
 
 Если допустимых наборов нет — **422** `infeasible-problem` с полем `rejectedBy` (сколько подмножеств отсекло каждое ограничение; одно подмножество может нарушать несколько).
+
 ## 4.4. `POST /factor-selection/budget-sweep`
 
 Запрос — как в `/solve`, но вместо `constraints.budget` передаётся `"sweep": { "from": 0.5, "to": 3.0, "step": 0.1 }` (не более 500 точек).
