@@ -209,6 +209,7 @@ describeDb('API v2.2 e2e: калибровка, PAD, дрейф (PostgreSQL)', (
     const pk = m.body.factors.find((f: { code: string }) => f.code === 'PASSKEY');
     expect(face).toMatchObject({ hasPad: true, provenance: 'measured', sources: { far: 'measured' } });
     expect(face.far).toBeGreaterThan(0);
+    expect(face.far).toBeLessThan(1);
     expect(face.frrInterval[0]).toBeLessThanOrEqual(face.frr);
     expect(pk).toMatchObject({ far: 2e-5, frr: 0.5, provenance: 'declared', attempts: 2, latencyMs: 1950 });
 

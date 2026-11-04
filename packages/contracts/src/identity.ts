@@ -163,3 +163,23 @@ export const authStepResultSchema = z.object({
 export type AuthStepResultDto = z.infer<typeof authStepResultSchema>;
 
 export const webauthnResponseSchema = z.looseObject({ id: z.string(), type: z.literal('public-key') });
+
+// ── Журнал аудита (только чтение: admin, auditor) ──
+
+export const auditEventSchema = z.object({
+  seq: z.number().int(),
+  at: z.string(),
+  actorId: z.string().nullable(),
+  action: z.string(),
+  target: z.string().nullable(),
+  details: z.record(z.string(), z.unknown()),
+  hash: z.string(),
+});
+export type AuditEventDto = z.infer<typeof auditEventSchema>;
+
+export const chainVerificationSchema = z.object({
+  ok: z.boolean(),
+  events: z.number().int(),
+  brokenAt: z.number().int().nullable(),
+});
+export type ChainVerificationDto = z.infer<typeof chainVerificationSchema>;

@@ -111,20 +111,32 @@ test('администратор: пароль, passkey и утверждени�
   await expect(page.getByText('Двухфакторный вход')).toBeVisible();
   await expect(page.getByText('выполнен', { exact: true })).toBeVisible();
 
-  const proposed = await page.request.post('/api/v1/policies', {
-    data: {
-      steps: [
-        { factor: 'face', tauFace: 0.363, tauPad: 0.5, commands: 0, calibrated: false },
-        { factor: 'passkey' },
-      ],
-      costs: { cFA: 200, cFR: 1 },
-      rationale: 'e2e: вход по лицу без команд с обязательным passkey',
-    },
-  });
-  expect(proposed.status()).toBe(201);
-  const { id } = (await proposed.json()) as { id: string };
-  const approved = await page.request.post(`/api/v1/policies/${id}/approve`, { data: { note: 'e2e' } });
-  expect(approved.status()).toBe(200);
+  // Предложение и утверждение через рабочее место администратора.
+  await page.goto('/admin/policies');
+  await expect(page.getByRole('heading', { name: 'Версии политики' })).toBeVisible();
+  await page.getByLabel('Число команд').fill('0');
+  await expect(page.getByText(/не менее трёх случайных команд/)).toBeVisible();
+  await page.getByLabel('Второй шаг — passkey').check();
+  await page.getByLabel('Обоснование').fill('e2e: вход по лицу без команд с обязательным passkey');
+  await page.getByRole('button', { name: 'Предложить политику' }).click();
+  const notice = page.getByText(/Предложена версия \d+/);
+  await expect(notice).toBeVisible();
+  const version = /версия (\d+)/.exec((await notice.textContent()) ?? '')?.[1];
+  expect(version).toBeDefined();
+  await page.getByRole('button', { name: `Утвердить v${version}` }).click();
+  await expect(
+    page
+      .getByRole('listitem')
+      .filter({ hasText: `Версия ${version}` })
+      .getByText('активна'),
+  ).toBeVisible();
+
+  // Остальные вкладки открываются и показывают данные.
+  await page.getByRole('link', { name: 'Попытки' }).click();
+  await expect(page.getByRole('cell', { name: SUBJECT }).first()).toBeVisible();
+  await page.getByRole('link', { name: 'Аудит' }).click();
+  await page.getByRole('button', { name: 'Проверить целостность' }).click();
+  await expect(page.getByText(/Цепочка цела/)).toBeVisible();
 });
 
 test('вход субъекта по новой политике: лицо, затем passkey', async () => {

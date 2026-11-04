@@ -229,7 +229,8 @@ export class CalibrationService {
       factors.push({
         code: 'FACE',
         name: `Лицо + проверка «живости» (${model})`,
-        far: Math.max(confirmedRate(at.falseAccepts, imp.length), 1e-9),
+        // Без impostor-сравнений верхняя граница FAR равна 1 — каталогу нужна вероятность < 1.
+        far: Math.min(Math.max(confirmedRate(at.falseAccepts, imp.length), 1e-9), 0.999),
         frr: Math.min(at.frr, 0.999),
         latencyMs: quantile(durations, 0.5) ?? 0,
         cost: 1,
