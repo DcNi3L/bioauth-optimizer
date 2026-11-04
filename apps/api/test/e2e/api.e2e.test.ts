@@ -4,6 +4,10 @@ import { Client } from 'pg';
 import request from 'supertest';
 
 const DB_URL = process.env.TEST_DATABASE_URL;
+if (process.env.CI && !DB_URL) {
+  // В CI e2e обязательны: без базы тесты не должны молча пропускаться.
+  throw new Error('TEST_DATABASE_URL не задана в CI');
+}
 const describeDb = DB_URL ? describe : describe.skip;
 
 /** E2E на реальном PostgreSQL: TEST_DATABASE_URL (в CI — сервис postgres). Схема пересоздаётся с нуля. */

@@ -6,8 +6,9 @@ import { MAX_FACTORS, validateProblem } from '../validation';
 import { type FactorSelectionSolver, resolveRankingLimit } from './factor-selection-solver';
 import type { MilpConstraint, MilpModel, MilpPort } from './milp-port';
 
-/** Консервативный запас на численный допуск MILP при сравнении S(x̂) с найденным оптимумом. */
+/** Консервативные запасы на численный допуск MILP при вычислении нижней оценки. */
 const S_SAFETY = 1e-9;
+const L_SAFETY = 1e-9;
 const DEFAULT_MAX_ITERATIONS = 10_000;
 
 export interface CertifiedIlpOptions {
@@ -19,9 +20,14 @@ const slackRhs = (rhs: number) => rhs + EPS * Math.max(1, Math.abs(rhs));
 /**
  * Решатель B (док. 02, §2.2.3) — метод СРО1: линеаризованное ЦЛП
  *   min S(x) = Σ FRR_i·x_i  при  Σ x_i·ln FAR_i ≤ ln FAR_max  и линейных ограничениях (3),
- * дополненное сертификатом оптимальности для исходной нелинейной E(x):
- *   E(x) ≥ cFR·(1 − e^{−S(x)}) =: LB(S),  поэтому перебор решений MILP в порядке роста S с отсечениями
- *   «no-good» можно остановить, как только LB(S(x̂)) ≥ лучшего точного E.
+ * дополненное сертификатом оптимальности для исходной нелинейной E(x) = cFA·FAR(x) + cFR·FRR(x).
+ *
+ * На каждой итерации по ещё не отсечённым наборам решаются две задачи MILP:
+ *   S_min = min Σ FRR_i·x_i   и   L_min = min Σ ln(FAR_i)·x_i.
+ * Каждое слагаемое E не меньше своего минимума, поэтому для любого оставшегося x
+ *   E(x) ≥ LB = cFR·(1 − e^{−S_min}) + cFA·e^{L_min}.
+ * Оба найденных набора оцениваются точно и отсекаются («no-good»); остановка — когда LB ≥ лучшего E.
+ * Вторая задача нужна, когда FRR малы: без неё оценка вырождается в 0 и решатель перебирает все наборы.
  */
 export class CertifiedIlpSolver implements FactorSelectionSolver {
   readonly id = 'ilp' as const;
@@ -42,33 +48,48 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
     const top = new TopK<SubsetMetrics>(limit, (a, b) => compareSubsets(a, b, codeOf));
 
     const base = this.baseModel(problem);
+    const logFar = problem.factors.map((f) => Math.log(f.far));
     const cuts: MilpConstraint[] = [];
+    const seen = new Set<string>();
     let best: SubsetMetrics | null = null;
     let iterations = 0;
     let lowerBound: number | null = null;
     let proven = false;
+    const toIndices = (values: readonly number[]) => values.flatMap((v, i) => (v > 0.5 ? [i] : []));
 
     while (iterations < maxIterations) {
-      const solution = await this.milp.solve({ ...base, constraints: [...base.constraints, ...cuts] });
-      if (solution.status === 'infeasible') {
+      const constraints = [...base.constraints, ...cuts];
+      const bySum = await this.milp.solve({ ...base, constraints });
+      if (bySum.status === 'infeasible') {
         proven = true; // допустимое множество исчерпано
         lowerBound = null;
         break;
       }
+      const byFar = await this.milp.solve({ ...base, objective: logFar, constraints });
       iterations++;
-      const indices = solution.values.flatMap((v, i) => (v > 0.5 ? [i] : []));
-      const m = evaluator.evaluate(indices);
-      lowerBound = problem.costs.cFR * -expm1(-Math.max(0, m.frrSum - S_SAFETY));
+      const candidates = [evaluator.evaluate(toIndices(bySum.values))];
+      if (byFar.status === 'optimal') candidates.push(evaluator.evaluate(toIndices(byFar.values)));
+
+      // Нижняя оценка по всем ещё не отсечённым наборам (минимумы пересчитаны точно по найденным решениям).
+      const sMin = candidates[0]!.frrSum;
+      const lMin = Math.min(...candidates.map((m) => m.logFar));
+      lowerBound =
+        problem.costs.cFR * -expm1(-Math.max(0, sMin - S_SAFETY)) + problem.costs.cFA * Math.exp(lMin - L_SAFETY);
       if (best !== null && lowerBound >= best.objective) {
         proven = true;
         break;
       }
-      // Точная проверка допустимости — арбитр (допуски MILP могут пропустить граничный набор).
-      if (evaluator.isFeasible(m)) {
-        top.offer(m);
-        if (best === null || compareSubsets(m, best, codeOf) < 0) best = m;
+      for (const m of candidates) {
+        const key = m.indices.join(',');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        // Точная проверка допустимости — арбитр (допуски MILP могут пропустить граничный набор).
+        if (evaluator.isFeasible(m)) {
+          top.offer(m);
+          if (best === null || compareSubsets(m, best, codeOf) < 0) best = m;
+        }
+        cuts.push(this.noGoodCut(m.indices, n, cuts.length));
       }
-      cuts.push(this.noGoodCut(indices, n, cuts.length));
     }
 
     const ranking = top.toArray().map((m) => evaluator.toSolution(m));

@@ -134,6 +134,30 @@ describe('граничные случаи', () => {
     expect(b.optimum!.codes).toEqual(a.optimum!.codes);
   });
 
+  it('регрессия: все FRR = 0 — сертификат ЦЛП не вырождается в полный перебор', async () => {
+    // Раньше нижняя оценка cFR·(1 − e^{−S}) была равна 0 для всех наборов, и решатель обходил все 2ⁿ − 1 наборов через MILP.
+    const factors: Factor[] = Array.from({ length: 12 }, (_, i) => ({
+      code: `Z${i}`,
+      name: `Ключ ${i}`,
+      far: 10 ** -(1 + (i % 4)) * (1 + i / 10),
+      frr: 0,
+      latencyMs: 10 * i,
+      cost: 0.1 * (i % 5),
+      hasPad: i % 3 === 0,
+    }));
+    const problem: FactorSelectionProblem = {
+      factors,
+      costs: { cFA: 100, cFR: 1 },
+      constraints: { latencyMaxMs: 300, budget: 1, farMax: null, minPadFactors: 1 },
+    };
+    const t0 = performance.now();
+    const r = await ilp.solve(problem);
+    expect(performance.now() - t0).toBeLessThan(5000);
+    expect(r.solver.certificate!.iterations).toBeLessThanOrEqual(3);
+    expect(r.solver.certificate!.proven).toBe(true);
+    expect(r.optimum!.objective).toBe(exhaustive.solveSync(problem).optimum!.objective);
+  });
+
   it('n = 21 при solver = exhaustive → ProblemTooLargeError; auto → ЦЛП', () => {
     const factors = Array.from({ length: 21 }, (_, i) => ({ ...base.factors[0]!, code: `X${i}` }));
     const selector = new SolverSelector([exhaustive, ilp]);

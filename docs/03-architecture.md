@@ -47,7 +47,7 @@ flowchart TB
   contracts --> zod["zod"]
 ```
 
-Правила проверяются `eslint-plugin-boundaries` и `dependency-cruiser` в CI:
+Правила закреплены в коде и ревью; правила FSD фронтенда проверяет `steiger` в CI:
 - `optimization-core` не импортирует ничего из `apps/*`, `@nestjs/*`, `next`, `react`, `kysely`, `pg`.
 - `web` не импортирует `optimization-core`: все вычисления выполняются на сервере, это единственный источник правды.
 - `contracts` зависит только от `zod`.
@@ -318,10 +318,12 @@ sequenceDiagram
   UC->>SS: select(problem, mode)
   SS-->>UC: CertifiedIlpSolver
   UC->>S: solve(problem)
-  loop пока LB(S(x̂)) < best
-    S->>M: solve MILP(𝒞)
-    M-->>S: x̂, S(x̂)
-    S->>E: evaluate(x̂) — точное E
+  loop пока LB < best
+    S->>M: MILP 1: min Σ FRRᵢxᵢ (с отсечениями 𝒞)
+    M-->>S: x̂_S, S_min
+    S->>M: MILP 2: min Σ ln FARᵢ·xᵢ (с отсечениями 𝒞)
+    M-->>S: x̂_L, L_min
+    S->>E: evaluate(x̂_S), evaluate(x̂_L) — точное E
     E-->>S: E(x̂)
     S->>S: best = min(best, E), добавить x̂ в 𝒞
   end
@@ -334,15 +336,16 @@ sequenceDiagram
 ```mermaid
 flowchart TD
   A([Старт]) --> B["best ← ∞, 𝒞 ← ∅"]
-  B --> C["Решить MILP(𝒞):<br/>min Σ FRRᵢxᵢ при линейных ограничениях"]
+  B --> C["MILP 1: x̂_S = argmin Σ FRRᵢxᵢ<br/>по наборам вне 𝒞"]
   C --> D{Допустимо?}
   D -- нет --> Z([Стоп: best — оптимум<br/>или задача недопустима])
-  D -- да --> E["LB = cFR·(1 − e^(−S(x̂)))"]
+  D -- да --> C2["MILP 2: x̂_L = argmin Σ ln FARᵢ·xᵢ<br/>по тем же наборам"]
+  C2 --> E["LB = cFR·(1 − e^(−S_min)) + cFA·e^(L_min)"]
   E --> F{LB ≥ best?}
   F -- да --> Z2([Стоп: оптимум доказан])
-  F -- нет --> G["Точное E(x̂) в лог-пространстве"]
-  G --> H["best ← min(best, E(x̂))"]
-  H --> I["𝒞 ← 𝒞 ∪ {x̂} (no-good cut)"]
+  F -- нет --> G["Точное E(x̂_S), E(x̂_L) в лог-пространстве"]
+  G --> H["best ← min(best, E)"]
+  H --> I["𝒞 ← 𝒞 ∪ {x̂_S, x̂_L} (no-good cuts)"]
   I --> C
 ```
 
