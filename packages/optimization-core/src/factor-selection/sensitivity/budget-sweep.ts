@@ -1,7 +1,7 @@
 import { assertDomain, isFiniteNumber, ProblemTooLargeError } from '../../errors';
 import { leq } from '../../numeric';
 import { EXHAUSTIVE_MAX_FACTORS } from '../solvers/exhaustive.solver';
-import { SubsetEvaluator, compareSubsets, indicesFromMask } from '../subset-evaluator';
+import { compareSubsets, indicesFromMask, SubsetEvaluator } from '../subset-evaluator';
 import type { FactorSelectionProblem, SubsetMetrics } from '../types';
 import { validateProblem } from '../validation';
 
@@ -34,14 +34,25 @@ export interface BudgetSweepResult {
  * по стоимости; при движении B вверх поддерживается лучший набор среди C(x) ≤ B. O(2ⁿ·n + F·log F + точки).
  */
 export function budgetSweep(problem: FactorSelectionProblem, range: BudgetSweepRange): BudgetSweepResult {
-  const relaxed: FactorSelectionProblem = { ...problem, constraints: { ...problem.constraints, budget: null } };
+  const relaxed: FactorSelectionProblem = {
+    ...problem,
+    constraints: { ...problem.constraints, budget: null },
+  };
   validateProblem(relaxed);
   const n = problem.factors.length;
   if (n > EXHAUSTIVE_MAX_FACTORS) {
     throw new ProblemTooLargeError(`анализ бюджета поддерживает не более ${EXHAUSTIVE_MAX_FACTORS} факторов`);
   }
-  assertDomain(isFiniteNumber(range.from) && range.from >= 0, 'начало диапазона должно быть ≥ 0', 'sweep.from');
-  assertDomain(isFiniteNumber(range.to) && range.to >= range.from, 'конец диапазона должен быть ≥ начала', 'sweep.to');
+  assertDomain(
+    isFiniteNumber(range.from) && range.from >= 0,
+    'начало диапазона должно быть ≥ 0',
+    'sweep.from',
+  );
+  assertDomain(
+    isFiniteNumber(range.to) && range.to >= range.from,
+    'конец диапазона должен быть ≥ начала',
+    'sweep.to',
+  );
   assertDomain(isFiniteNumber(range.step) && range.step > 0, 'шаг должен быть > 0', 'sweep.step');
   const count = Math.floor((range.to - range.from) / range.step + 1e-9) + 1;
   assertDomain(count <= MAX_SWEEP_POINTS, `не более ${MAX_SWEEP_POINTS} точек`, 'sweep.step');
@@ -77,7 +88,8 @@ export function budgetSweep(problem: FactorSelectionProblem, range: BudgetSweepR
     const key = p.codes?.join('+') ?? null;
     const prevKey = prev ? (prev.codes?.join('+') ?? null) : undefined;
     if (prev === null || key !== prevKey) {
-      const ratio = prev?.objective != null && p.objective !== null ? p.objective / prev.objective : null;
+      const prevObjective = prev?.objective ?? null;
+      const ratio = prevObjective !== null && p.objective !== null ? p.objective / prevObjective : null;
       breakpoints.push({ ...p, ratioToPrevious: ratio });
     }
     prev = p;

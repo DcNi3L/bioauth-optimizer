@@ -17,8 +17,8 @@ export class AndFusionRule implements FusionRule {
         let lf = 0;
         let ls = 0;
         for (const i of indices) {
-          lf += logFar[i] as number;
-          ls += logSurv[i] as number;
+          lf += logFar[i]!;
+          ls += logSurv[i]!;
         }
         // ls = 0 (все FRR_i = 0) → FRR = 0, а не −0.
         return { far: Math.exp(lf), logFar: lf, frr: ls === 0 ? 0 : -expm1(ls) };

@@ -12,7 +12,12 @@ const GRID_POINTS = 10_000;
  *    (без квадратного уравнения), уточняет его до машинной точности.
  */
 export class NumericVerifier {
-  verify(model: GaussianScoreModel, costs: Costs, analyticTau: number, tauMin: number): ThresholdVerification {
+  verify(
+    model: GaussianScoreModel,
+    costs: Costs,
+    analyticTau: number,
+    tauMin: number,
+  ): ThresholdVerification {
     const { genuine: g, impostor: i } = model;
     const spread = Math.max(g.std, i.std);
     let lo = i.mean - 10 * i.std;

@@ -1,7 +1,13 @@
 import { ProblemTooLargeError } from '../../errors';
-import { CONSTRAINT_KINDS, SubsetEvaluator, compareSubsets, indicesFromMask } from '../subset-evaluator';
-import type { ConstraintKind, FactorSelectionProblem, SelectionResult, SolveOptions, SubsetMetrics } from '../types';
+import { compareSubsets, CONSTRAINT_KINDS, indicesFromMask, SubsetEvaluator } from '../subset-evaluator';
 import { TopK } from '../top-k';
+import type {
+  ConstraintKind,
+  FactorSelectionProblem,
+  SelectionResult,
+  SolveOptions,
+  SubsetMetrics,
+} from '../types';
 import { validateProblem } from '../validation';
 import { type FactorSelectionSolver, resolveRankingLimit } from './factor-selection-solver';
 
@@ -16,15 +22,21 @@ export class ExhaustiveSolver implements FactorSelectionSolver {
   readonly id = 'exhaustive' as const;
   readonly maxFactors = EXHAUSTIVE_MAX_FACTORS;
 
-  async solve(problem: FactorSelectionProblem, options?: SolveOptions): Promise<SelectionResult> {
-    return this.solveSync(problem, options);
+  solve(problem: FactorSelectionProblem, options?: SolveOptions): Promise<SelectionResult> {
+    try {
+      return Promise.resolve(this.solveSync(problem, options));
+    } catch (err) {
+      return Promise.reject(err instanceof Error ? err : new Error(String(err)));
+    }
   }
 
   solveSync(problem: FactorSelectionProblem, options?: SolveOptions): SelectionResult {
     validateProblem(problem);
     const n = problem.factors.length;
     if (n > this.maxFactors) {
-      throw new ProblemTooLargeError(`полный перебор поддерживает не более ${this.maxFactors} факторов (передано ${n})`);
+      throw new ProblemTooLargeError(
+        `полный перебор поддерживает не более ${this.maxFactors} факторов (передано ${n})`,
+      );
     }
     const limit = resolveRankingLimit(options);
     const evaluator = new SubsetEvaluator(problem);

@@ -1,1 +1,1 @@
-export { useFactorCatalogs, catalogKeys } from './api/queries';
+export { catalogKeys, useFactorCatalogs } from './api/queries';

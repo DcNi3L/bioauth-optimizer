@@ -2,8 +2,16 @@ import { assertDomain, isFiniteNumber } from '../errors';
 import type { Costs, NormalParams } from './types';
 
 export function validateCosts(costs: Costs): void {
-  assertDomain(isFiniteNumber(costs.cFA) && costs.cFA > 0, 'cFA должно быть положительным числом', 'costs.cFA');
-  assertDomain(isFiniteNumber(costs.cFR) && costs.cFR > 0, 'cFR должно быть положительным числом', 'costs.cFR');
+  assertDomain(
+    isFiniteNumber(costs.cFA) && costs.cFA > 0,
+    'cFA должно быть положительным числом',
+    'costs.cFA',
+  );
+  assertDomain(
+    isFiniteNumber(costs.cFR) && costs.cFR > 0,
+    'cFR должно быть положительным числом',
+    'costs.cFR',
+  );
 }
 
 export function validateFarMax(farMax: number | null | undefined, path = 'farMax'): void {

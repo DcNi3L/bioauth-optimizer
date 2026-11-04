@@ -1,7 +1,17 @@
+import type {
+  ExperimentDetailDto,
+  ExperimentListDto,
+  ExperimentListQuery,
+  ExperimentSummaryDto,
+} from '@bioauth/contracts';
 import { Inject, Injectable } from '@nestjs/common';
-import type { ExperimentDetailDto, ExperimentListDto, ExperimentListQuery, ExperimentSummaryDto } from '@bioauth/contracts';
+
 import { NotFoundError, ValidationError } from '../../../shared/errors';
-import { EXPERIMENT_REPOSITORY, type ExperimentRecord, type ExperimentRepository } from './experiment.repository';
+import {
+  EXPERIMENT_REPOSITORY,
+  type ExperimentRecord,
+  type ExperimentRepository,
+} from './experiment.repository';
 import { experimentHeadline } from './headline';
 
 function toSummary(e: ExperimentRecord): ExperimentSummaryDto {
@@ -22,9 +32,13 @@ const encodeCursor = (e: ExperimentRecord) =>
 
 function decodeCursor(cursor: string): { createdAt: Date; id: string } {
   try {
-    const { t, id } = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as { t: string; id: string };
+    const { t, id } = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as {
+      t: string;
+      id: string;
+    };
     const createdAt = new Date(t);
-    if (Number.isNaN(createdAt.getTime()) || typeof id !== 'string' || !/^[0-9a-f-]{36}$/i.test(id)) throw new Error();
+    if (Number.isNaN(createdAt.getTime()) || typeof id !== 'string' || !/^[0-9a-f-]{36}$/i.test(id))
+      throw new Error();
     return { createdAt, id };
   } catch {
     throw new ValidationError('некорректный курсор пагинации', 'cursor');
@@ -43,7 +57,10 @@ export class ListExperimentsUseCase {
     });
     const page = rows.slice(0, query.limit);
     const last = page[page.length - 1];
-    return { items: page.map(toSummary), nextCursor: rows.length > query.limit && last ? encodeCursor(last) : null };
+    return {
+      items: page.map(toSummary),
+      nextCursor: rows.length > query.limit && last ? encodeCursor(last) : null,
+    };
   }
 }
 

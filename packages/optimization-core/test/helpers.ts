@@ -5,10 +5,10 @@ export function expectRel(actual: number | null | undefined, expected: number, r
   expect(actual).not.toBeNull();
   expect(actual).toBeTypeOf('number');
   const tol = rel * Math.max(Math.abs(expected), expected === 0 ? 1 : 0);
-  expect(Math.abs((actual as number) - expected), `actual=${actual}, expected=${expected}`).toBeLessThanOrEqual(tol);
+  expect(Math.abs(actual! - expected), `actual=${actual}, expected=${expected}`).toBeLessThanOrEqual(tol);
 }
 
 export function expectAbs(actual: number | null | undefined, expected: number, abs: number): void {
   expect(actual).toBeTypeOf('number');
-  expect(Math.abs((actual as number) - expected), `actual=${actual}, expected=${expected}`).toBeLessThanOrEqual(abs);
+  expect(Math.abs(actual! - expected), `actual=${actual}, expected=${expected}`).toBeLessThanOrEqual(abs);
 }

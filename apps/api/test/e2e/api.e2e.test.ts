@@ -1,5 +1,6 @@
-import type { INestApplication } from '@nestjs/common';
 import { join } from 'node:path';
+
+import type { INestApplication } from '@nestjs/common';
 import { Client } from 'pg';
 import request from 'supertest';
 
@@ -12,8 +13,10 @@ const describeDb = DB_URL ? describe : describe.skip;
 
 /** E2E на реальном PostgreSQL: TEST_DATABASE_URL (в CI — сервис postgres). Схема пересоздаётся с нуля. */
 describeDb('API e2e (PostgreSQL)', () => {
-  let app: INestApplication;
+  let app: INestApplication | undefined;
   let http: ReturnType<typeof request>;
+  let seededFirst = false;
+  let seededAgain = true;
 
   beforeAll(async () => {
     const client = new Client({ connectionString: DB_URL });
@@ -25,20 +28,28 @@ describeDb('API e2e (PostgreSQL)', () => {
     process.env.NODE_ENV = 'test';
     const { migrate } = await import('../../src/shared/database/migrator');
     const { createDb } = await import('../../src/shared/database/kysely');
-    const { seedPresetCatalogs } = await import('../../src/modules/factor-catalogs/infrastructure/seed-presets');
+    const { seedPresetCatalogs } = await import(
+      '../../src/modules/factor-catalogs/infrastructure/seed-presets'
+    );
     await migrate(DB_URL!, join(__dirname, '..', '..', 'migrations'));
     const db = createDb(DB_URL!, 1);
-    expect(await seedPresetCatalogs(db)).toBe(true);
-    expect(await seedPresetCatalogs(db)).toBe(false); // идемпотентность
+    seededFirst = await seedPresetCatalogs(db);
+    seededAgain = await seedPresetCatalogs(db);
     await db.destroy();
     const { createApp } = await import('../../src/bootstrap');
-    app = await createApp();
-    await app.init();
-    http = request(app.getHttpServer());
+    const created = await createApp();
+    await created.init();
+    app = created;
+    http = request(created.getHttpServer());
   });
 
   afterAll(async () => {
-    await app?.close();
+    if (app) await app.close();
+  });
+
+  it('seed каталога СРО1 идемпотентен', () => {
+    expect(seededFirst).toBe(true);
+    expect(seededAgain).toBe(false);
   });
 
   it('health: live и ready', async () => {
@@ -69,7 +80,10 @@ describeDb('API e2e (PostgreSQL)', () => {
     const a = await http.post('/api/v1/factor-selection/solve').send(body).expect(200);
     expect(a.body.optimum.codes).toEqual(['F2', 'F5']);
     expect(a.body.stats.feasibleCount).toBe(6);
-    const b = await http.post('/api/v1/factor-selection/solve').send({ ...body, solver: 'ilp' }).expect(200);
+    const b = await http
+      .post('/api/v1/factor-selection/solve')
+      .send({ ...body, solver: 'ilp' })
+      .expect(200);
     expect(b.body.solver.certificate).toMatchObject({ iterations: 2, proven: true });
     const { budget: _budget, ...constraints } = body.constraints;
     const s = await http
@@ -80,7 +94,10 @@ describeDb('API e2e (PostgreSQL)', () => {
   });
 
   it('ошибки в формате RFC 7807', async () => {
-    const v = await http.post('/api/v1/threshold/optimize').send({ model: { kind: 'gaussian' } }).expect(400);
+    const v = await http
+      .post('/api/v1/threshold/optimize')
+      .send({ model: { kind: 'gaussian' } })
+      .expect(400);
     expect(v.headers['content-type']).toContain('application/problem+json');
     expect(v.body.type).toMatch(/validation-error$/);
     expect(v.body.errors.length).toBeGreaterThan(0);
@@ -104,14 +121,22 @@ describeDb('API e2e (PostgreSQL)', () => {
 
   it('каталоги: CRUD, предустановленный — только чтение, уникальность имени', async () => {
     const factor = { code: 'K', name: 'Ключ', far: 1e-3, frr: 0.01, latencyMs: 10, cost: 0.1, hasPad: false };
-    const created = await http.post('/api/v1/factor-catalogs').send({ name: 'Мой каталог', factors: [factor] }).expect(201);
-    await http.post('/api/v1/factor-catalogs').send({ name: 'Мой каталог', factors: [factor] }).expect(409);
+    const created = await http
+      .post('/api/v1/factor-catalogs')
+      .send({ name: 'Мой каталог', factors: [factor] })
+      .expect(201);
+    await http
+      .post('/api/v1/factor-catalogs')
+      .send({ name: 'Мой каталог', factors: [factor] })
+      .expect(409);
     const updated = await http
       .put(`/api/v1/factor-catalogs/${created.body.id}`)
       .send({ name: 'Мой каталог 2', factors: [factor, { ...factor, code: 'P' }] })
       .expect(200);
     expect(updated.body.factors.map((f: { code: string }) => f.code)).toEqual(['K', 'P']);
-    const preset = (await http.get('/api/v1/factor-catalogs')).body.items.find((c: { isPreset: boolean }) => c.isPreset);
+    const preset = (await http.get('/api/v1/factor-catalogs')).body.items.find(
+      (c: { isPreset: boolean }) => c.isPreset,
+    );
     await http.delete(`/api/v1/factor-catalogs/${preset.id}`).expect(409);
     await http.delete(`/api/v1/factor-catalogs/${created.body.id}`).expect(204);
     await http.get(`/api/v1/factor-catalogs/${created.body.id}`).expect(404);
@@ -123,9 +148,15 @@ describeDb('API e2e (PostgreSQL)', () => {
       [0.6, 0.7, 0.8].map((s) => `${s},genuine`).join('\n') +
       '\n' +
       [0.1, 0.2, 0.3].map((s) => `${s},impostor`).join('\n');
-    const up = await http.post('/api/v1/score-datasets').attach('file', Buffer.from(csv), 'demo.csv').expect(201);
+    const up = await http
+      .post('/api/v1/score-datasets')
+      .attach('file', Buffer.from(csv), 'demo.csv')
+      .expect(201);
     expect(up.body).toMatchObject({ genuineCount: 3, impostorCount: 3, name: 'demo' });
-    const again = await http.post('/api/v1/score-datasets').attach('file', Buffer.from(csv), 'demo.csv').expect(201);
+    const again = await http
+      .post('/api/v1/score-datasets')
+      .attach('file', Buffer.from(csv), 'demo.csv')
+      .expect(201);
     expect(again.body.id).toBe(up.body.id);
     const r = await http
       .post('/api/v1/threshold/optimize')
@@ -147,7 +178,9 @@ describeDb('API e2e (PostgreSQL)', () => {
     const detail = await http.get(`/api/v1/experiments/${list.body.items[0].id}`).expect(200);
     expect(detail.body.input).toBeDefined();
     expect(detail.body.result.method).toBeDefined();
-    const page2 = await http.get(`/api/v1/experiments?type=THRESHOLD&limit=1&cursor=${list.body.nextCursor}`).expect(200);
+    const page2 = await http
+      .get(`/api/v1/experiments?type=THRESHOLD&limit=1&cursor=${list.body.nextCursor}`)
+      .expect(200);
     expect(page2.body.items[0].id).not.toBe(list.body.items[0].id);
   });
 });

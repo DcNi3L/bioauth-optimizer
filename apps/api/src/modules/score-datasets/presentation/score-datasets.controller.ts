@@ -1,10 +1,11 @@
+import { type ScoreDatasetDto, scoreDatasetSchema } from '@bioauth/contracts';
 import { Body, Controller, Get, HttpCode, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { scoreDatasetSchema, type ScoreDatasetDto } from '@bioauth/contracts';
-import { ApiZodOk } from '../../../shared/swagger/api-zod';
+
 import { ValidationError } from '../../../shared/errors';
 import { UuidPipe } from '../../../shared/http/zod-validation.pipe';
+import { ApiZodOk } from '../../../shared/swagger/api-zod';
 import { GetScoreDatasetUseCase, UploadScoreDatasetUseCase } from '../application/score-dataset.use-cases';
 
 @ApiTags('Наборы оценок')
@@ -28,7 +29,10 @@ export class ScoreDatasetsController {
     },
   })
   @ApiZodOk(scoreDatasetSchema)
-  create(@UploadedFile() file: Express.Multer.File | undefined, @Body() body: { name?: unknown }): Promise<ScoreDatasetDto> {
+  create(
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @Body() body: { name?: unknown } | undefined,
+  ): Promise<ScoreDatasetDto> {
     if (!file) throw new ValidationError('нужно приложить файл в поле file', 'file');
     const name = typeof body?.name === 'string' ? body.name : undefined;
     return this.upload.execute({ originalFilename: file.originalname, content: file.buffer, name });

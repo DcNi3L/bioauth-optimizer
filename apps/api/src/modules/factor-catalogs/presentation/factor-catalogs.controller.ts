@@ -1,15 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  factorCatalogListSchema,
-  factorCatalogSchema,
-  factorCatalogUpsertSchema,
   type FactorCatalogDto,
   type FactorCatalogListDto,
+  factorCatalogListSchema,
+  factorCatalogSchema,
   type FactorCatalogUpsertCommand,
+  factorCatalogUpsertSchema,
 } from '@bioauth/contracts';
-import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
+import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import {
   CreateFactorCatalogUseCase,
   DeleteFactorCatalogUseCase,
@@ -57,7 +58,10 @@ export class FactorCatalogsController {
   @ApiOperation({ summary: 'Заменить каталог целиком (предустановленные — только чтение)' })
   @ApiZodBody(factorCatalogUpsertSchema)
   @ApiZodOk(factorCatalogSchema)
-  replace(@Param('id', UuidPipe) id: string, @Body(upsertPipe) cmd: FactorCatalogUpsertCommand): Promise<FactorCatalogDto> {
+  replace(
+    @Param('id', UuidPipe) id: string,
+    @Body(upsertPipe) cmd: FactorCatalogUpsertCommand,
+  ): Promise<FactorCatalogDto> {
     return this.replaceCatalog.execute(id, cmd);
   }
 

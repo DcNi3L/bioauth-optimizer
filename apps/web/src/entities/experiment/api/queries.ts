@@ -1,7 +1,8 @@
 'use client';
 
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { experimentDetailSchema, experimentListSchema, type ExperimentType } from '@bioauth/contracts';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+
 import { apiGet } from '@/shared/api';
 
 export const experimentKeys = {
@@ -25,5 +26,8 @@ export function useExperimentList(type: ExperimentType | 'ALL') {
 }
 
 export function useExperiment(id: string) {
-  return useQuery({ queryKey: experimentKeys.detail(id), queryFn: () => apiGet(`/experiments/${id}`, experimentDetailSchema) });
+  return useQuery({
+    queryKey: experimentKeys.detail(id),
+    queryFn: () => apiGet(`/experiments/${id}`, experimentDetailSchema),
+  });
 }

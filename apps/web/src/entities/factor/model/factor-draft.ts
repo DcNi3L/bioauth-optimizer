@@ -1,4 +1,5 @@
 import type { FactorDto } from '@bioauth/contracts';
+
 import { numberToInput, parseNumber } from '@/shared/lib';
 
 /** Строка редактируемой таблицы факторов: числа хранятся как введённый текст. */
@@ -30,7 +31,16 @@ export function draftFromDto(f: FactorDto): FactorDraft {
 }
 
 export function emptyDraft(index: number): FactorDraft {
-  return { key: nextKey(), code: `F${index + 1}`, name: '', far: '', frr: '', latencyMs: '0', cost: '0', hasPad: false };
+  return {
+    key: nextKey(),
+    code: `F${index + 1}`,
+    name: '',
+    far: '',
+    frr: '',
+    latencyMs: '0',
+    cost: '0',
+    hasPad: false,
+  };
 }
 
 /** Перевод в DTO; нераспознанные числа становятся NaN — их отклонит zod-схема с понятным сообщением. */

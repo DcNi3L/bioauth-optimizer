@@ -1,10 +1,17 @@
 import { Global, Inject, Module, type OnApplicationShutdown } from '@nestjs/common';
+
 import { APP_CONFIG, type AppConfig } from '../config/env';
-import { KYSELY, createDb, type Db } from './kysely';
+import { createDb, type Db, KYSELY } from './kysely';
 
 @Global()
 @Module({
-  providers: [{ provide: KYSELY, inject: [APP_CONFIG], useFactory: (config: AppConfig) => createDb(config.DATABASE_URL) }],
+  providers: [
+    {
+      provide: KYSELY,
+      inject: [APP_CONFIG],
+      useFactory: (config: AppConfig) => createDb(config.DATABASE_URL),
+    },
+  ],
   exports: [KYSELY],
 })
 export class DatabaseModule implements OnApplicationShutdown {

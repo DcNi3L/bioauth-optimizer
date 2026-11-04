@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-const finite = (label: string) => z.number({ error: `${label}: ожидается число` }).finite();
+/** Конечное число: в zod 4 z.number() уже отклоняет ±Infinity и NaN. */
+const finite = (label: string) => z.number({ error: `${label}: ожидается число` });
 
 export const costsSchema = z.strictObject({
   cFA: finite('cFA').gt(0, { error: 'cFA должно быть > 0' }),
@@ -9,7 +10,9 @@ export const costsSchema = z.strictObject({
 export type CostsDto = z.infer<typeof costsSchema>;
 
 export const probabilitySchema = (label: string) =>
-  finite(label).gt(0, { error: `${label} должно быть > 0` }).lt(1, { error: `${label} должно быть < 1` });
+  finite(label)
+    .gt(0, { error: `${label} должно быть > 0` })
+    .lt(1, { error: `${label} должно быть < 1` });
 
 export const farMaxSchema = probabilitySchema('FAR_max').nullable();
 

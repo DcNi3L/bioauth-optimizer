@@ -1,5 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { CORE_VERSION } from '@bioauth/optimization-core';
+import { Inject, Injectable } from '@nestjs/common';
+
 import { canonicalJson, sha256Hex } from '../../../shared/canonical-json';
 import type { ExperimentStatusDb, ExperimentTypeDb } from '../../../shared/database/schema';
 import { EXPERIMENT_REPOSITORY, type ExperimentRepository } from './experiment.repository';

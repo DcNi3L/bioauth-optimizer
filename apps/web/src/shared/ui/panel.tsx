@@ -15,12 +15,12 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-lg border border-rule bg-sheet ${className}`}>
-      {(title || actions) && (
-        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-rule px-5 py-4">
+    <section className={`border-rule bg-sheet rounded-lg border ${className}`}>
+      {(title !== undefined || actions !== undefined) && (
+        <header className="border-rule flex flex-wrap items-start justify-between gap-3 border-b px-5 py-4">
           <div className="max-w-prose">
             {title && <h2 className="text-lg">{title}</h2>}
-            {description && <p className="mt-1 text-sm text-graphite">{description}</p>}
+            {description && <p className="text-graphite mt-1 text-sm">{description}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </header>

@@ -1,12 +1,22 @@
-import { Injectable } from '@nestjs/common';
 import { MAX_DATASET_ROWS } from '@bioauth/contracts';
+import { Injectable } from '@nestjs/common';
+
 import { ValidationError } from '../../../shared/errors';
 import type { ScoreFileParser, ScoreSamples } from '../application/ports';
 
 const SCORE_HEADERS = new Set(['score', 'оценка', 'similarity', 's']);
 const LABEL_HEADERS = new Set(['label', 'метка', 'class', 'type']);
 const GENUINE = new Set(['genuine', 'g', '1', 'true', 'законный', 'mated']);
-const IMPOSTOR = new Set(['impostor', 'imposter', 'i', '0', 'false', 'злоумышленник', 'nonmated', 'non-mated']);
+const IMPOSTOR = new Set([
+  'impostor',
+  'imposter',
+  'i',
+  '0',
+  'false',
+  'злоумышленник',
+  'nonmated',
+  'non-mated',
+]);
 
 /**
  * CSV с колонками score,label. Поддерживаются BOM, разделители «,», «;», табуляция,
@@ -49,12 +59,17 @@ export class CsvScoreFileParser implements ScoreFileParser {
       }
       if (GENUINE.has(labelText)) genuine.push(score);
       else if (IMPOSTOR.has(labelText)) impostor.push(score);
-      else throw new ValidationError(`${where}: неизвестная метка «${cells[labelCol]}» (ожидается genuine или impostor)`, 'file');
+      else
+        throw new ValidationError(
+          `${where}: неизвестная метка «${cells[labelCol]}» (ожидается genuine или impostor)`,
+          'file',
+        );
       if (genuine.length + impostor.length > MAX_DATASET_ROWS) {
         throw new ValidationError(`в файле больше ${MAX_DATASET_ROWS} строк`, 'file');
       }
     }
-    if (genuine.length === 0) throw new ValidationError('нет оценок законных пользователей (genuine)', 'file');
+    if (genuine.length === 0)
+      throw new ValidationError('нет оценок законных пользователей (genuine)', 'file');
     if (impostor.length === 0) throw new ValidationError('нет оценок злоумышленников (impostor)', 'file');
     return { genuine: Float64Array.from(genuine), impostor: Float64Array.from(impostor) };
   }

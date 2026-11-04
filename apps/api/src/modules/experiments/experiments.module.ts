@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ExperimentRecorder } from './application/experiment-recorder';
-import { GetExperimentUseCase, ListExperimentsUseCase } from './application/experiment-queries';
+
 import { EXPERIMENT_REPOSITORY } from './application/experiment.repository';
+import { GetExperimentUseCase, ListExperimentsUseCase } from './application/experiment-queries';
+import { ExperimentRecorder } from './application/experiment-recorder';
 import { KyselyExperimentRepository } from './infrastructure/kysely-experiment.repository';
 import { ExperimentsController } from './presentation/experiments.controller';
 

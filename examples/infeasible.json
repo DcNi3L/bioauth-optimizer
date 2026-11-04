@@ -12,7 +12,7 @@
     {
       "code": "F2",
       "name": "Отпечаток пальца",
-      "far": 5e-05,
+      "far": 5e-5,
       "frr": 0.015,
       "latencyMs": 250,
       "cost": 0.6,
@@ -39,7 +39,7 @@
     {
       "code": "F5",
       "name": "Аутентификатор FIDO2",
-      "far": 1e-06,
+      "far": 1e-6,
       "frr": 0.005,
       "latencyMs": 400,
       "cost": 1.5,
@@ -53,7 +53,7 @@
   "constraints": {
     "latencyMaxMs": 300,
     "budget": 1.0,
-    "farMax": 1e-08,
+    "farMax": 1e-8,
     "minPadFactors": 1
   },
   "solver": "auto"

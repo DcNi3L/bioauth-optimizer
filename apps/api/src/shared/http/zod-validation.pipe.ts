@@ -1,5 +1,5 @@
-import { Injectable, type PipeTransform } from '@nestjs/common';
 import type { z } from '@bioauth/contracts';
+import { Injectable, type PipeTransform } from '@nestjs/common';
 
 /** Ошибка валидации запроса со списком нарушений по путям. */
 export class RequestValidationError extends Error {

@@ -1,4 +1,5 @@
 import loadHighs from 'highs';
+
 import type { MilpModel, MilpPort, MilpSolution } from './milp-port';
 
 type Highs = Awaited<ReturnType<typeof loadHighs>>;

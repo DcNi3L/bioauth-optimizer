@@ -1,18 +1,22 @@
 'use client';
 
-import { useRef, useState } from 'react';
 import type { ScoreDatasetDto, ThresholdOptimizeResponse } from '@bioauth/contracts';
+import { useRef, useState } from 'react';
+
 import { ExportButtons } from '@/features/export-result';
 import { LoadExampleButton } from '@/features/load-article-example';
 import { ThresholdForm, useOptimizeThreshold, useThresholdForm } from '@/features/optimize-threshold';
 import { UploadScores } from '@/features/upload-scores';
-import { ApiErrorNotice, Button, Panel, type EChartHandle } from '@/shared/ui';
+import { ApiErrorNotice, Button, type EChartHandle, Panel } from '@/shared/ui';
 import { RocChart } from '@/widgets/roc-chart';
 import { ThresholdErrorChart } from '@/widgets/threshold-error-chart';
 import { ThresholdSummary } from '@/widgets/threshold-summary';
 
 function curvesCsv(r: ThresholdOptimizeResponse) {
-  return { header: ['tau', 'FAR', 'FRR', 'E'], rows: r.curves.errors.map((p) => [p.tau, p.far, p.frr, p.cost]) };
+  return {
+    header: ['tau', 'FAR', 'FRR', 'E'],
+    rows: r.curves.errors.map((p) => [p.tau, p.far, p.frr, p.cost]),
+  };
 }
 
 export function ThresholdPage() {
@@ -32,7 +36,7 @@ export function ThresholdPage() {
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl">Оптимальный порог</h1>
-          <p className="mt-1 max-w-prose text-sm text-graphite">
+          <p className="text-graphite mt-1 max-w-prose text-sm">
             Минимум байесовской стоимости E(τ) = cFA·FAR(τ) + cFR·FRR(τ) — формула (1) статьи СРО1.
           </p>
         </div>
@@ -50,7 +54,7 @@ export function ThresholdPage() {
               set={form.set}
               datasetSlot={<UploadScores dataset={dataset} onUploaded={setDataset} />}
             />
-            <div className="flex flex-wrap gap-3 border-t border-rule pt-4">
+            <div className="border-rule flex flex-wrap gap-3 border-t pt-4">
               <Button type="submit" busy={optimize.isPending}>
                 Рассчитать
               </Button>
@@ -63,9 +67,9 @@ export function ThresholdPage() {
 
       <div className="flex flex-col gap-6" aria-live="polite">
         {!result ? (
-          <div className="rounded-lg border border-dashed border-rule px-6 py-16 text-center text-sm text-graphite lg:mt-[4.5rem]">
-            Задайте распределения оценок и стоимости ошибок или нажмите «Пример из статьи СРО1». Здесь появятся оптимальный порог,
-            сравнение с точкой равных ошибок и графики.
+          <div className="border-rule text-graphite rounded-lg border border-dashed px-6 py-16 text-center text-sm lg:mt-[4.5rem]">
+            Задайте распределения оценок и стоимости ошибок или нажмите «Пример из статьи СРО1». Здесь
+            появятся оптимальный порог, сравнение с точкой равных ошибок и графики.
           </div>
         ) : (
           <>
@@ -74,7 +78,16 @@ export function ThresholdPage() {
             </Panel>
             <Panel
               title="Ошибки и стоимость в зависимости от порога"
-              actions={<ExportButtons spec={{ baseName: `threshold-${result.experimentId.slice(0, 8)}`, json: result, csv: curvesCsv(result), png: () => chartRef.current?.toDataUrl() ?? null }} />}
+              actions={
+                <ExportButtons
+                  spec={{
+                    baseName: `threshold-${result.experimentId.slice(0, 8)}`,
+                    json: result,
+                    csv: curvesCsv(result),
+                    png: () => chartRef.current?.toDataUrl() ?? null,
+                  }}
+                />
+              }
             >
               <ThresholdErrorChart ref={chartRef} result={result} />
             </Panel>

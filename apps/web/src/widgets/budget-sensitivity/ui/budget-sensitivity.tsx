@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
 import type { BudgetSweepResponse } from '@bioauth/contracts';
+import { useMemo } from 'react';
+
 import { SERIES_COLORS } from '@/shared/config';
 import { formatNumber } from '@/shared/lib';
 import { EChart } from '@/shared/ui';
@@ -50,7 +51,12 @@ export function BudgetSensitivity({ result }: { result: BudgetSweepResponse }) {
             symbol: 'circle',
             symbolSize: 8,
             itemStyle: { color: SERIES_COLORS.optimum },
-            label: { show: true, position: 'top', color: SERIES_COLORS.cost, formatter: (p: { name: string }) => p.name },
+            label: {
+              show: true,
+              position: 'top',
+              color: SERIES_COLORS.cost,
+              formatter: (p: { name: string }) => p.name,
+            },
             data: result.breakpoints
               .filter((b) => b.codes)
               .map((b) => ({ name: b.codes!.join('+'), coord: [b.budget, b.objective] })),
@@ -80,7 +86,11 @@ export function BudgetSensitivity({ result }: { result: BudgetSweepResponse }) {
               <td>{b.codes ? b.codes.join(' + ') : <span className="text-graphite">нет допустимых</span>}</td>
               <td className="num r">{formatNumber(b.objective, 6)}</td>
               <td className="num r">
-                {b.ratioToPrevious === null ? '—' : b.ratioToPrevious <= 1 ? `потери ниже в ${formatNumber(1 / b.ratioToPrevious, 2)} раза` : `потери выше в ${formatNumber(b.ratioToPrevious, 2)} раза`}
+                {b.ratioToPrevious === null
+                  ? '—'
+                  : b.ratioToPrevious <= 1
+                    ? `потери ниже в ${formatNumber(1 / b.ratioToPrevious, 2)} раза`
+                    : `потери выше в ${formatNumber(b.ratioToPrevious, 2)} раза`}
               </td>
             </tr>
           ))}

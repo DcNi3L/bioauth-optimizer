@@ -1,5 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { HISTOGRAM_BINS, type ScoreDatasetDto } from '@bioauth/contracts';
+import { Inject, Injectable } from '@nestjs/common';
+
 import { sha256Hex } from '../../../shared/canonical-json';
 import { NotFoundError, ValidationError } from '../../../shared/errors';
 import {
@@ -56,8 +57,14 @@ export class UploadScoreDatasetUseCase {
     if (cmd.content.length === 0) throw new ValidationError('файл пустой', 'file');
     const samples = this.parser.parse(cmd.content);
     const filename = cmd.originalFilename.slice(0, 255) || 'scores.csv';
-    const name = (cmd.name?.trim() || filename.replace(/\.[^.]+$/, '')).slice(0, 200);
-    const id = await this.repository.saveIfAbsent({ ...samples, name, originalFilename: filename, sha256: sha256Hex(cmd.content) });
+    const given = cmd.name?.trim() ?? '';
+    const name = (given.length > 0 ? given : filename.replace(/\.[^.]+$/, '')).slice(0, 200);
+    const id = await this.repository.saveIfAbsent({
+      ...samples,
+      name,
+      originalFilename: filename,
+      sha256: sha256Hex(cmd.content),
+    });
     const saved = await this.repository.findById(id);
     if (!saved) throw new NotFoundError(`набор оценок ${id} не найден`);
     return describeDataset(saved);

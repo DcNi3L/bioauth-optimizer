@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { factorCatalogUpsertSchema, type FactorDto } from '@bioauth/contracts';
+import { useState } from 'react';
+
 import { ApiErrorNotice, Button, TextField } from '@/shared/ui';
+
 import { useCreateCatalog } from '../api/use-create-catalog';
 
 /** Сохранение текущей таблицы факторов как нового каталога. */
@@ -14,7 +16,10 @@ export function SaveCatalogForm({ getFactors }: { getFactors: () => FactorDto[] 
   const save = () => {
     const req = { name, description: null, factors: getFactors() };
     const parsed = factorCatalogUpsertSchema.safeParse(req);
-    if (!parsed.success) return setError(parsed.error.issues[0]?.message ?? 'Проверьте факторы');
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Проверьте факторы');
+      return;
+    }
     setError(null);
     create.mutate(req, { onSuccess: () => setName('') });
   };
@@ -34,7 +39,7 @@ export function SaveCatalogForm({ getFactors }: { getFactors: () => FactorDto[] 
           Сохранить
         </Button>
       </div>
-      {create.isSuccess && <p className="text-xs text-optimum">Каталог «{create.data.name}» сохранён</p>}
+      {create.isSuccess && <p className="text-optimum text-xs">Каталог «{create.data.name}» сохранён</p>}
       <ApiErrorNotice error={create.error} />
     </div>
   );

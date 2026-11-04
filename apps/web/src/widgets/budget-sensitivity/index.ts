@@ -1,1 +1,1 @@
-export { BudgetSensitivity } from "./ui/budget-sensitivity";
+export { BudgetSensitivity } from './ui/budget-sensitivity';

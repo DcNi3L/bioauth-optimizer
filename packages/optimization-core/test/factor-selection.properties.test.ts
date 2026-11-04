@@ -1,16 +1,17 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
+
 import {
   CertifiedIlpSolver,
   DomainValidationError,
   ExhaustiveSolver,
-  HighsMilpAdapter,
-  ProblemTooLargeError,
-  SRO1_FACTOR_EXAMPLE,
-  SolverSelector,
-  toCplexLp,
   type Factor,
   type FactorSelectionProblem,
+  HighsMilpAdapter,
+  ProblemTooLargeError,
+  SolverSelector,
+  SRO1_FACTOR_EXAMPLE,
+  toCplexLp,
 } from '../src';
 
 const exhaustive = new ExhaustiveSolver();
@@ -30,10 +31,16 @@ const factorArb = (i: number) =>
 const problemArb: fc.Arbitrary<FactorSelectionProblem> = fc.integer({ min: 1, max: 10 }).chain((n) =>
   fc.record({
     factors: fc.tuple(...Array.from({ length: n }, (_, i) => factorArb(i))),
-    costs: fc.record({ cFA: fc.double({ min: 0.1, max: 1e4, noNaN: true }), cFR: fc.double({ min: 0.1, max: 100, noNaN: true }) }),
+    costs: fc.record({
+      cFA: fc.double({ min: 0.1, max: 1e4, noNaN: true }),
+      cFR: fc.double({ min: 0.1, max: 100, noNaN: true }),
+    }),
     constraints: fc.record({
       latencyMaxMs: fc.option(fc.integer({ min: 0, max: 2500 }), { nil: null }),
-      budget: fc.option(fc.integer({ min: 0, max: 40 }).map((k) => k / 10), { nil: null }),
+      budget: fc.option(
+        fc.integer({ min: 0, max: 40 }).map((k) => k / 10),
+        { nil: null },
+      ),
       farMax: fc.option(fc.double({ min: 1e-12, max: 0.5, noNaN: true }), { nil: null }),
       minPadFactors: fc.integer({ min: 0, max: 2 }),
     }),
@@ -47,10 +54,10 @@ describe('свойства решателей состава факторов', 
         const a = exhaustive.solveSync(problem);
         const b = await ilp.solve(problem);
         expect(b.status).toBe(a.status);
-        if (a.optimum && b.optimum) {
-          expect(Math.abs(a.optimum.objective - b.optimum.objective)).toBeLessThanOrEqual(1e-12 * Math.max(1, a.optimum.objective));
-          expect(b.solver.certificate!.proven).toBe(true);
-        }
+        const ea = a.optimum?.objective ?? 0;
+        const eb = b.optimum?.objective ?? 0;
+        expect(Math.abs(ea - eb)).toBeLessThanOrEqual(1e-12 * Math.max(1, ea));
+        expect(b.solver.certificate!.proven).toBe(true);
       }),
       { numRuns: Number(process.env.P1_RUNS ?? 300) },
     );
@@ -60,10 +67,9 @@ describe('свойства решателей состава факторов', 
     fc.assert(
       fc.property(problemArb, (problem) => {
         const r = exhaustive.solveSync(problem, { rankingLimit: 1000 });
-        for (let i = 1; i < r.ranking.length; i++) {
-          expect(r.ranking[i]!.objective).toBeGreaterThanOrEqual(r.ranking[i - 1]!.objective);
-        }
-        if (r.optimum) expect(r.ranking[0]).toEqual(r.optimum);
+        const sorted = r.ranking.every((s, i) => i === 0 || s.objective >= r.ranking[i - 1]!.objective);
+        expect(sorted).toBe(true);
+        expect(r.ranking[0] ?? null).toEqual(r.optimum);
         expect(r.ranking.length).toBe(Math.min(1000, r.stats.feasibleCount!));
         expect(r.rankingComplete).toBe(r.stats.feasibleCount! <= 1000);
       }),
@@ -73,18 +79,26 @@ describe('свойства решателей состава факторов', 
 
   it('P3: E*(B) не возрастает при увеличении бюджета', () => {
     fc.assert(
-      fc.property(problemArb, fc.integer({ min: 0, max: 30 }), fc.integer({ min: 0, max: 30 }), (problem, b1, b2) => {
-        const [lo, hi] = [Math.min(b1, b2) / 10, Math.max(b1, b2) / 10];
-        const at = (budget: number) =>
-          exhaustive.solveSync({ ...problem, constraints: { ...problem.constraints, budget } }).optimum?.objective ?? Infinity;
-        expect(at(hi)).toBeLessThanOrEqual(at(lo));
-      }),
+      fc.property(
+        problemArb,
+        fc.integer({ min: 0, max: 30 }),
+        fc.integer({ min: 0, max: 30 }),
+        (problem, b1, b2) => {
+          const [lo, hi] = [Math.min(b1, b2) / 10, Math.max(b1, b2) / 10];
+          const at = (budget: number) =>
+            exhaustive.solveSync({ ...problem, constraints: { ...problem.constraints, budget } }).optimum
+              ?.objective ?? Infinity;
+          expect(at(hi)).toBeLessThanOrEqual(at(lo));
+        },
+      ),
       { numRuns: 200 },
     );
   });
 
   it('P9: детерминизм результата', () => {
-    expect(JSON.stringify(exhaustive.solveSync(SRO1_FACTOR_EXAMPLE))).toBe(JSON.stringify(exhaustive.solveSync(SRO1_FACTOR_EXAMPLE)));
+    expect(JSON.stringify(exhaustive.solveSync(SRO1_FACTOR_EXAMPLE))).toBe(
+      JSON.stringify(exhaustive.solveSync(SRO1_FACTOR_EXAMPLE)),
+    );
   });
 });
 
@@ -171,19 +185,23 @@ describe('граничные случаи', () => {
     expect(() => exhaustive.solveSync(bad({ far: 0 }))).toThrow(DomainValidationError);
     expect(() => exhaustive.solveSync(bad({ frr: 1 }))).toThrow(DomainValidationError);
     expect(() => exhaustive.solveSync(bad({ cost: -1 }))).toThrow(DomainValidationError);
-    expect(() =>
-      exhaustive.solveSync({ ...base, factors: [base.factors[0]!, base.factors[0]!] }),
-    ).toThrow(/повторяется/);
+    expect(() => exhaustive.solveSync({ ...base, factors: [base.factors[0]!, base.factors[0]!] })).toThrow(
+      /повторяется/,
+    );
   });
 
   it('LP-модель для HiGHS: формат CPLEX LP с точными коэффициентами', () => {
     const lp = toCplexLp({
       numVars: 2,
       objective: [0.015, 0.005],
-      constraints: [{ name: 'far', coeffs: [Math.log(5e-5), Math.log(1e-6)], sense: '<=', rhs: Math.log(1e-6) }],
+      constraints: [
+        { name: 'far', coeffs: [Math.log(5e-5), Math.log(1e-6)], sense: '<=', rhs: Math.log(1e-6) },
+      ],
     });
     expect(lp).toContain('obj: 0.015 x0 + 0.005 x1');
-    expect(lp).toContain(`far: - ${String(-Math.log(5e-5))} x0 - ${String(-Math.log(1e-6))} x1 <= ${String(Math.log(1e-6))}`);
+    expect(lp).toContain(
+      `far: - ${String(-Math.log(5e-5))} x0 - ${String(-Math.log(1e-6))} x1 <= ${String(Math.log(1e-6))}`,
+    );
     expect(lp).toContain('Binaries\n x0 x1');
   });
 });

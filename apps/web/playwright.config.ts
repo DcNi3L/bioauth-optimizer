@@ -6,5 +6,8 @@ export default defineConfig({
   timeout: 60_000,
   retries: 0,
   reporter: [['list']],
-  use: { baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000', viewport: { width: 1440, height: 900 } },
+  use: {
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
+    viewport: { width: 1440, height: 900 },
+  },
 });

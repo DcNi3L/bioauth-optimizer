@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
 import type { ThresholdOptimizeResponse } from '@bioauth/contracts';
+import { useMemo } from 'react';
+
 import { SERIES_COLORS } from '@/shared/config';
 import { formatPercent, formatSci } from '@/shared/lib';
 import { EChart } from '@/shared/ui';
@@ -17,7 +18,8 @@ export function RocChart({ result }: { result: ThresholdOptimizeResponse }) {
       label: { show: true, formatter: name, position: 'right', color },
     });
     const markers = [];
-    if (result.eer.tau !== null) markers.push(point('EER', result.eer.far, result.eer.frr, SERIES_COLORS.graphite));
+    if (result.eer.tau !== null)
+      markers.push(point('EER', result.eer.far, result.eer.frr, SERIES_COLORS.graphite));
     if (result.optimal.tau !== null && result.optimal.far > 0) {
       markers.push(point('τ*', result.optimal.far, result.optimal.frr, SERIES_COLORS.optimum));
     }
@@ -27,9 +29,17 @@ export function RocChart({ result }: { result: ThresholdOptimizeResponse }) {
       grid: { left: 64, right: 32, top: 16, bottom: 48 },
       tooltip: {
         trigger: 'item',
-        formatter: (p: { value: [number, number] }) => `FAR ${formatSci(p.value[0], 3)}<br/>TAR ${formatPercent(p.value[1], 3)}`,
+        formatter: (p: { value: [number, number] }) =>
+          `FAR ${formatSci(p.value[0], 3)}<br/>TAR ${formatPercent(p.value[1], 3)}`,
       },
-      xAxis: { type: 'log', name: 'FAR', nameLocation: 'middle', nameGap: 30, axisLabel: { ...axisLabel, formatter: (v: number) => formatSci(v, 1) }, splitLine: { show: false } },
+      xAxis: {
+        type: 'log',
+        name: 'FAR',
+        nameLocation: 'middle',
+        nameGap: 30,
+        axisLabel: { ...axisLabel, formatter: (v: number) => formatSci(v, 1) },
+        splitLine: { show: false },
+      },
       yAxis: {
         type: 'value',
         name: 'TAR = 1 − FRR',

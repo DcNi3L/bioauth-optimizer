@@ -1,7 +1,12 @@
 'use client';
 
 import { NumberField, SelectField } from '@/shared/ui';
-import type { FactorSelectionFormState, SelectionSettings, SolverMode } from '../model/use-factor-selection-form';
+
+import type {
+  FactorSelectionFormState,
+  SelectionSettings,
+  SolverMode,
+} from '../model/use-factor-selection-form';
 
 const PATH: Partial<Record<keyof SelectionSettings, string>> = {
   cFA: 'costs.cFA',

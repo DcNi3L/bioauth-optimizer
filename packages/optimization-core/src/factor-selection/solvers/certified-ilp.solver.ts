@@ -1,5 +1,5 @@
 import { EPS, expm1, log1p } from '../../numeric';
-import { SubsetEvaluator, compareSubsets } from '../subset-evaluator';
+import { compareSubsets, SubsetEvaluator } from '../subset-evaluator';
 import { TopK } from '../top-k';
 import type { FactorSelectionProblem, SelectionResult, SolveOptions, SubsetMetrics } from '../types';
 import { MAX_FACTORS, validateProblem } from '../validation';
@@ -55,7 +55,8 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
     const lambda = problem.factors.map((f) => -log1p(-f.frr));
     const logFar = problem.factors.map((f) => Math.log(f.far));
     const lambdaOf = (indices: readonly number[]) => indices.reduce((s, i) => s + lambda[i]!, 0);
-    const toIndices = (s: Extract<MilpSolution, { status: 'optimal' }>) => s.values.flatMap((v, i) => (v > 0.5 ? [i] : []));
+    const toIndices = (s: Extract<MilpSolution, { status: 'optimal' }>) =>
+      s.values.flatMap((v, i) => (v > 0.5 ? [i] : []));
 
     const cuts: MilpConstraint[] = [];
     const seen = new Set<string>();
@@ -89,7 +90,10 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
       const byFar = await this.milp.solve({
         ...base,
         objective: logFar,
-        constraints: [...constraints, { name: 'lex', coeffs: lambda, sense: '<=', rhs: lambdaK + TIE_TOLERANCE * Math.max(1, lambdaK) }],
+        constraints: [
+          ...constraints,
+          { name: 'lex', coeffs: lambda, sense: '<=', rhs: lambdaK + TIE_TOLERANCE * Math.max(1, lambdaK) },
+        ],
       });
       const efficient = byFar.status === 'optimal' ? evaluator.evaluate(toIndices(byFar)) : first;
 
@@ -117,7 +121,12 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
       stats: { factorsCount: n, subsetsTotal: 2 ** n - 1, feasibleCount: null, rejectedBy: null },
       solver: {
         used: 'ilp',
-        certificate: { iterations, lowerBound: certifiedBound, bestObjective: best?.objective ?? null, proven },
+        certificate: {
+          iterations,
+          lowerBound: certifiedBound,
+          bestObjective: best?.objective ?? null,
+          proven,
+        },
       },
     };
   }
@@ -125,19 +134,41 @@ export class CertifiedIlpSolver implements FactorSelectionSolver {
   private baseModel(problem: FactorSelectionProblem): MilpModel {
     const { factors, constraints: c } = problem;
     const n = factors.length;
-    const constraints: MilpConstraint[] = [{ name: 'nonempty', coeffs: factors.map(() => 1), sense: '>=', rhs: 1 }];
+    const constraints: MilpConstraint[] = [
+      { name: 'nonempty', coeffs: factors.map(() => 1), sense: '>=', rhs: 1 },
+    ];
     if (c.latencyMaxMs !== null) {
-      constraints.push({ name: 'latency', coeffs: factors.map((f) => f.latencyMs), sense: '<=', rhs: slackRhs(c.latencyMaxMs) });
+      constraints.push({
+        name: 'latency',
+        coeffs: factors.map((f) => f.latencyMs),
+        sense: '<=',
+        rhs: slackRhs(c.latencyMaxMs),
+      });
     }
     if (c.budget !== null) {
-      constraints.push({ name: 'budget', coeffs: factors.map((f) => f.cost), sense: '<=', rhs: slackRhs(c.budget) });
+      constraints.push({
+        name: 'budget',
+        coeffs: factors.map((f) => f.cost),
+        sense: '<=',
+        rhs: slackRhs(c.budget),
+      });
     }
     if (c.minPadFactors > 0) {
-      constraints.push({ name: 'pad', coeffs: factors.map((f) => (f.hasPad ? 1 : 0)), sense: '>=', rhs: c.minPadFactors });
+      constraints.push({
+        name: 'pad',
+        coeffs: factors.map((f) => (f.hasPad ? 1 : 0)),
+        sense: '>=',
+        rhs: c.minPadFactors,
+      });
     }
     if (c.farMax !== null) {
       // Точная линейная форма ограничения FAR(x) ≤ FAR_max в логарифмах.
-      constraints.push({ name: 'far', coeffs: factors.map((f) => Math.log(f.far)), sense: '<=', rhs: Math.log(c.farMax) + EPS });
+      constraints.push({
+        name: 'far',
+        coeffs: factors.map((f) => Math.log(f.far)),
+        sense: '<=',
+        rhs: Math.log(c.farMax) + EPS,
+      });
     }
     return { numVars: n, objective: factors.map(() => 0), constraints };
   }

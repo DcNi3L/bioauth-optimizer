@@ -1,1 +1,1 @@
-export { ThresholdPage } from "./ui/threshold-page";
+export { ThresholdPage } from './ui/threshold-page';

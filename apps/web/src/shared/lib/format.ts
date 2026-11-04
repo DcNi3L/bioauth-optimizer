@@ -1,8 +1,19 @@
 const SUPERSCRIPT: Record<string, string> = {
-  '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+  '-': '⁻',
+  '0': '⁰',
+  '1': '¹',
+  '2': '²',
+  '3': '³',
+  '4': '⁴',
+  '5': '⁵',
+  '6': '⁶',
+  '7': '⁷',
+  '8': '⁸',
+  '9': '⁹',
 };
 
-const ru = (x: number, digits: number) => x.toLocaleString('ru-RU', { maximumFractionDigits: digits, minimumFractionDigits: 0 });
+const ru = (x: number, digits: number) =>
+  x.toLocaleString('ru-RU', { maximumFractionDigits: digits, minimumFractionDigits: 0 });
 
 /** Число с запятой; очень малые и большие — в научной нотации «5,0·10⁻¹¹». */
 export function formatNumber(x: number | null | undefined, digits = 4): string {
@@ -23,9 +34,15 @@ export function formatSci(x: number, significant = 2): string {
     exp += 1;
     mantissa /= 10;
   }
-  const m = mantissa.toLocaleString('ru-RU', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  const m = mantissa.toLocaleString('ru-RU', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
   if (exp === 0) return m;
-  const e = String(exp).split('').map((c) => SUPERSCRIPT[c] ?? c).join('');
+  const e = String(exp)
+    .split('')
+    .map((c) => SUPERSCRIPT[c] ?? c)
+    .join('');
   return `${m}·10${e}`;
 }
 

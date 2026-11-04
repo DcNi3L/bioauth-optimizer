@@ -1,1 +1,1 @@
-export { ExperimentsTable } from "./ui/experiments-table";
+export { ExperimentsTable } from './ui/experiments-table';

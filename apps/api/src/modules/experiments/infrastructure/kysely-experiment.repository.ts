@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Selectable } from 'kysely';
-import { KYSELY, type Db } from '../../../shared/database/kysely';
+
+import { type Db, KYSELY } from '../../../shared/database/kysely';
 import type { ExperimentTable } from '../../../shared/database/schema';
 import type {
   ExperimentPageQuery,
@@ -61,7 +62,10 @@ export class KyselyExperimentRepository implements ExperimentRepository {
     if (q.after) {
       const { createdAt, id } = q.after;
       query = query.where((eb) =>
-        eb.or([eb('created_at', '<', createdAt), eb.and([eb('created_at', '=', createdAt), eb('id', '<', id)])]),
+        eb.or([
+          eb('created_at', '<', createdAt),
+          eb.and([eb('created_at', '=', createdAt), eb('id', '<', id)]),
+        ]),
       );
     }
     const rows = await query.orderBy('created_at', 'desc').orderBy('id', 'desc').limit(q.limit).execute();

@@ -1,6 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CORE_VERSION, type FactorSelectionProblem, type SolverSelector } from '@bioauth/optimization-core';
 import type { FactorSelectionCommand, FactorSelectionResponse } from '@bioauth/contracts';
+import { CORE_VERSION, type FactorSelectionProblem, type SolverSelector } from '@bioauth/optimization-core';
+import { Inject, Injectable } from '@nestjs/common';
+
 import { InfeasibleProblemError } from '../../../shared/errors';
 import { ExperimentRecorder } from '../../experiments/application/experiment-recorder';
 import { FACTOR_CATALOG_READER, type FactorCatalogReader } from '../../factor-catalogs/application/ports';
@@ -43,6 +44,10 @@ export class SolveFactorSelectionUseCase {
         rejectedBy: result.stats.rejectedBy ?? undefined,
       });
     }
-    return { experimentId, ...result, meta: { coreVersion: CORE_VERSION, durationMs: Math.round(durationMs) } } as FactorSelectionResponse;
+    return {
+      experimentId,
+      ...result,
+      meta: { coreVersion: CORE_VERSION, durationMs: Math.round(durationMs) },
+    } as FactorSelectionResponse;
   }
 }

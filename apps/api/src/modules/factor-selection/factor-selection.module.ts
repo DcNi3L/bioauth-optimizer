@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
 import { createDefaultSolverSelector } from '@bioauth/optimization-core';
+import { Module } from '@nestjs/common';
+
 import { ExperimentsModule } from '../experiments/experiments.module';
 import { FactorCatalogsModule } from '../factor-catalogs/factor-catalogs.module';
 import { BudgetSweepUseCase } from './application/budget-sweep.use-case';

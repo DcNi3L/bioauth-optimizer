@@ -1,7 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
 import type { FactorCatalogDto, FactorDto } from '@bioauth/contracts';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Selectable, Transaction } from 'kysely';
-import { KYSELY, type Db } from '../../../shared/database/kysely';
+
+import { type Db, KYSELY } from '../../../shared/database/kysely';
 import type { Database, FactorCatalogTable, FactorTable } from '../../../shared/database/schema';
 import { ConflictError } from '../../../shared/errors';
 import type { CatalogData, FactorCatalogReader, FactorCatalogRepository } from '../application/ports';
@@ -16,28 +17,47 @@ const toFactor = (r: Selectable<FactorTable>): FactorDto => ({
   hasPad: r.has_pad,
 });
 
-const isUniqueViolation = (err: unknown) => (err as { code?: string })?.code === '23505';
+const isUniqueViolation = (err: unknown) => (err as { code?: string } | null)?.code === '23505';
 
 @Injectable()
 export class KyselyFactorCatalogRepository implements FactorCatalogRepository, FactorCatalogReader {
   constructor(@Inject(KYSELY) private readonly db: Db) {}
 
   async list(): Promise<FactorCatalogDto[]> {
-    const catalogs = await this.db.selectFrom('factor_catalog').selectAll().orderBy('is_preset', 'desc').orderBy('created_at', 'asc').execute();
+    const catalogs = await this.db
+      .selectFrom('factor_catalog')
+      .selectAll()
+      .orderBy('is_preset', 'desc')
+      .orderBy('created_at', 'asc')
+      .execute();
     if (catalogs.length === 0) return [];
     const factors = await this.db
       .selectFrom('factor')
       .selectAll()
-      .where('catalog_id', 'in', catalogs.map((c) => c.id))
+      .where(
+        'catalog_id',
+        'in',
+        catalogs.map((c) => c.id),
+      )
       .orderBy('position', 'asc')
       .execute();
-    return catalogs.map((c) => this.toDto(c, factors.filter((f) => f.catalog_id === c.id)));
+    return catalogs.map((c) =>
+      this.toDto(
+        c,
+        factors.filter((f) => f.catalog_id === c.id),
+      ),
+    );
   }
 
   async findById(id: string): Promise<FactorCatalogDto | null> {
     const c = await this.db.selectFrom('factor_catalog').selectAll().where('id', '=', id).executeTakeFirst();
     if (!c) return null;
-    const factors = await this.db.selectFrom('factor').selectAll().where('catalog_id', '=', id).orderBy('position', 'asc').execute();
+    const factors = await this.db
+      .selectFrom('factor')
+      .selectAll()
+      .where('catalog_id', '=', id)
+      .orderBy('position', 'asc')
+      .execute();
     return this.toDto(c, factors);
   }
 
@@ -59,7 +79,8 @@ export class KyselyFactorCatalogRepository implements FactorCatalogRepository, F
       });
       return (await this.findById(id))!;
     } catch (err) {
-      if (isUniqueViolation(err)) throw new ConflictError(`каталог с названием «${data.name}» уже существует`);
+      if (isUniqueViolation(err))
+        throw new ConflictError(`каталог с названием «${data.name}» уже существует`);
       throw err;
     }
   }
@@ -77,9 +98,10 @@ export class KyselyFactorCatalogRepository implements FactorCatalogRepository, F
         await this.insertFactors(trx, id, data.factors);
         return true;
       });
-      return found ? this.findById(id) : null;
+      return found ? await this.findById(id) : null;
     } catch (err) {
-      if (isUniqueViolation(err)) throw new ConflictError(`каталог с названием «${data.name}» уже существует`);
+      if (isUniqueViolation(err))
+        throw new ConflictError(`каталог с названием «${data.name}» уже существует`);
       throw err;
     }
   }
@@ -89,7 +111,11 @@ export class KyselyFactorCatalogRepository implements FactorCatalogRepository, F
     return Number(res.numDeletedRows) > 0;
   }
 
-  private async insertFactors(trx: Transaction<Database>, catalogId: string, factors: readonly FactorDto[]): Promise<void> {
+  private async insertFactors(
+    trx: Transaction<Database>,
+    catalogId: string,
+    factors: readonly FactorDto[],
+  ): Promise<void> {
     if (factors.length === 0) return;
     await trx
       .insertInto('factor')

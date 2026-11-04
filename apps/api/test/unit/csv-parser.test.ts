@@ -1,5 +1,8 @@
 import { CsvScoreFileParser } from '../../src/modules/score-datasets/infrastructure/csv-score-file.parser';
-import { decodeFloat64, encodeFloat64 } from '../../src/modules/score-datasets/infrastructure/kysely-score-dataset.repository';
+import {
+  decodeFloat64,
+  encodeFloat64,
+} from '../../src/modules/score-datasets/infrastructure/kysely-score-dataset.repository';
 import { ValidationError } from '../../src/shared/errors';
 
 const parser = new CsvScoreFileParser();

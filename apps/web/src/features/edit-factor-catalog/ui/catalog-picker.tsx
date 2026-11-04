@@ -1,6 +1,7 @@
 'use client';
 
 import type { FactorCatalogDto } from '@bioauth/contracts';
+
 import { useFactorCatalogs } from '@/entities/factor-catalog';
 import { SelectField } from '@/shared/ui';
 

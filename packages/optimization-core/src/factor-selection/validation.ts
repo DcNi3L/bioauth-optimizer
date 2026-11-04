@@ -6,17 +6,34 @@ export const MAX_FACTORS = 50;
 
 export function validateProblem(problem: FactorSelectionProblem): void {
   const { factors, constraints } = problem;
-  assertDomain(Array.isArray(factors) && factors.length >= 1, 'нужен хотя бы один фактор', 'factors');
+  // Защита от нетипизированных вызовов (JSON извне): проверяем форму, не теряя тип readonly Factor[].
+  assertDomain(Array.isArray(problem.factors) && factors.length >= 1, 'нужен хотя бы один фактор', 'factors');
   assertDomain(factors.length <= MAX_FACTORS, `факторов не может быть больше ${MAX_FACTORS}`, 'factors');
   const codes = new Set<string>();
   factors.forEach((f, i) => {
     const p = `factors[${i}]`;
-    assertDomain(typeof f.code === 'string' && f.code.trim().length > 0, 'код фактора не может быть пустым', `${p}.code`);
+    assertDomain(
+      typeof (f.code as unknown) === 'string' && f.code.trim().length > 0,
+      'код фактора не может быть пустым',
+      `${p}.code`,
+    );
     assertDomain(!codes.has(f.code), `код фактора «${f.code}» повторяется`, `${p}.code`);
     codes.add(f.code);
-    assertDomain(isFiniteNumber(f.far) && f.far > 0 && f.far < 1, 'FAR фактора должен лежать в (0, 1)', `${p}.far`);
-    assertDomain(isFiniteNumber(f.frr) && f.frr >= 0 && f.frr < 1, 'FRR фактора должен лежать в [0, 1)', `${p}.frr`);
-    assertDomain(isFiniteNumber(f.latencyMs) && f.latencyMs >= 0, 'задержка должна быть ≥ 0', `${p}.latencyMs`);
+    assertDomain(
+      isFiniteNumber(f.far) && f.far > 0 && f.far < 1,
+      'FAR фактора должен лежать в (0, 1)',
+      `${p}.far`,
+    );
+    assertDomain(
+      isFiniteNumber(f.frr) && f.frr >= 0 && f.frr < 1,
+      'FRR фактора должен лежать в [0, 1)',
+      `${p}.frr`,
+    );
+    assertDomain(
+      isFiniteNumber(f.latencyMs) && f.latencyMs >= 0,
+      'задержка должна быть ≥ 0',
+      `${p}.latencyMs`,
+    );
     assertDomain(isFiniteNumber(f.cost) && f.cost >= 0, 'стоимость должна быть ≥ 0', `${p}.cost`);
   });
   validateCosts(problem.costs);
@@ -31,7 +48,7 @@ export function validateProblem(problem: FactorSelectionProblem): void {
     'constraints.minPadFactors',
   );
   assertDomain(
-    problem.fusionRule === undefined || problem.fusionRule === 'AND',
+    [undefined, 'AND'].includes(problem.fusionRule),
     'поддерживается только правило объединения «И»',
     'fusionRule',
   );

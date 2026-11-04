@@ -1,7 +1,8 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
 import { scoreDatasetSchema } from '@bioauth/contracts';
+import { useMutation } from '@tanstack/react-query';
+
 import { apiUpload } from '@/shared/api';
 
 export function useUploadScores() {

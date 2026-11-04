@@ -1,1 +1,1 @@
-export { FactorSelectionSummary } from "./ui/factor-selection-summary";
+export { FactorSelectionSummary } from './ui/factor-selection-summary';

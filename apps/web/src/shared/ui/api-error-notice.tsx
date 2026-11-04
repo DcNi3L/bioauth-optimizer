@@ -20,5 +20,9 @@ export function ApiErrorNotice({ error }: { error: unknown }) {
       </Notice>
     );
   }
-  return <Notice tone="error" title="Ошибка">{String((error as Error).message ?? error)}</Notice>;
+  return (
+    <Notice tone="error" title="Ошибка">
+      {error instanceof Error ? error.message : typeof error === 'string' ? error : 'Неизвестная ошибка'}
+    </Notice>
+  );
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import {
   budgetSweepRequestSchema,
   factorSelectionRequestSchema,
@@ -41,7 +42,11 @@ describe('контракты', () => {
     expect(z.prettifyError(dup.error!)).toContain('повторяется');
     const none = factorSelectionRequestSchema.safeParse({ costs: { cFA: 1, cFR: 1 }, constraints: {} });
     expect(none.success).toBe(false);
-    const ok = factorSelectionRequestSchema.parse({ factors: [factor], costs: { cFA: 1, cFR: 1 }, constraints: {} });
+    const ok = factorSelectionRequestSchema.parse({
+      factors: [factor],
+      costs: { cFA: 1, cFR: 1 },
+      constraints: {},
+    });
     expect(ok.solver).toBe('auto');
     expect(ok.constraints.minPadFactors).toBe(1);
     expect(ok.rankingLimit).toBe(100);

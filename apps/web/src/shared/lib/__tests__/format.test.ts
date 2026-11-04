@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { formatNumber, formatPercent, formatSci } from '../format';
 import { numberToInput, parseNumber } from '../parse-number';
 

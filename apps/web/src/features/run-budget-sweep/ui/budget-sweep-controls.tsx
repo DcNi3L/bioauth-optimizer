@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import type { BudgetSweepRequest } from '@bioauth/contracts';
+import { useState } from 'react';
+
 import { parseNumber } from '@/shared/lib';
 import { Button, NumberField } from '@/shared/ui';
 
@@ -24,12 +25,27 @@ export function BudgetSweepControls({
     const f = parseNumber(from);
     const t = parseNumber(to);
     const s = parseNumber(step);
-    if (f === null || t === null || s === null || [f, t, s].some(Number.isNaN)) return setError('Заполните диапазон числами');
-    if (t < f) return setError('Конец диапазона должен быть не меньше начала');
-    if (s <= 0) return setError('Шаг должен быть больше нуля');
-    if (Math.floor((t - f) / s + 1e-9) + 1 > 500) return setError('Слишком много точек: не более 500');
+    if (f === null || t === null || s === null || [f, t, s].some(Number.isNaN)) {
+      setError('Заполните диапазон числами');
+      return;
+    }
+    if (t < f) {
+      setError('Конец диапазона должен быть не меньше начала');
+      return;
+    }
+    if (s <= 0) {
+      setError('Шаг должен быть больше нуля');
+      return;
+    }
+    if (Math.floor((t - f) / s + 1e-9) + 1 > 500) {
+      setError('Слишком много точек: не более 500');
+      return;
+    }
     const base = buildBase();
-    if (!base) return setError('Исправьте ошибки в факторах и ограничениях выше');
+    if (!base) {
+      setError('Исправьте ошибки в факторах и ограничениях выше');
+      return;
+    }
     setError(null);
     onRun({ ...base, sweep: { from: f, to: t, step: s } });
   };
@@ -44,7 +60,7 @@ export function BudgetSweepControls({
           Построить
         </Button>
       </div>
-      {error && <p className="text-xs text-far">{error}</p>}
+      {error && <p className="text-far text-xs">{error}</p>}
     </div>
   );
 }

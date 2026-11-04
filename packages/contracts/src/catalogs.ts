@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { factorListSchema, factorSchema } from './factor-selection';
 
 export const factorCatalogUpsertSchema = z.strictObject({

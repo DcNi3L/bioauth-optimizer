@@ -4,18 +4,18 @@ import { HighsMilpAdapter } from './solvers/highs-milp.adapter';
 import { SolverSelector } from './solvers/solver-selector';
 import type { FactorSelectionProblem, SelectionResult, SolveOptions, SolverMode } from './types';
 
-export * from './types';
-export * from './validation';
-export * from './subset-evaluator';
-export * from './fusion/fusion-rule';
 export * from './fusion/and-fusion.rule';
-export * from './solvers/factor-selection-solver';
-export * from './solvers/exhaustive.solver';
-export * from './solvers/certified-ilp.solver';
-export * from './solvers/milp-port';
-export * from './solvers/highs-milp.adapter';
-export * from './solvers/solver-selector';
+export type * from './fusion/fusion-rule';
 export * from './sensitivity/budget-sweep';
+export * from './solvers/certified-ilp.solver';
+export * from './solvers/exhaustive.solver';
+export * from './solvers/factor-selection-solver';
+export * from './solvers/highs-milp.adapter';
+export type * from './solvers/milp-port';
+export * from './solvers/solver-selector';
+export * from './subset-evaluator';
+export type * from './types';
+export * from './validation';
 
 /** Селектор по умолчанию: полный перебор + сертифицированное ЦЛП на HiGHS. */
 export function createDefaultSolverSelector(): SolverSelector {

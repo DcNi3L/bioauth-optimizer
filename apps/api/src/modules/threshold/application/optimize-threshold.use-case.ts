@@ -1,6 +1,7 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { CORE_VERSION, optimizeThreshold, type ThresholdModelInput } from '@bioauth/optimization-core';
 import type { ThresholdOptimizeCommand, ThresholdOptimizeResponse } from '@bioauth/contracts';
+import { CORE_VERSION, optimizeThreshold, type ThresholdModelInput } from '@bioauth/optimization-core';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+
 import { InternalConsistencyError, NotFoundError } from '../../../shared/errors';
 import { ExperimentRecorder } from '../../experiments/application/experiment-recorder';
 import { SCORE_SAMPLES_READER, type ScoreSamplesReader } from '../../score-datasets/application/ports';
@@ -48,6 +49,11 @@ export class OptimizeThresholdUseCase {
       durationMs,
       scoreDatasetId: datasetId,
     });
-    return { experimentId, ...result, curves, meta: { coreVersion: CORE_VERSION, durationMs: Math.round(durationMs) } } as ThresholdOptimizeResponse;
+    return {
+      experimentId,
+      ...result,
+      curves,
+      meta: { coreVersion: CORE_VERSION, durationMs: Math.round(durationMs) },
+    } as ThresholdOptimizeResponse;
   }
 }

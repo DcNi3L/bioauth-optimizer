@@ -6,7 +6,7 @@ export function countLess(sorted: Float64Array, x: number): number {
   let hi = sorted.length;
   while (lo < hi) {
     const mid = (lo + hi) >>> 1;
-    if ((sorted[mid] as number) < x) lo = mid + 1;
+    if (sorted[mid]! < x) lo = mid + 1;
     else hi = mid;
   }
   return lo;

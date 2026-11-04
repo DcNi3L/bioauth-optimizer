@@ -1,6 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CORE_VERSION, budgetSweep } from '@bioauth/optimization-core';
 import type { BudgetSweepCommand, BudgetSweepResponse } from '@bioauth/contracts';
+import { budgetSweep, CORE_VERSION } from '@bioauth/optimization-core';
+import { Inject, Injectable } from '@nestjs/common';
+
 import { ExperimentRecorder } from '../../experiments/application/experiment-recorder';
 import { FACTOR_CATALOG_READER, type FactorCatalogReader } from '../../factor-catalogs/application/ports';
 import { resolveFactors } from './resolve-factors';
@@ -17,7 +18,12 @@ export class BudgetSweepUseCase {
     const started = performance.now();
     const factors = await resolveFactors(this.catalogs, cmd);
     const result = budgetSweep(
-      { factors, costs: cmd.costs, constraints: { ...cmd.constraints, budget: null }, fusionRule: cmd.fusionRule },
+      {
+        factors,
+        costs: cmd.costs,
+        constraints: { ...cmd.constraints, budget: null },
+        fusionRule: cmd.fusionRule,
+      },
       cmd.sweep,
     );
     const durationMs = performance.now() - started;
@@ -31,6 +37,10 @@ export class BudgetSweepUseCase {
       durationMs,
       factorCatalogId: cmd.catalogId ?? null,
     });
-    return { experimentId, ...result, meta: { coreVersion: CORE_VERSION, durationMs: Math.round(durationMs) } } as BudgetSweepResponse;
+    return {
+      experimentId,
+      ...result,
+      meta: { coreVersion: CORE_VERSION, durationMs: Math.round(durationMs) },
+    } as BudgetSweepResponse;
   }
 }

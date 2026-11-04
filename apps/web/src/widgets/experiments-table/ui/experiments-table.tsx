@@ -1,8 +1,9 @@
 'use client';
 
+import type { ExperimentType } from '@bioauth/contracts';
 import Link from 'next/link';
 import { useState } from 'react';
-import type { ExperimentType } from '@bioauth/contracts';
+
 import { EXPERIMENT_TYPE_LABELS, SOLVER_LABELS, useExperimentList } from '@/entities/experiment';
 import { formatDateTime } from '@/shared/lib';
 import { ApiErrorNotice, Button, Segmented } from '@/shared/ui';
@@ -24,9 +25,16 @@ export function ExperimentsTable() {
       <Segmented label="Тип эксперимента" value={type} options={FILTERS} onChange={setType} />
       <ApiErrorNotice error={list.error} />
       {list.isSuccess && items.length === 0 && (
-        <p className="text-sm text-graphite">
-          Экспериментов пока нет. Выполните расчёт на странице <Link className="text-frr underline" href="/threshold">«Порог»</Link> или{' '}
-          <Link className="text-frr underline" href="/factors">«Состав факторов»</Link> — он сохранится здесь.
+        <p className="text-graphite text-sm">
+          Экспериментов пока нет. Выполните расчёт на странице{' '}
+          <Link className="text-frr underline" href="/threshold">
+            «Порог»
+          </Link>{' '}
+          или{' '}
+          <Link className="text-frr underline" href="/factors">
+            «Состав факторов»
+          </Link>{' '}
+          — он сохранится здесь.
         </p>
       )}
       {items.length > 0 && (
@@ -44,10 +52,13 @@ export function ExperimentsTable() {
             <tbody>
               {items.map((e) => (
                 <tr key={e.id} className="hover:bg-paper">
-                  <td className="num whitespace-nowrap text-graphite">{formatDateTime(e.createdAt)}</td>
+                  <td className="num text-graphite whitespace-nowrap">{formatDateTime(e.createdAt)}</td>
                   <td className="whitespace-nowrap">{EXPERIMENT_TYPE_LABELS[e.type]}</td>
                   <td>
-                    <Link href={`/experiments/${e.id}`} className={`hover:underline ${e.status === 'INFEASIBLE' ? 'text-far' : 'text-ink'}`}>
+                    <Link
+                      href={`/experiments/${e.id}`}
+                      className={`hover:underline ${e.status === 'INFEASIBLE' ? 'text-far' : 'text-ink'}`}
+                    >
                       {e.headline}
                     </Link>
                   </td>
@@ -61,7 +72,11 @@ export function ExperimentsTable() {
       )}
       {list.hasNextPage && (
         <div>
-          <Button variant="secondary" busy={list.isFetchingNextPage} onClick={() => list.fetchNextPage()}>
+          <Button
+            variant="secondary"
+            busy={list.isFetchingNextPage}
+            onClick={() => void list.fetchNextPage()}
+          >
             Показать ещё
           </Button>
         </div>

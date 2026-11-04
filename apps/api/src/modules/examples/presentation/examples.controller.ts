@@ -1,7 +1,7 @@
+import type { Sro1ExamplesDto } from '@bioauth/contracts';
+import { SRO1_FACTOR_EXAMPLE, SRO1_THRESHOLD_EXAMPLE } from '@bioauth/optimization-core';
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SRO1_FACTOR_EXAMPLE, SRO1_THRESHOLD_EXAMPLE } from '@bioauth/optimization-core';
-import type { Sro1ExamplesDto } from '@bioauth/contracts';
 
 @ApiTags('Примеры')
 @Controller('examples')
@@ -12,7 +12,8 @@ export class ExamplesController {
     const t = SRO1_THRESHOLD_EXAMPLE;
     const f = SRO1_FACTOR_EXAMPLE;
     return {
-      source: 'Мекенбаев Д. К. Многокритериальная оптимизация параметров систем биометрической аутентификации (СРО1), раздел 4',
+      source:
+        'Мекенбаев Д. К. Многокритериальная оптимизация параметров систем биометрической аутентификации (СРО1), раздел 4',
       threshold: {
         model: { kind: 'gaussian', genuine: t.genuine, impostor: t.impostor },
         costs: t.costs,

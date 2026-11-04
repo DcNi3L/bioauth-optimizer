@@ -1,8 +1,8 @@
 import { assertDomain } from '../../errors';
-import { SQRT2, erfcinv } from '../../numeric';
+import { erfcinv, SQRT2 } from '../../numeric';
 import { GaussianScoreModel } from '../gaussian-score-model';
-import { validateCosts, validateFarMax, validateNormal } from '../validation';
 import type { GaussianThresholdInput, OperatingPoint, OptimalPoint, ThresholdResult } from '../types';
+import { validateCosts, validateFarMax, validateNormal } from '../validation';
 import { NumericVerifier } from '../verification/numeric-verifier';
 import type { ThresholdOptimizer } from './threshold-optimizer';
 
@@ -98,16 +98,34 @@ export class GaussianAnalyticOptimizer implements ThresholdOptimizer<GaussianThr
     if (farMax !== null) {
       candidates.push({ ...point(tauMin), degenerate: null, constrainedByFarMax: true });
     } else {
-      candidates.push({ tau: null, far: 1, frr: 0, cost: costs.cFA, degenerate: 'acceptAll', constrainedByFarMax: false });
+      candidates.push({
+        tau: null,
+        far: 1,
+        frr: 0,
+        cost: costs.cFA,
+        degenerate: 'acceptAll',
+        constrainedByFarMax: false,
+      });
     }
-    candidates.push({ tau: null, far: 0, frr: 1, cost: costs.cFR, degenerate: 'rejectAll', constrainedByFarMax: false });
+    candidates.push({
+      tau: null,
+      far: 0,
+      frr: 1,
+      cost: costs.cFR,
+      degenerate: 'rejectAll',
+      constrainedByFarMax: false,
+    });
 
-    let best = candidates[0] as Candidate;
+    let best = candidates[0]!;
     for (const cand of candidates) if (cand.cost < best.cost) best = cand;
     // Корень, который лучше вырожденного решения меньше чем на DEGENERATE_RELATIVE, практически неотличим от него:
     // такой τ лежит в дальнем хвосте, где E(τ) плоская до машинной точности. Сообщаем вырожденное решение.
     const limit = candidates.filter((c) => c.degenerate !== null).reduce((a, b) => (b.cost < a.cost ? b : a));
-    if (best.degenerate === null && !best.constrainedByFarMax && best.cost >= limit.cost * (1 - DEGENERATE_RELATIVE)) {
+    if (
+      best.degenerate === null &&
+      !best.constrainedByFarMax &&
+      best.cost >= limit.cost * (1 - DEGENERATE_RELATIVE)
+    ) {
       best = limit;
     }
 
@@ -128,10 +146,14 @@ export class GaussianAnalyticOptimizer implements ThresholdOptimizer<GaussianThr
 
     const warnings: string[] = [];
     if (best.degenerate === 'acceptAll') {
-      warnings.push('При заданных стоимостях выгоднее допускать всех: порог не имеет смысла (cFA слишком мала).');
+      warnings.push(
+        'При заданных стоимостях выгоднее допускать всех: порог не имеет смысла (cFA слишком мала).',
+      );
     }
     if (best.degenerate === 'rejectAll') {
-      warnings.push('При заданных стоимостях выгоднее отвергать всех: порог не имеет смысла (cFR слишком мала).');
+      warnings.push(
+        'При заданных стоимостях выгоднее отвергать всех: порог не имеет смысла (cFR слишком мала).',
+      );
     }
     if (farMax !== null && eer.far > farMax) {
       warnings.push('Точка равных ошибок не удовлетворяет ограничению FAR ≤ FAR_max.');

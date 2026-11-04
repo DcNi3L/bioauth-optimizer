@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import { Client } from 'pg';
 
 const MIGRATION_LOCK_KEY = 4_620_261_104; // произвольный ключ advisory lock
@@ -8,7 +9,11 @@ const MIGRATION_LOCK_KEY = 4_620_261_104; // произвольный ключ a
  * Применяет SQL-миграции из каталога по порядку имён, каждую в отдельной транзакции.
  * Advisory lock защищает от одновременного запуска нескольких экземпляров api. Миграции только вперёд.
  */
-export async function migrate(connectionString: string, dir: string, log: (m: string) => void = () => {}): Promise<string[]> {
+export async function migrate(
+  connectionString: string,
+  dir: string,
+  log: (m: string) => void = () => undefined,
+): Promise<string[]> {
   const client = new Client({ connectionString });
   await client.connect();
   const applied: string[] = [];
@@ -17,7 +22,9 @@ export async function migrate(connectionString: string, dir: string, log: (m: st
     await client.query(
       'CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())',
     );
-    const done = new Set((await client.query<{ name: string }>('SELECT name FROM schema_migrations')).rows.map((r) => r.name));
+    const done = new Set(
+      (await client.query<{ name: string }>('SELECT name FROM schema_migrations')).rows.map((r) => r.name),
+    );
     const files = (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort();
     for (const file of files) {
       if (done.has(file)) continue;

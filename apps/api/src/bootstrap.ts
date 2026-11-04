@@ -1,9 +1,11 @@
 import 'reflect-metadata';
+
 import { type INestApplication, RequestMethod } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
+
 import { AppModule } from './app.module';
 import { APP_CONFIG, type AppConfig } from './shared/config/env';
 

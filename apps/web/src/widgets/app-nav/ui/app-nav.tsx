@@ -12,11 +12,13 @@ const LINKS = [
 export function AppNav() {
   const pathname = usePathname() ?? '';
   return (
-    <header className="border-b border-rule bg-sheet">
+    <header className="border-rule bg-sheet border-b">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-1 px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-baseline gap-2">
           <span className="font-serif text-lg font-semibold">BioAuth Optimizer</span>
-          <span className="hidden text-sm text-graphite md:inline">оптимизация биометрической аутентификации</span>
+          <span className="text-graphite hidden text-sm md:inline">
+            оптимизация биометрической аутентификации
+          </span>
         </Link>
         <nav aria-label="Разделы" className="-mx-1 flex w-full flex-1 gap-1 overflow-x-auto sm:w-auto">
           {LINKS.map((l) => {
@@ -26,14 +28,19 @@ export function AppNav() {
                 key={l.href}
                 href={l.href}
                 aria-current={active ? 'page' : undefined}
-                className={`shrink-0 rounded-md px-3 py-1.5 text-sm ${active ? 'bg-paper font-medium text-ink' : 'text-graphite hover:text-ink'}`}
+                className={`shrink-0 rounded-md px-3 py-1.5 text-sm ${active ? 'bg-paper text-ink font-medium' : 'text-graphite hover:text-ink'}`}
               >
                 {l.label}
               </Link>
             );
           })}
         </nav>
-        <a href={process.env.NEXT_PUBLIC_SWAGGER_URL ?? 'http://localhost:4000/api/docs'} target="_blank" rel="noreferrer" className="hidden text-sm text-graphite hover:text-ink sm:inline">
+        <a
+          href={process.env.NEXT_PUBLIC_SWAGGER_URL ?? 'http://localhost:4000/api/docs'}
+          target="_blank"
+          rel="noreferrer"
+          className="text-graphite hover:text-ink hidden text-sm sm:inline"
+        >
           API (Swagger)
         </a>
       </div>

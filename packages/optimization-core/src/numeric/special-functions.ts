@@ -5,8 +5,8 @@
  */
 import stdlibErfc from '@stdlib/math-base-special-erfc';
 import stdlibErfcinv from '@stdlib/math-base-special-erfcinv';
-import stdlibLog1p from '@stdlib/math-base-special-log1p';
 import stdlibExpm1 from '@stdlib/math-base-special-expm1';
+import stdlibLog1p from '@stdlib/math-base-special-log1p';
 
 export const SQRT2 = Math.SQRT2;
 const INV_SQRT_2PI = 1 / Math.sqrt(2 * Math.PI);

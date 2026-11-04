@@ -1,6 +1,6 @@
 export * from './errors';
-export * from './version';
+export * from './examples/article-sro1';
+export * from './factor-selection';
 export * as numeric from './numeric';
 export * from './threshold';
-export * from './factor-selection';
-export * from './examples/article-sro1';
+export * from './version';

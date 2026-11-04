@@ -1,20 +1,30 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
+
 import {
   DomainValidationError,
   GaussianAnalyticOptimizer,
   GaussianScoreModel,
-  SRO1_THRESHOLD_EXAMPLE,
   optimizeThreshold,
+  SRO1_THRESHOLD_EXAMPLE,
 } from '../src';
 import { expectAbs } from './helpers';
 
 const optimizer = new GaussianAnalyticOptimizer();
 
 const gaussianInput = fc.record({
-  genuine: fc.record({ mean: fc.double({ min: 0.5, max: 0.95, noNaN: true }), std: fc.double({ min: 0.03, max: 0.2, noNaN: true }) }),
-  impostor: fc.record({ mean: fc.double({ min: 0.05, max: 0.45, noNaN: true }), std: fc.double({ min: 0.03, max: 0.2, noNaN: true }) }),
-  costs: fc.record({ cFA: fc.double({ min: 0.1, max: 1000, noNaN: true }), cFR: fc.double({ min: 0.1, max: 100, noNaN: true }) }),
+  genuine: fc.record({
+    mean: fc.double({ min: 0.5, max: 0.95, noNaN: true }),
+    std: fc.double({ min: 0.03, max: 0.2, noNaN: true }),
+  }),
+  impostor: fc.record({
+    mean: fc.double({ min: 0.05, max: 0.45, noNaN: true }),
+    std: fc.double({ min: 0.03, max: 0.2, noNaN: true }),
+  }),
+  costs: fc.record({
+    cFA: fc.double({ min: 0.1, max: 1000, noNaN: true }),
+    cFR: fc.double({ min: 0.1, max: 100, noNaN: true }),
+  }),
 });
 
 describe('свойства оптимизатора порога (нормальные распределения)', () => {
@@ -49,8 +59,18 @@ describe('свойства оптимизатора порога (нормаль
   });
 
   it('P9: детерминизм — повторный расчёт даёт побайтно одинаковый JSON', () => {
-    const a = JSON.stringify(optimizeThreshold({ model: { kind: 'gaussian', ...SRO1_THRESHOLD_EXAMPLE }, costs: SRO1_THRESHOLD_EXAMPLE.costs }));
-    const b = JSON.stringify(optimizeThreshold({ model: { kind: 'gaussian', ...SRO1_THRESHOLD_EXAMPLE }, costs: SRO1_THRESHOLD_EXAMPLE.costs }));
+    const a = JSON.stringify(
+      optimizeThreshold({
+        model: { kind: 'gaussian', ...SRO1_THRESHOLD_EXAMPLE },
+        costs: SRO1_THRESHOLD_EXAMPLE.costs,
+      }),
+    );
+    const b = JSON.stringify(
+      optimizeThreshold({
+        model: { kind: 'gaussian', ...SRO1_THRESHOLD_EXAMPLE },
+        costs: SRO1_THRESHOLD_EXAMPLE.costs,
+      }),
+    );
     expect(a).toBe(b);
   });
 });
@@ -59,7 +79,11 @@ describe('граничные случаи порога', () => {
   const base = SRO1_THRESHOLD_EXAMPLE;
 
   it('σ_G = σ_I — линейное уравнение вместо квадратного', () => {
-    const input = { genuine: { mean: 0.7, std: 0.1 }, impostor: { mean: 0.3, std: 0.1 }, costs: { cFA: 10, cFR: 1 } };
+    const input = {
+      genuine: { mean: 0.7, std: 0.1 },
+      impostor: { mean: 0.3, std: 0.1 },
+      costs: { cFA: 10, cFR: 1 },
+    };
     const r = optimizer.optimize(input);
     // При равных σ: τ* = (μ_G + μ_I)/2 + σ²·ln(cFA/cFR)/(μ_G − μ_I)
     expectAbs(r.optimal.tau, 0.5 + (0.01 * Math.log(10)) / 0.4, 1e-12);
@@ -98,9 +122,21 @@ describe('граничные случаи порога', () => {
   it('регрессия: корень в дальнем хвосте, неотличимый от «отвергать всех», считается вырожденным', () => {
     // Найдено property-тестом P4: E(τ≈2,8) меньше cFR лишь на ~1e-39, численная проверка не сходилась → HTTP 500.
     const cases = [
-      { genuine: { mean: 0.5, std: 0.17863845985300694 }, impostor: { mean: 0.45, std: 0.17555974475589173 }, costs: { cFA: 120.32486353370145, cFR: 0.14897545285327154 } },
-      { genuine: { mean: 0.5, std: 0.2 }, impostor: { mean: 0.3476715875900269, std: 0.1932318891995079 }, costs: { cFA: 464.59794247654725, cFR: 0.1 } },
-      { genuine: { mean: 0.5, std: 0.12216332309143697 }, impostor: { mean: 0.45, std: 0.12272556757015513 }, costs: { cFA: 331.62167361020454, cFR: 7.114604689950118 } },
+      {
+        genuine: { mean: 0.5, std: 0.17863845985300694 },
+        impostor: { mean: 0.45, std: 0.17555974475589173 },
+        costs: { cFA: 120.32486353370145, cFR: 0.14897545285327154 },
+      },
+      {
+        genuine: { mean: 0.5, std: 0.2 },
+        impostor: { mean: 0.3476715875900269, std: 0.1932318891995079 },
+        costs: { cFA: 464.59794247654725, cFR: 0.1 },
+      },
+      {
+        genuine: { mean: 0.5, std: 0.12216332309143697 },
+        impostor: { mean: 0.45, std: 0.12272556757015513 },
+        costs: { cFA: 331.62167361020454, cFR: 7.114604689950118 },
+      },
     ];
     for (const input of cases) {
       const r = optimizer.optimize(input);
@@ -126,8 +162,12 @@ describe('граничные случаи порога', () => {
   });
 
   it('некорректные входы отклоняются', () => {
-    expect(() => optimizer.optimize({ ...base, genuine: { mean: 0.2, std: 0.1 } })).toThrow(DomainValidationError);
-    expect(() => optimizer.optimize({ ...base, genuine: { mean: 0.7, std: 0 } })).toThrow(DomainValidationError);
+    expect(() => optimizer.optimize({ ...base, genuine: { mean: 0.2, std: 0.1 } })).toThrow(
+      DomainValidationError,
+    );
+    expect(() => optimizer.optimize({ ...base, genuine: { mean: 0.7, std: 0 } })).toThrow(
+      DomainValidationError,
+    );
     expect(() => optimizer.optimize({ ...base, costs: { cFA: -1, cFR: 1 } })).toThrow(DomainValidationError);
     expect(() => optimizer.optimize({ ...base, farMax: 1 })).toThrow(DomainValidationError);
   });

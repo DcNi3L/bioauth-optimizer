@@ -19,7 +19,10 @@ export function ExportButtons({ spec }: { spec: ExportSpec }) {
         JSON
       </Button>
       {spec.csv && (
-        <Button variant="ghost" onClick={() => downloadCsv(`${spec.baseName}.csv`, spec.csv!.header, spec.csv!.rows)}>
+        <Button
+          variant="ghost"
+          onClick={() => downloadCsv(`${spec.baseName}.csv`, spec.csv!.header, spec.csv!.rows)}
+        >
           CSV
         </Button>
       )}

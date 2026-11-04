@@ -1,13 +1,14 @@
-import { SRO1_FACTOR_EXAMPLE, createDefaultSolverSelector } from '@bioauth/optimization-core';
 import { factorSelectionRequestSchema, thresholdOptimizeRequestSchema } from '@bioauth/contracts';
+import { createDefaultSolverSelector, SRO1_FACTOR_EXAMPLE } from '@bioauth/optimization-core';
+
 import type {
   ExperimentPageQuery,
   ExperimentRecord,
   ExperimentRepository,
   NewExperiment,
 } from '../../src/modules/experiments/application/experiment.repository';
-import { ExperimentRecorder } from '../../src/modules/experiments/application/experiment-recorder';
 import { ListExperimentsUseCase } from '../../src/modules/experiments/application/experiment-queries';
+import { ExperimentRecorder } from '../../src/modules/experiments/application/experiment-recorder';
 import { experimentHeadline } from '../../src/modules/experiments/application/headline';
 import { SolveFactorSelectionUseCase } from '../../src/modules/factor-selection/application/solve-factor-selection.use-case';
 import { OptimizeThresholdUseCase } from '../../src/modules/threshold/application/optimize-threshold.use-case';
@@ -18,19 +19,19 @@ class InMemoryExperiments implements ExperimentRepository {
   readonly rows: ExperimentRecord[] = [];
   private seq = 0;
 
-  async save(e: NewExperiment) {
+  save(e: NewExperiment) {
     const createdAt = new Date(Date.UTC(2026, 10, 4, 0, 0, this.seq));
     const id = `00000000-0000-4000-8000-${String(++this.seq).padStart(12, '0')}`;
     this.rows.push({ ...e, id, createdAt });
-    return { id, createdAt };
+    return Promise.resolve({ id, createdAt });
   }
 
-  async findById(id: string) {
-    return this.rows.find((r) => r.id === id) ?? null;
+  findById(id: string) {
+    return Promise.resolve(this.rows.find((r) => r.id === id) ?? null);
   }
 
-  async list(q: ExperimentPageQuery) {
-    return [...this.rows]
+  list(q: ExperimentPageQuery) {
+    const rows = [...this.rows]
       .filter((r) => !q.type || r.type === q.type)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || (a.id < b.id ? 1 : -1))
       .filter(
@@ -40,6 +41,7 @@ class InMemoryExperiments implements ExperimentRepository {
           (r.createdAt.getTime() === q.after.createdAt.getTime() && r.id < q.after.id),
       )
       .slice(0, q.limit);
+    return Promise.resolve(rows);
   }
 }
 
@@ -48,7 +50,7 @@ describe('use cases с заглушками портов', () => {
   const recorder = new ExperimentRecorder(repo);
 
   it('OptimizeThreshold: пример статьи сохраняется с хэшем входа и версией ядра', async () => {
-    const uc = new OptimizeThresholdUseCase({ findSamples: async () => null }, recorder);
+    const uc = new OptimizeThresholdUseCase({ findSamples: () => Promise.resolve(null) }, recorder);
     const cmd = thresholdOptimizeRequestSchema.parse({
       model: { kind: 'gaussian', genuine: { mean: 0.72, std: 0.09 }, impostor: { mean: 0.3, std: 0.11 } },
       costs: { cFA: 10, cFR: 1 },
@@ -62,7 +64,7 @@ describe('use cases с заглушками портов', () => {
   });
 
   it('OptimizeThreshold: неизвестный набор оценок → NotFoundError', async () => {
-    const uc = new OptimizeThresholdUseCase({ findSamples: async () => null }, recorder);
+    const uc = new OptimizeThresholdUseCase({ findSamples: () => Promise.resolve(null) }, recorder);
     const cmd = thresholdOptimizeRequestSchema.parse({
       model: { kind: 'empirical', datasetId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301' },
       costs: { cFA: 1, cFR: 1 },
@@ -71,7 +73,7 @@ describe('use cases с заглушками портов', () => {
   });
 
   it('SolveFactorSelection: факторы из каталога; недопустимая задача → 422 с experimentId', async () => {
-    const reader = { findFactors: async () => SRO1_FACTOR_EXAMPLE.factors.map((f) => ({ ...f })) };
+    const reader = { findFactors: () => Promise.resolve(SRO1_FACTOR_EXAMPLE.factors.map((f) => ({ ...f }))) };
     const uc = new SolveFactorSelectionUseCase(createDefaultSolverSelector(), reader, recorder);
     const base = {
       catalogId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
@@ -84,7 +86,10 @@ describe('use cases с заглушками портов', () => {
     expect((saved!.input as { factors: unknown[] }).factors).toHaveLength(5); // копия факторов
     expect(saved!.factorCatalogId).toBe(base.catalogId);
 
-    const bad = factorSelectionRequestSchema.parse({ ...base, constraints: { ...base.constraints, latencyMaxMs: 1 } });
+    const bad = factorSelectionRequestSchema.parse({
+      ...base,
+      constraints: { ...base.constraints, latencyMaxMs: 1 },
+    });
     const err = await uc.execute(bad).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(InfeasibleProblemError);
     const experimentId = (err as InfeasibleProblemError).extra.experimentId as string;

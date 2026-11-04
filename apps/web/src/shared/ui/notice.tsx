@@ -9,9 +9,20 @@ const tones: Record<Tone, string> = {
   success: 'border-optimum/30 bg-[#e7f3ec] text-[#1f5a38]',
 };
 
-export function Notice({ tone = 'info', title, children }: { tone?: Tone; title?: ReactNode; children?: ReactNode }) {
+export function Notice({
+  tone = 'info',
+  title,
+  children,
+}: {
+  tone?: Tone;
+  title?: ReactNode;
+  children?: ReactNode;
+}) {
   return (
-    <div role={tone === 'error' ? 'alert' : 'status'} className={`rounded-md border px-4 py-3 text-sm ${tones[tone]}`}>
+    <div
+      role={tone === 'error' ? 'alert' : 'status'}
+      className={`rounded-md border px-4 py-3 text-sm ${tones[tone]}`}
+    >
       {title && <p className="font-medium">{title}</p>}
       {children && <div className={title ? 'mt-1' : ''}>{children}</div>}
     </div>

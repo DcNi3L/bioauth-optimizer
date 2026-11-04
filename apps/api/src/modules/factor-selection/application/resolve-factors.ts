@@ -1,4 +1,5 @@
 import type { FactorDto } from '@bioauth/contracts';
+
 import { NotFoundError } from '../../../shared/errors';
 import type { FactorCatalogReader } from '../../factor-catalogs/application/ports';
 

@@ -7,7 +7,11 @@ export const MAX_CURVE_POINTS = 2000;
 /** Строит точки FAR/FRR/E(τ) и ROC для графиков (рис. 2а СРО1). Отдельно от ScoreModel (ISP). */
 export class CurveBuilder {
   build(model: ScoreModel, costs: Costs, range: CurveRange): ThresholdCurves {
-    assertDomain(isFiniteNumber(range.from) && isFiniteNumber(range.to), 'границы графика должны быть числами', 'curve');
+    assertDomain(
+      isFiniteNumber(range.from) && isFiniteNumber(range.to),
+      'границы графика должны быть числами',
+      'curve',
+    );
     assertDomain(range.to > range.from, 'curve.to должно быть больше curve.from', 'curve.to');
     assertDomain(
       Number.isInteger(range.points) && range.points >= 2 && range.points <= MAX_CURVE_POINTS,

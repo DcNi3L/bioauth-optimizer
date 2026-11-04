@@ -1,8 +1,10 @@
-import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
 import '@fontsource-variable/golos-text';
 import '@fontsource-variable/literata';
 import '@/app/styles/globals.css';
+
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+
 import { QueryProvider } from '@/app';
 import { AppNav } from '@/widgets/app-nav';
 

@@ -1,14 +1,15 @@
 import { join } from 'node:path';
+
+import { seedPresetCatalogs } from '../../modules/factor-catalogs/infrastructure/seed-presets';
 import { loadConfig } from '../config/env';
 import { createDb } from './kysely';
 import { migrate } from './migrator';
-import { seedPresetCatalogs } from '../../modules/factor-catalogs/infrastructure/seed-presets';
 
 /** Миграции + идемпотентный seed; запускается перед стартом api (docker/api.Dockerfile). */
 async function run(): Promise<void> {
   const config = loadConfig();
   const dir = process.env.MIGRATIONS_DIR ?? join(__dirname, '..', '..', '..', 'migrations');
-  const log = (m: string) => console.log(JSON.stringify({ level: 'info', msg: m }));
+  const log = (m: string) => process.stdout.write(`${JSON.stringify({ level: 'info', msg: m })}\n`);
   const applied = await migrate(config.DATABASE_URL, dir, log);
   if (applied.length === 0) log('новых миграций нет');
   const db = createDb(config.DATABASE_URL, 1);
@@ -19,7 +20,7 @@ async function run(): Promise<void> {
   }
 }
 
-run().catch((err) => {
-  console.error(JSON.stringify({ level: 'fatal', msg: (err as Error).message }));
+run().catch((err: unknown) => {
+  console.error(JSON.stringify({ level: 'fatal', msg: err instanceof Error ? err.message : String(err) }));
   process.exit(1);
 });

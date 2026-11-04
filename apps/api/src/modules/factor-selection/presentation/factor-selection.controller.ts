@@ -1,17 +1,18 @@
+import {
+  type BudgetSweepCommand,
+  budgetSweepRequestSchema,
+  type BudgetSweepResponse,
+  budgetSweepResponseSchema,
+  type FactorSelectionCommand,
+  factorSelectionRequestSchema,
+  type FactorSelectionResponse,
+  factorSelectionResponseSchema,
+} from '@bioauth/contracts';
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import {
-  budgetSweepRequestSchema,
-  budgetSweepResponseSchema,
-  factorSelectionRequestSchema,
-  factorSelectionResponseSchema,
-  type BudgetSweepCommand,
-  type BudgetSweepResponse,
-  type FactorSelectionCommand,
-  type FactorSelectionResponse,
-} from '@bioauth/contracts';
-import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
+
 import { ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
+import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import { BudgetSweepUseCase } from '../application/budget-sweep.use-case';
 import { SolveFactorSelectionUseCase } from '../application/solve-factor-selection.use-case';
 
@@ -25,10 +26,14 @@ export class FactorSelectionController {
 
   @Post('solve')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Оптимальный состав факторов: полный перебор или сертифицированное ЦЛП (формулы 2–3 СРО1)' })
+  @ApiOperation({
+    summary: 'Оптимальный состав факторов: полный перебор или сертифицированное ЦЛП (формулы 2–3 СРО1)',
+  })
   @ApiZodBody(factorSelectionRequestSchema)
   @ApiZodOk(factorSelectionResponseSchema)
-  solve(@Body(new ZodValidationPipe(factorSelectionRequestSchema)) cmd: FactorSelectionCommand): Promise<FactorSelectionResponse> {
+  solve(
+    @Body(new ZodValidationPipe(factorSelectionRequestSchema)) cmd: FactorSelectionCommand,
+  ): Promise<FactorSelectionResponse> {
     return this.solveUseCase.execute(cmd);
   }
 
@@ -37,7 +42,9 @@ export class FactorSelectionController {
   @ApiOperation({ summary: 'Анализ чувствительности оптимума к бюджету' })
   @ApiZodBody(budgetSweepRequestSchema)
   @ApiZodOk(budgetSweepResponseSchema)
-  sweep(@Body(new ZodValidationPipe(budgetSweepRequestSchema)) cmd: BudgetSweepCommand): Promise<BudgetSweepResponse> {
+  sweep(
+    @Body(new ZodValidationPipe(budgetSweepRequestSchema)) cmd: BudgetSweepCommand,
+  ): Promise<BudgetSweepResponse> {
     return this.sweepUseCase.execute(cmd);
   }
 }

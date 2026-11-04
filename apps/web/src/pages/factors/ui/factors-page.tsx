@@ -1,20 +1,31 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
 import type { FactorSelectionResponse } from '@bioauth/contracts';
+import { useMemo, useRef, useState } from 'react';
+
 import { CatalogPicker, SaveCatalogForm } from '@/features/edit-factor-catalog';
 import { ExportButtons } from '@/features/export-result';
 import { LoadExampleButton } from '@/features/load-article-example';
 import { BudgetSweepControls, useBudgetSweep } from '@/features/run-budget-sweep';
-import { FactorTableEditor, SelectionSettingsForm, useFactorSelectionForm, useSolveFactors } from '@/features/select-factors';
+import {
+  FactorTableEditor,
+  SelectionSettingsForm,
+  useFactorSelectionForm,
+  useSolveFactors,
+} from '@/features/select-factors';
 import { ApiError } from '@/shared/api';
 import { formatNumber } from '@/shared/lib';
-import { ApiErrorNotice, Button, Notice, Panel, type EChartHandle } from '@/shared/ui';
+import { ApiErrorNotice, Button, type EChartHandle, Notice, Panel } from '@/shared/ui';
 import { BudgetSensitivity } from '@/widgets/budget-sensitivity';
 import { FactorRankingChart } from '@/widgets/factor-ranking-chart';
 import { FactorSelectionSummary } from '@/widgets/factor-selection-summary';
 
-const REJECT_LABELS: Record<string, string> = { latency: 'задержке', budget: 'бюджету', pad: 'наличию PAD', far: 'FAR' };
+const REJECT_LABELS: Record<string, string> = {
+  latency: 'задержке',
+  budget: 'бюджету',
+  pad: 'наличию PAD',
+  far: 'FAR',
+};
 
 function rankingCsv(r: FactorSelectionResponse) {
   return {
@@ -38,7 +49,8 @@ export function FactorsPage() {
     solve.mutate(req, { onSuccess: setResult, onError: () => setResult(null) });
   };
 
-  const infeasible = solve.error instanceof ApiError && solve.error.status === 422 ? solve.error.problem : null;
+  const infeasible =
+    solve.error instanceof ApiError && solve.error.status === 422 ? solve.error.problem : null;
   const rejectedText = useMemo(
     () =>
       infeasible?.rejectedBy
@@ -56,8 +68,9 @@ export function FactorsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl">Состав факторов</h1>
-          <p className="mt-1 max-w-prose text-sm text-graphite">
-            Целочисленная задача (2)–(3) статьи СРО1: FAR = ∏FARᵢ, FRR = 1 − ∏(1 − FRRᵢ), задержка и стоимость складываются.
+          <p className="text-graphite mt-1 max-w-prose text-sm">
+            Целочисленная задача (2)–(3) статьи СРО1: FAR = ∏FARᵢ, FRR = 1 − ∏(1 − FRRᵢ), задержка и стоимость
+            складываются.
           </p>
         </div>
         <LoadExampleButton
@@ -73,11 +86,15 @@ export function FactorsPage() {
       <Panel
         title="Кандидаты"
         description="FAR и FRR — вероятности (можно вводить 1e-4 или 0,02). Отметьте факторы с обнаружением атак на предъявление (PAD)."
-        actions={<div className="w-72"><CatalogPicker onPick={(c) => form.setFactorDtos(c.factors)} /></div>}
+        actions={
+          <div className="w-72">
+            <CatalogPicker onPick={(c) => form.setFactorDtos(c.factors)} />
+          </div>
+        }
       >
         <div className="flex flex-col gap-6">
           <FactorTableEditor form={form} />
-          <div className="border-t border-rule pt-4">
+          <div className="border-rule border-t pt-4">
             <SaveCatalogForm getFactors={form.currentFactorDtos} />
           </div>
         </div>
@@ -93,7 +110,7 @@ export function FactorsPage() {
             }}
           >
             <SelectionSettingsForm form={form} />
-            <div className="border-t border-rule pt-4">
+            <div className="border-rule border-t pt-4">
               <Button type="submit" busy={solve.isPending}>
                 Подобрать набор
               </Button>
@@ -104,15 +121,17 @@ export function FactorsPage() {
         <div className="flex flex-col gap-6" aria-live="polite">
           {infeasible ? (
             <Notice tone="error" title="Ни один набор не удовлетворяет ограничениям">
-              {rejectedText ? `Чаще всего мешают ограничения: ${rejectedText}. Ослабьте самое жёсткое из них.` : infeasible.detail}
+              {rejectedText
+                ? `Чаще всего мешают ограничения: ${rejectedText}. Ослабьте самое жёсткое из них.`
+                : infeasible.detail}
             </Notice>
           ) : (
             <ApiErrorNotice error={solve.error} />
           )}
           {!result && !solve.error && (
-            <div className="rounded-lg border border-dashed border-rule px-6 py-16 text-center text-sm text-graphite">
-              Заполните факторы и ограничения или нажмите «Пример из статьи СРО1». Здесь появятся оптимальный набор и рейтинг всех
-              допустимых.
+            <div className="border-rule text-graphite rounded-lg border border-dashed px-6 py-16 text-center text-sm">
+              Заполните факторы и ограничения или нажмите «Пример из статьи СРО1». Здесь появятся оптимальный
+              набор и рейтинг всех допустимых.
             </div>
           )}
           {result && (
@@ -129,7 +148,12 @@ export function FactorsPage() {
                 }
                 actions={
                   <ExportButtons
-                    spec={{ baseName: `factors-${result.experimentId.slice(0, 8)}`, json: result, csv: rankingCsv(result), png: () => chartRef.current?.toDataUrl() ?? null }}
+                    spec={{
+                      baseName: `factors-${result.experimentId.slice(0, 8)}`,
+                      json: result,
+                      csv: rankingCsv(result),
+                      png: () => chartRef.current?.toDataUrl() ?? null,
+                    }}
                   />
                 }
               >
@@ -145,13 +169,18 @@ export function FactorsPage() {
         description="Как меняется лучший набор, если бюджет B меняется, а остальные ограничения те же. Показывает цену ужесточения бюджета."
       >
         <div className="flex flex-col gap-5">
-          <BudgetSweepControls buildBase={form.buildSweepBase} onRun={(req) => sweep.mutate(req)} busy={sweep.isPending} />
+          <BudgetSweepControls
+            buildBase={form.buildSweepBase}
+            onRun={(req) => sweep.mutate(req)}
+            busy={sweep.isPending}
+          />
           <ApiErrorNotice error={sweep.error} />
           {sweep.data && (
             <>
               <BudgetSensitivity result={sweep.data} />
-              <p className="text-xs text-graphite">
-                Точек: {sweep.data.points.length}; смен оптимума: {Math.max(0, sweep.data.breakpoints.length - 1)}; расчёт{' '}
+              <p className="text-graphite text-xs">
+                Точек: {sweep.data.points.length}; смен оптимума:{' '}
+                {Math.max(0, sweep.data.breakpoints.length - 1)}; расчёт{' '}
                 {formatNumber(sweep.data.meta.durationMs, 0)} мс.
               </p>
             </>

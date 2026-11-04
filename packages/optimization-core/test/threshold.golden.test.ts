@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+
+import { GaussianAnalyticOptimizer, numeric, SRO1_THRESHOLD_EXAMPLE } from '../src';
 import fixtures from './fixtures/threshold-scipy.json';
-import { GaussianAnalyticOptimizer, SRO1_THRESHOLD_EXAMPLE, numeric } from '../src';
 import { expectAbs, expectRel } from './helpers';
 
 const optimizer = new GaussianAnalyticOptimizer();

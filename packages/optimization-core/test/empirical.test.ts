@@ -1,6 +1,13 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { EmpiricalSweepOptimizer, GaussianAnalyticOptimizer, GaussianScoreModel, SRO1_THRESHOLD_EXAMPLE, optimizeThreshold } from '../src';
+
+import {
+  EmpiricalSweepOptimizer,
+  GaussianAnalyticOptimizer,
+  GaussianScoreModel,
+  optimizeThreshold,
+  SRO1_THRESHOLD_EXAMPLE,
+} from '../src';
 
 const optimizer = new EmpiricalSweepOptimizer();
 
@@ -39,13 +46,22 @@ function bruteForce(G: number[], I: number[], cFA: number, cFR: number) {
 
 describe('эмпирический режим', () => {
   it('P8: алгоритм двух указателей даёт тот же E*, что перебор «в лоб»', () => {
-    const scores = fc.array(fc.integer({ min: 0, max: 40 }).map((k) => k / 40), { minLength: 1, maxLength: 40 });
+    const scores = fc.array(
+      fc.integer({ min: 0, max: 40 }).map((k) => k / 40),
+      { minLength: 1, maxLength: 40 },
+    );
     fc.assert(
-      fc.property(scores, scores, fc.double({ min: 0.1, max: 50, noNaN: true }), fc.double({ min: 0.1, max: 50, noNaN: true }), (G, I, cFA, cFR) => {
-        const r = optimizer.optimize({ genuine: G, impostor: I, costs: { cFA, cFR } });
-        expect(r.optimal.cost).toBeCloseTo(bruteForce(G, I, cFA, cFR), 12);
-        expect(r.verification.status).toBe('exact');
-      }),
+      fc.property(
+        scores,
+        scores,
+        fc.double({ min: 0.1, max: 50, noNaN: true }),
+        fc.double({ min: 0.1, max: 50, noNaN: true }),
+        (G, I, cFA, cFR) => {
+          const r = optimizer.optimize({ genuine: G, impostor: I, costs: { cFA, cFR } });
+          expect(r.optimal.cost).toBeCloseTo(bruteForce(G, I, cFA, cFR), 12);
+          expect(r.verification.status).toBe('exact');
+        },
+      ),
       { numRuns: 1000 },
     );
   });
@@ -65,7 +81,11 @@ describe('эмпирический режим', () => {
   });
 
   it('интервал оптимальных порогов и рекомендуемый порог — середина интервала', () => {
-    const r = optimizer.optimize({ genuine: [0.6, 0.7, 0.8], impostor: [0.1, 0.2, 0.3], costs: { cFA: 1, cFR: 1 } });
+    const r = optimizer.optimize({
+      genuine: [0.6, 0.7, 0.8],
+      impostor: [0.1, 0.2, 0.3],
+      costs: { cFA: 1, cFR: 1 },
+    });
     expect(r.optimal.cost).toBe(0);
     expect(r.optimal.interval).toEqual([0.3, 0.6]);
     expect(r.optimal.tau).toBeCloseTo(0.45, 15);
@@ -85,7 +105,12 @@ describe('эмпирический режим', () => {
   });
 
   it('FAR_max: предупреждение о недостаточном объёме выборки злоумышленников', () => {
-    const r = optimizer.optimize({ genuine: [0.7, 0.8], impostor: [0.1, 0.2], costs: { cFA: 1, cFR: 1 }, farMax: 1e-3 });
+    const r = optimizer.optimize({
+      genuine: [0.7, 0.8],
+      impostor: [0.1, 0.2],
+      costs: { cFA: 1, cFR: 1 },
+      farMax: 1e-3,
+    });
     expect(r.warnings.some((w) => w.includes('правилу трёх'))).toBe(true);
     expect(r.optimal.far).toBeLessThanOrEqual(1e-3);
   });

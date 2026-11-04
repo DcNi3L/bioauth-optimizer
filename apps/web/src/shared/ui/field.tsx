@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, useId } from 'react';
 
 interface FieldShellProps {
   label: ReactNode;
@@ -13,16 +13,16 @@ function FieldShell({ label, hint, error, children, className = '' }: FieldShell
   const hintId = hint || error ? `${id}-hint` : undefined;
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label htmlFor={id} className="text-sm text-graphite">
+      <label htmlFor={id} className="text-graphite text-sm">
         {label}
       </label>
       {children(id, hintId)}
       {error ? (
-        <p id={hintId} className="text-xs text-far">
+        <p id={hintId} className="text-far text-xs">
           {error}
         </p>
       ) : hint ? (
-        <p id={hintId} className="text-xs text-graphite">
+        <p id={hintId} className="text-graphite text-xs">
           {hint}
         </p>
       ) : null}
@@ -41,18 +41,34 @@ export function TextField({
   error,
   className,
   ...props
-}: Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> & { label: ReactNode; hint?: ReactNode; error?: string }) {
+}: Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> & {
+  label: ReactNode;
+  hint?: ReactNode;
+  error?: string;
+}) {
   return (
     <FieldShell label={label} hint={hint} error={error} className={className}>
       {(id, describedBy) => (
-        <input id={id} aria-describedby={describedBy} aria-invalid={!!error || undefined} className={inputClass(error)} {...props} />
+        <input
+          id={id}
+          aria-describedby={describedBy}
+          aria-invalid={!!error || undefined}
+          className={inputClass(error)}
+          {...props}
+        />
       )}
     </FieldShell>
   );
 }
 
 /** Поле для числа: десятичная запятая и запись вида 1e-6 допускаются (разбирает parseNumber). */
-export function NumberField(props: Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> & { label: ReactNode; hint?: ReactNode; error?: string }) {
+export function NumberField(
+  props: Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> & {
+    label: ReactNode;
+    hint?: ReactNode;
+    error?: string;
+  },
+) {
   return <TextField inputMode="decimal" autoComplete="off" spellCheck={false} {...props} />;
 }
 
@@ -63,7 +79,11 @@ export function SelectField({
   className,
   children,
   ...props
-}: Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'> & { label: ReactNode; hint?: ReactNode; error?: string }) {
+}: Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'> & {
+  label: ReactNode;
+  hint?: ReactNode;
+  error?: string;
+}) {
   return (
     <FieldShell label={label} hint={hint} error={error} className={className}>
       {(id, describedBy) => (

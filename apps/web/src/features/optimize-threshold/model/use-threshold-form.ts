@@ -1,7 +1,8 @@
 'use client';
 
+import { type ThresholdOptimizeRequest, thresholdOptimizeRequestSchema } from '@bioauth/contracts';
 import { useCallback, useState } from 'react';
-import { thresholdOptimizeRequestSchema, type ThresholdOptimizeRequest } from '@bioauth/contracts';
+
 import { numberToInput, parseNumber } from '@/shared/lib';
 
 export type ThresholdMode = 'gaussian' | 'empirical';

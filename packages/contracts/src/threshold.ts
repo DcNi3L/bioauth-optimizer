@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { costsSchema, farMaxSchema, finite, metaSchema, normalParamsSchema, uuidSchema } from './common';
 
 export const gaussianModelSchema = z.strictObject({
@@ -33,8 +34,13 @@ export const thresholdOptimizeRequestSchema = z
         message: 'среднее законных пользователей должно быть больше среднего злоумышленников',
       });
     }
-    if (v.curve?.from !== undefined && v.curve?.to !== undefined && !(v.curve.to > v.curve.from)) {
-      ctx.addIssue({ code: 'custom', path: ['curve', 'to'], message: 'curve.to должно быть больше curve.from' });
+    const curve = v.curve;
+    if (curve?.from !== undefined && curve.to !== undefined && !(curve.to > curve.from)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['curve', 'to'],
+        message: 'curve.to должно быть больше curve.from',
+      });
     }
   });
 export type ThresholdOptimizeRequest = z.input<typeof thresholdOptimizeRequestSchema>;

@@ -1,8 +1,12 @@
 import type { ThresholdOptimizeResponse } from '@bioauth/contracts';
+
 import { formatNumber, formatPercent } from '@/shared/lib';
 import { Metric, Notice } from '@/shared/ui';
 
-type Result = Pick<ThresholdOptimizeResponse, 'eer' | 'optimal' | 'lossReduction' | 'verification' | 'warnings' | 'method' | 'sampleSizes'>;
+type Result = Pick<
+  ThresholdOptimizeResponse,
+  'eer' | 'optimal' | 'lossReduction' | 'verification' | 'warnings' | 'method' | 'sampleSizes'
+>;
 
 function OperatingPointColumn({
   title,
@@ -16,7 +20,7 @@ function OperatingPointColumn({
   return (
     <div className={`flex flex-col gap-3 ${emphasis ? '' : 'text-graphite'}`}>
       <p className="text-sm">{title}</p>
-      <p className={`num font-serif ${emphasis ? 'text-4xl text-optimum' : 'text-2xl text-ink'}`}>
+      <p className={`num font-serif ${emphasis ? 'text-optimum text-4xl' : 'text-ink text-2xl'}`}>
         <span className="formula">τ</span> = {point.tau === null ? '—' : formatNumber(point.tau)}
       </p>
       <div className="grid grid-cols-3 gap-3">
@@ -36,37 +40,45 @@ export function ThresholdSummary({ result }: { result: Result }) {
     <div className="flex flex-col gap-5">
       <div className="grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
         <OperatingPointColumn title="Точка равных ошибок (EER)" point={eer} />
-        <div className="hidden h-full w-px bg-rule sm:block" aria-hidden />
+        <div className="bg-rule hidden h-full w-px sm:block" aria-hidden />
         <OperatingPointColumn title="Минимум ожидаемых потерь" point={optimal} emphasis />
       </div>
 
       {lossReduction !== null && !degenerate && (
         <p className="max-w-prose text-[15px]">
           Переход от EER к оптимальному порогу снижает ожидаемые потери на{' '}
-          <strong className="num font-semibold text-optimum">{formatPercent(lossReduction, 1)}</strong>: с{' '}
-          <span className="num">{formatNumber(eer.cost, 4)}</span> до <span className="num">{formatNumber(optimal.cost, 4)}</span>.
+          <strong className="num text-optimum font-semibold">{formatPercent(lossReduction, 1)}</strong>: с{' '}
+          <span className="num">{formatNumber(eer.cost, 4)}</span> до{' '}
+          <span className="num">{formatNumber(optimal.cost, 4)}</span>.
         </p>
       )}
 
       {optimal.interval && (
-        <p className="text-sm text-graphite">
+        <p className="text-graphite text-sm">
           На выборке решения одинаковы для любого порога из интервала (
-          <span className="num">{optimal.interval[0] === null ? '−∞' : formatNumber(optimal.interval[0], 6)}</span>;{' '}
-          <span className="num">{optimal.interval[1] === null ? '+∞' : formatNumber(optimal.interval[1], 6)}</span>]; рекомендован
-          его центр.
+          <span className="num">
+            {optimal.interval[0] === null ? '−∞' : formatNumber(optimal.interval[0], 6)}
+          </span>
+          ;{' '}
+          <span className="num">
+            {optimal.interval[1] === null ? '+∞' : formatNumber(optimal.interval[1], 6)}
+          </span>
+          ]; рекомендован его центр.
           {result.sampleSizes &&
             ` Выборки: ${result.sampleSizes.genuine.toLocaleString('ru-RU')} законных, ${result.sampleSizes.impostor.toLocaleString('ru-RU')} злоумышленников.`}
         </p>
       )}
       {optimal.constrainedByFarMax && (
-        <Notice tone="info">Оптимум упирается в ограничение FAR ≤ FAR_max: порог поднят до границы допустимой области.</Notice>
+        <Notice tone="info">
+          Оптимум упирается в ограничение FAR ≤ FAR_max: порог поднят до границы допустимой области.
+        </Notice>
       )}
       {warnings.map((w) => (
         <Notice key={w} tone="caution">
           {w}
         </Notice>
       ))}
-      <p className="text-xs text-graphite">
+      <p className="text-graphite text-xs">
         {verification.status === 'ok' &&
           `Аналитическое решение подтверждено численно: расхождение ${formatNumber(verification.absDiff ?? 0, 2)}.`}
         {verification.status === 'exact' && 'Точный перебор всех порогов по выборке.'}

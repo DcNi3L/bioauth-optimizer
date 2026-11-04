@@ -25,7 +25,12 @@ export function Button({
         variant === 'ghost' ? '' : 'h-10 px-4'
       } ${styles[variant]} ${className}`}
     >
-      {busy && <span className="size-3.5 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden />}
+      {busy && (
+        <span
+          className="size-3.5 animate-spin rounded-full border-2 border-current border-r-transparent"
+          aria-hidden
+        />
+      )}
       {children}
     </button>
   );

@@ -1,1 +1,1 @@
-export { ExperimentDetailPage } from "./ui/experiment-detail-page";
+export { ExperimentDetailPage } from './ui/experiment-detail-page';

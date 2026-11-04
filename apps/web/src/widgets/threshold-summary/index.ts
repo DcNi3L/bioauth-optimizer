@@ -1,1 +1,1 @@
-export { ThresholdSummary } from "./ui/threshold-summary";
+export { ThresholdSummary } from './ui/threshold-summary';

@@ -1,15 +1,16 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
-  experimentDetailSchema,
-  experimentListQuerySchema,
-  experimentListSchema,
   type ExperimentDetailDto,
+  experimentDetailSchema,
   type ExperimentListDto,
   type ExperimentListQuery,
+  experimentListQuerySchema,
+  experimentListSchema,
 } from '@bioauth/contracts';
-import { ApiZodOk } from '../../../shared/swagger/api-zod';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
+import { ApiZodOk } from '../../../shared/swagger/api-zod';
 import { GetExperimentUseCase, ListExperimentsUseCase } from '../application/experiment-queries';
 
 @ApiTags('Эксперименты')
@@ -26,7 +27,9 @@ export class ExperimentsController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiZodOk(experimentListSchema)
-  list(@Query(new ZodValidationPipe(experimentListQuerySchema)) query: ExperimentListQuery): Promise<ExperimentListDto> {
+  list(
+    @Query(new ZodValidationPipe(experimentListQuerySchema)) query: ExperimentListQuery,
+  ): Promise<ExperimentListDto> {
     return this.listExperiments.execute(query);
   }
 

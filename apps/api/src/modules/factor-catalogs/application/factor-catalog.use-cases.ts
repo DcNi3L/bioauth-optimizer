@@ -1,5 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
 import type { FactorCatalogDto, FactorCatalogListDto, FactorCatalogUpsertCommand } from '@bioauth/contracts';
+import { Inject, Injectable } from '@nestjs/common';
+
 import { ConflictError, NotFoundError } from '../../../shared/errors';
 import { FACTOR_CATALOG_REPOSITORY, type FactorCatalogRepository } from './ports';
 
@@ -35,7 +36,8 @@ export class ReplaceFactorCatalogUseCase {
   async execute(id: string, cmd: FactorCatalogUpsertCommand): Promise<FactorCatalogDto> {
     const existing = await this.repo.findById(id);
     if (!existing) throw new NotFoundError(`каталог ${id} не найден`);
-    if (existing.isPreset) throw new ConflictError('предустановленный каталог нельзя изменить — создайте копию');
+    if (existing.isPreset)
+      throw new ConflictError('предустановленный каталог нельзя изменить — создайте копию');
     const updated = await this.repo.replace(id, cmd);
     if (!updated) throw new NotFoundError(`каталог ${id} не найден`);
     return updated;

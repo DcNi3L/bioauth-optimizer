@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
+
 import {
+  budgetSweep,
   CertifiedIlpSolver,
   ExhaustiveSolver,
-  HighsMilpAdapter,
-  SRO1_FACTOR_EXAMPLE,
-  budgetSweep,
-  solveFactorSelection,
   type FactorSelectionProblem,
+  HighsMilpAdapter,
+  solveFactorSelection,
+  SRO1_FACTOR_EXAMPLE,
 } from '../src';
 import { expectRel } from './helpers';
 
@@ -23,7 +24,14 @@ const EXPECTED_RANKING = [
   { codes: ['F1', 'F5'], far: 1e-10, frr: 0.0249, latencyMs: 750, cost: 2.5, objective: 0.024900001 },
   { codes: ['F1', 'F2'], far: 5e-9, frr: 0.0347, latencyMs: 600, cost: 1.6, objective: 0.03470005 },
   { codes: ['F2', 'F4'], far: 1e-6, frr: 0.06425, latencyMs: 310, cost: 0.9, objective: 0.06426 },
-  { codes: ['F2', 'F4', 'F5'], far: 1e-12, frr: 0.06892875, latencyMs: 710, cost: 2.4, objective: 0.06892875001 },
+  {
+    codes: ['F2', 'F4', 'F5'],
+    far: 1e-12,
+    frr: 0.06892875,
+    latencyMs: 710,
+    cost: 2.4,
+    objective: 0.06892875001,
+  },
   { codes: ['F1', 'F2', 'F4'], far: 1e-10, frr: 0.082965, latencyMs: 660, cost: 1.9, objective: 0.082965001 },
 ];
 
@@ -90,7 +98,7 @@ describe('G-F4 — сертифицированное ЦЛП (метод СРО1
     expect(r.solver.used).toBe('ilp');
     expect(r.solver.certificate!.iterations).toBe(2);
     expect(r.solver.certificate!.proven).toBe(true);
-    expectRel(r.solver.certificate!.lowerBound!, 0.06892875, 1e-7);
+    expectRel(r.solver.certificate!.lowerBound, 0.06892875, 1e-7);
     expect(r.rankingComplete).toBe(false);
   });
 
@@ -111,8 +119,8 @@ describe('G-F5 — анализ чувствительности к бюджет
       [1.6, 'F1+F2'],
       [2.1, 'F2+F5'],
     ]);
-    expectRel(r.breakpoints[2]!.ratioToPrevious!, 0.03470005 / 0.06426, 1e-10);
-    expectRel(r.breakpoints[3]!.ratioToPrevious!, 0.0199250005 / 0.03470005, 1e-10);
+    expectRel(r.breakpoints[2]!.ratioToPrevious, 0.03470005 / 0.06426, 1e-10);
+    expectRel(r.breakpoints[3]!.ratioToPrevious, 0.0199250005 / 0.03470005, 1e-10);
   });
 });
 

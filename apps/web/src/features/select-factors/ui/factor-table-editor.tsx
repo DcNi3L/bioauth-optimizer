@@ -2,12 +2,18 @@
 
 import type { FactorDraft } from '@/entities/factor';
 import { Button } from '@/shared/ui';
+
 import type { FactorSelectionFormState } from '../model/use-factor-selection-form';
 
 const cell =
   'num h-9 w-full min-w-0 rounded border bg-sheet px-2 text-sm outline-none focus:border-frr aria-[invalid=true]:border-far';
 
-const COLUMNS: { key: keyof Omit<FactorDraft, 'key' | 'hasPad'>; label: string; width: string; placeholder?: string }[] = [
+const COLUMNS: {
+  key: keyof Omit<FactorDraft, 'key' | 'hasPad'>;
+  label: string;
+  width: string;
+  placeholder?: string;
+}[] = [
   { key: 'code', label: 'Код', width: 'w-20' },
   { key: 'name', label: 'Фактор', width: 'min-w-44' },
   { key: 'far', label: 'FAR', width: 'w-28', placeholder: '1e-4' },
@@ -60,7 +66,7 @@ export function FactorTableEditor({ form }: { form: FactorSelectionFormState }) 
                   <input
                     type="checkbox"
                     aria-label={`PAD, строка ${i + 1}`}
-                    className="size-4 accent-ink"
+                    className="accent-ink size-4"
                     checked={f.hasPad}
                     onChange={(e) => updateFactor(f.key, { hasPad: e.target.checked })}
                   />
@@ -71,7 +77,7 @@ export function FactorTableEditor({ form }: { form: FactorSelectionFormState }) 
                     onClick={() => removeFactor(f.key)}
                     disabled={factors.length === 1}
                     aria-label={`Удалить фактор ${f.code || i + 1}`}
-                    className="rounded px-2 py-1 text-graphite hover:bg-paper hover:text-far disabled:opacity-30"
+                    className="text-graphite hover:bg-paper hover:text-far rounded px-2 py-1 disabled:opacity-30"
                   >
                     ✕
                   </button>
@@ -85,11 +91,11 @@ export function FactorTableEditor({ form }: { form: FactorSelectionFormState }) 
         .filter(([p]) => p.startsWith('factors.'))
         .slice(0, 3)
         .map(([p, m]) => (
-          <p key={p} className="text-xs text-far">
+          <p key={p} className="text-far text-xs">
             Строка {Number(p.split('.')[1]) + 1}: {m}
           </p>
         ))}
-      {errors.factors && <p className="text-xs text-far">{errors.factors}</p>}
+      {errors.factors && <p className="text-far text-xs">{errors.factors}</p>}
       <div>
         <Button variant="secondary" onClick={addFactor} disabled={factors.length >= 50}>
           Добавить фактор

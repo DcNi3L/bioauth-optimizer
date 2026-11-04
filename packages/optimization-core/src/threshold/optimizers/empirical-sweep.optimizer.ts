@@ -1,8 +1,8 @@
 import { assertDomain } from '../../errors';
 import { leq } from '../../numeric';
 import { toSortedFloat64 } from '../empirical-score-model';
-import { validateCosts, validateFarMax } from '../validation';
 import type { EmpiricalThresholdInput, OperatingPoint, OptimalPoint, ThresholdResult } from '../types';
+import { validateCosts, validateFarMax } from '../validation';
 import type { ThresholdOptimizer } from './threshold-optimizer';
 
 const TIE_RELATIVE = 1e-12;
@@ -28,8 +28,16 @@ export class EmpiricalSweepOptimizer implements ThresholdOptimizer<EmpiricalThre
     assertDomain(input.impostor.length > 0, 'нет оценок злоумышленников', 'impostor');
     const G = toSortedFloat64(input.genuine);
     const I = toSortedFloat64(input.impostor);
-    assertDomain(Number.isFinite(G[0]!) && Number.isFinite(G[G.length - 1]!), 'оценки должны быть конечными', 'genuine');
-    assertDomain(Number.isFinite(I[0]!) && Number.isFinite(I[I.length - 1]!), 'оценки должны быть конечными', 'impostor');
+    assertDomain(
+      Number.isFinite(G[0]!) && Number.isFinite(G[G.length - 1]!),
+      'оценки должны быть конечными',
+      'genuine',
+    );
+    assertDomain(
+      Number.isFinite(I[0]!) && Number.isFinite(I[I.length - 1]!),
+      'оценки должны быть конечными',
+      'impostor',
+    );
 
     const { cFA, cFR } = input.costs;
     const farMax = input.farMax ?? null;
@@ -55,9 +63,9 @@ export class EmpiricalSweepOptimizer implements ThresholdOptimizer<EmpiricalThre
     };
 
     for (let k = 0; k < m; k++) {
-      const t = thresholds[k] as number;
-      while (pg < nG && (G[pg] as number) < t) pg++;
-      while (pi < nI && (I[pi] as number) < t) pi++;
+      const t = thresholds[k]!;
+      while (pg < nG && G[pg]! < t) pg++;
+      while (pi < nI && I[pi]! < t) pi++;
       const far = (nI - pi) / nI;
       const frr = pg / nG;
       consider({ k, far, frr, cost: cFA * far + cFR * frr });
@@ -71,8 +79,8 @@ export class EmpiricalSweepOptimizer implements ThresholdOptimizer<EmpiricalThre
     }
 
     const describe = (p: SweepPoint) => {
-      const lower = p.k === 0 ? null : (thresholds[p.k - 1] as number);
-      const upper = p.k === m ? null : (thresholds[p.k] as number);
+      const lower = p.k === 0 ? null : thresholds[p.k - 1]!;
+      const upper = p.k === m ? null : thresholds[p.k]!;
       const tau = upper === null ? null : lower === null ? upper : lower + (upper - lower) / 2;
       const degenerate: OptimalPoint['degenerate'] = p.k === m ? 'rejectAll' : p.k === 0 ? 'acceptAll' : null;
       return { tau, interval: [lower, upper] as const, degenerate };
@@ -103,10 +111,14 @@ export class EmpiricalSweepOptimizer implements ThresholdOptimizer<EmpiricalThre
       );
     }
     if (optimal.far === 0 && optimal.degenerate !== 'rejectAll') {
-      warnings.push(`На выборке FAR = 0; верхняя 95%-я граница истинного FAR ≈ ${(3 / nI).toExponential(2)}.`);
+      warnings.push(
+        `На выборке FAR = 0; верхняя 95%-я граница истинного FAR ≈ ${(3 / nI).toExponential(2)}.`,
+      );
     }
-    if (optimal.degenerate === 'rejectAll') warnings.push('Оптимально отвергать всех: порог не имеет смысла.');
-    if (optimal.degenerate === 'acceptAll') warnings.push('Оптимально допускать всех: порог не имеет смысла.');
+    if (optimal.degenerate === 'rejectAll')
+      warnings.push('Оптимально отвергать всех: порог не имеет смысла.');
+    if (optimal.degenerate === 'acceptAll')
+      warnings.push('Оптимально допускать всех: порог не имеет смысла.');
 
     return {
       method: 'empirical-sweep',
@@ -136,8 +148,8 @@ function uniqueMerged(a: Float64Array, b: Float64Array): Float64Array {
   let n = 0;
   let last = NaN;
   while (i < a.length || j < b.length) {
-    const takeA = j >= b.length || (i < a.length && (a[i] as number) <= (b[j] as number));
-    const v = takeA ? (a[i++] as number) : (b[j++] as number);
+    const takeA = j >= b.length || (i < a.length && a[i]! <= b[j]!);
+    const v = takeA ? a[i++]! : b[j++]!;
     if (n === 0 || v !== last) {
       out[n++] = v;
       last = v;

@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useState } from 'react';
 import {
-  factorSelectionRequestSchema,
   type FactorDto,
   type FactorSelectionRequest,
+  factorSelectionRequestSchema,
 } from '@bioauth/contracts';
+import { useCallback, useState } from 'react';
+
 import { draftFromDto, draftToDto, emptyDraft, type FactorDraft } from '@/entities/factor';
 import { numberToInput, parseNumber } from '@/shared/lib';
 
@@ -49,7 +50,10 @@ export function useFactorSelectionForm() {
     setFactors((list) => list.map((f) => (f.key === key ? { ...f, ...patch } : f)));
   }, []);
   const addFactor = useCallback(() => setFactors((list) => [...list, emptyDraft(list.length)]), []);
-  const removeFactor = useCallback((key: string) => setFactors((list) => list.filter((f) => f.key !== key)), []);
+  const removeFactor = useCallback(
+    (key: string) => setFactors((list) => list.filter((f) => f.key !== key)),
+    [],
+  );
   const setFactorDtos = useCallback((dtos: readonly FactorDto[]) => {
     setFactors(dtos.map(draftFromDto));
     setErrors({});
@@ -96,7 +100,7 @@ export function useFactorSelectionForm() {
     const next: SelectionErrors = {};
     for (const issue of parsed.error.issues) {
       const path = issue.path.join('.');
-      if (!next[path]) next[path] = issue.code === 'invalid_type' ? 'Введите число' : issue.message;
+      next[path] ??= issue.code === 'invalid_type' ? 'Введите число' : issue.message;
     }
     setErrors(next);
     return null;

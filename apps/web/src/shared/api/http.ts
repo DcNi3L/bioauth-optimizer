@@ -1,4 +1,5 @@
 import type { ProblemDetails, z } from '@bioauth/contracts';
+
 import { API_BASE } from '../config';
 
 /** Ошибка API в формате RFC 7807 — с пояснением и нарушениями по полям. */
@@ -34,7 +35,12 @@ async function handle<T>(res: Response, schema?: z.ZodType<T>): Promise<T> {
 
 function networkError(err: unknown): never {
   if (err instanceof ApiError) throw err;
-  throw new ApiError({ type: 'network', title: 'Нет связи с сервером', status: 0, detail: 'Проверьте, что API запущен' });
+  throw new ApiError({
+    type: 'network',
+    title: 'Нет связи с сервером',
+    status: 0,
+    detail: 'Проверьте, что API запущен',
+  });
 }
 
 export async function apiGet<T>(path: string, schema?: z.ZodType<T>): Promise<T> {
@@ -42,7 +48,12 @@ export async function apiGet<T>(path: string, schema?: z.ZodType<T>): Promise<T>
   return handle(res, schema);
 }
 
-export async function apiSend<T>(method: 'POST' | 'PUT' | 'DELETE', path: string, body?: unknown, schema?: z.ZodType<T>): Promise<T> {
+export async function apiSend<T>(
+  method: 'POST' | 'PUT' | 'DELETE',
+  path: string,
+  body?: unknown,
+  schema?: z.ZodType<T>,
+): Promise<T> {
   const res = await fetch(API_BASE + path, {
     method,
     headers: { 'content-type': 'application/json', accept: 'application/json' },

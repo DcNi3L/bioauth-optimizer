@@ -1,1 +1,1 @@
-export { FactorsPage } from "./ui/factors-page";
+export { FactorsPage } from './ui/factors-page';

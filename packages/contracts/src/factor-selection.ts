@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { costsSchema, farMaxSchema, finite, metaSchema, probabilitySchema, uuidSchema } from './common';
 
 export const MAX_FACTORS = 50;
@@ -26,12 +27,16 @@ export const factorListSchema = z
   .superRefine((factors, ctx) => {
     const seen = new Set<string>();
     factors.forEach((f, i) => {
-      if (seen.has(f.code)) ctx.addIssue({ code: 'custom', path: [i, 'code'], message: `код «${f.code}» повторяется` });
+      if (seen.has(f.code))
+        ctx.addIssue({ code: 'custom', path: [i, 'code'], message: `код «${f.code}» повторяется` });
       seen.add(f.code);
     });
   });
 
-const nonNegNullable = (label: string) => finite(label).min(0, { error: `${label} должно быть ≥ 0` }).nullable();
+const nonNegNullable = (label: string) =>
+  finite(label)
+    .min(0, { error: `${label} должно быть ≥ 0` })
+    .nullable();
 
 export const selectionConstraintsSchema = z.strictObject({
   latencyMaxMs: nonNegNullable('L_max').default(null),
@@ -44,7 +49,11 @@ export const solverModeSchema = z.enum(['auto', 'exhaustive', 'ilp']);
 
 const factorSourceRefine = (v: { factors?: unknown; catalogId?: unknown }, ctx: z.RefinementCtx) => {
   if ((v.factors === undefined) === (v.catalogId === undefined)) {
-    ctx.addIssue({ code: 'custom', path: ['factors'], message: 'нужно передать ровно одно из полей: factors или catalogId' });
+    ctx.addIssue({
+      code: 'custom',
+      path: ['factors'],
+      message: 'нужно передать ровно одно из полей: factors или catalogId',
+    });
   }
 };
 
@@ -114,7 +123,9 @@ export const factorSelectionResponseSchema = z.object({
     factorsCount: z.number(),
     subsetsTotal: z.number(),
     feasibleCount: z.number().nullable(),
-    rejectedBy: z.object({ latency: z.number(), budget: z.number(), pad: z.number(), far: z.number() }).nullable(),
+    rejectedBy: z
+      .object({ latency: z.number(), budget: z.number(), pad: z.number(), far: z.number() })
+      .nullable(),
   }),
   solver: z.object({
     used: z.enum(['exhaustive', 'ilp']),

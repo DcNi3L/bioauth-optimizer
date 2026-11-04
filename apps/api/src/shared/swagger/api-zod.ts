@@ -1,6 +1,6 @@
+import { z } from '@bioauth/contracts';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
-import { z } from '@bioauth/contracts';
 
 type JsonSchema = Record<string, unknown>;
 
@@ -15,7 +15,7 @@ export const ApiZodBody = (schema: z.ZodType, description?: string) =>
   ApiBody({ schema: zodToOpenApi(schema, 'input') as never, description });
 
 export const ApiZodOk = (schema: z.ZodType, description?: string) =>
-  ApiOkResponse({ schema: zodToOpenApi(schema, 'output') as never, description });
+  ApiOkResponse({ schema: zodToOpenApi(schema, 'output'), description });
 
 export const ApiZodQuery = (name: string, description: string, required = false) =>
   applyDecorators(ApiQuery({ name, description, required }));

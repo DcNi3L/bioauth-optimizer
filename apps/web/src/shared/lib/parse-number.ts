@@ -3,14 +3,27 @@
  * Возвращает null для пустой строки и NaN для нераспознанного текста.
  */
 const FROM_SUPERSCRIPT: Record<string, string> = {
-  '⁻': '-', '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9',
+  '⁻': '-',
+  '⁰': '0',
+  '¹': '1',
+  '²': '2',
+  '³': '3',
+  '⁴': '4',
+  '⁵': '5',
+  '⁶': '6',
+  '⁷': '7',
+  '⁸': '8',
+  '⁹': '9',
 };
 
 export function parseNumber(raw: string): number | null {
   let s = raw.trim().replace(/\s+/g, '');
   if (s === '') return null;
   s = Array.from(s, (c) => FROM_SUPERSCRIPT[c] ?? c).join('');
-  s = s.replace(/[−–]/g, '-').replace(',', '.').replace(/[·×*]10\^?/, 'e');
+  s = s
+    .replace(/[−–]/g, '-')
+    .replace(',', '.')
+    .replace(/[·×*]10\^?/, 'e');
   if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return Number.NaN;
   return Number(s);
 }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+
 import { APP_CONFIG, type AppConfig } from '../../shared/config/env';
 import { SCORE_DATASET_REPOSITORY, SCORE_FILE_PARSER, SCORE_SAMPLES_READER } from './application/ports';
 import { GetScoreDatasetUseCase, UploadScoreDatasetUseCase } from './application/score-dataset.use-cases';

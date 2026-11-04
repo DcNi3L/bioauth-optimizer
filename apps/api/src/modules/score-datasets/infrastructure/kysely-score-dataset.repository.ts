@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { KYSELY, type Db } from '../../../shared/database/kysely';
+
+import { type Db, KYSELY } from '../../../shared/database/kysely';
 import type {
   NewScoreDataset,
   ScoreDatasetRecord,
@@ -41,7 +42,11 @@ export class KyselyScoreDatasetRepository implements ScoreDatasetRepository, Sco
       .returning('id')
       .executeTakeFirst();
     if (inserted) return inserted.id;
-    const existing = await this.db.selectFrom('score_dataset').select('id').where('sha256', '=', d.sha256).executeTakeFirstOrThrow();
+    const existing = await this.db
+      .selectFrom('score_dataset')
+      .select('id')
+      .where('sha256', '=', d.sha256)
+      .executeTakeFirstOrThrow();
     return existing.id;
   }
 
@@ -65,6 +70,8 @@ export class KyselyScoreDatasetRepository implements ScoreDatasetRepository, Sco
       .select(['genuine_scores', 'impostor_scores'])
       .where('id', '=', id)
       .executeTakeFirst();
-    return row ? { genuine: decodeFloat64(row.genuine_scores), impostor: decodeFloat64(row.impostor_scores) } : null;
+    return row
+      ? { genuine: decodeFloat64(row.genuine_scores), impostor: decodeFloat64(row.impostor_scores) }
+      : null;
   }
 }

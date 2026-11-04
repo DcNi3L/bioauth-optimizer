@@ -1,4 +1,5 @@
 import type { FactorSelectionResponse } from '@bioauth/contracts';
+
 import { formatMs, formatNumber, formatPercent, formatSci } from '@/shared/lib';
 import { Metric } from '@/shared/ui';
 
@@ -19,15 +20,23 @@ const REJECT_LABELS: Record<string, string> = {
 type Result = Pick<FactorSelectionResponse, 'optimum' | 'stats' | 'solver'>;
 
 /** Оптимальный набор факторов, его метрики и как он получен. */
-export function FactorSelectionSummary({ result, factorNames }: { result: Result; factorNames: Record<string, string> }) {
+export function FactorSelectionSummary({
+  result,
+  factorNames,
+}: {
+  result: Result;
+  factorNames: Record<string, string>;
+}) {
   const { optimum, stats, solver } = result;
   if (!optimum) return null;
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <p className="text-sm text-graphite">Оптимальный набор, правило «И»</p>
-        <p className="mt-1 font-serif text-3xl text-optimum">{optimum.codes.join(' + ')}</p>
-        <p className="mt-1 text-sm text-graphite">{optimum.codes.map((c) => factorNames[c] ?? c).join(', ')}</p>
+        <p className="text-graphite text-sm">Оптимальный набор, правило «И»</p>
+        <p className="text-optimum mt-1 font-serif text-3xl">{optimum.codes.join(' + ')}</p>
+        <p className="text-graphite mt-1 text-sm">
+          {optimum.codes.map((c) => factorNames[c] ?? c).join(', ')}
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <Metric label="E = cFA·FAR + cFR·FRR" value={formatNumber(optimum.objective, 6)} tone="optimum" />
