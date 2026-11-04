@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "dev": "nest start --watch",
-    "migrate": "node dist/shared/database/migrate.cli.js",
+    "migrate": "node --env-file-if-exists=.env dist/shared/database/migrate.cli.js",
     "test": "jest --runInBand",
     "test:unit": "jest --runInBand --testPathPattern=test/unit",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -44,5 +44,9 @@
     "supertest": "7.1.4",
     "ts-jest": "29.4.15",
     "typescript": "5.9.3"
-  }
+  },
+  "files": [
+    "dist",
+    "migrations"
+  ]
 }

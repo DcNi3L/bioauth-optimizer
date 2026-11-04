@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+
+/*
+ * «Калибровочный стенд»: светлая лабораторная бумага, чернила, у каждой ошибки — свой постоянный цвет.
+ * FAR (злоумышленник прошёл) — малиновый, FRR (законный отвергнут) — синий, выбранный оптимум — зелёный.
+ */
+@theme {
+  --color-paper: #f3f5f2;
+  --color-sheet: #fbfcfa;
+  --color-ink: #17202b;
+  --color-graphite: #56606d;
+  --color-rule: #d5dbd4;
+  --color-far: #b3263e;
+  --color-frr: #1e5f8c;
+  --color-optimum: #2e7d4f;
+  --color-caution: #8a5a00;
+  --color-caution-bg: #fbf1dc;
+
+  --font-sans: 'Golos Text Variable', 'Golos Text', system-ui, sans-serif;
+  --font-serif: 'Literata Variable', 'Literata', Georgia, serif;
+}
+
+@layer base {
+  html {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    min-height: 100vh;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-frr);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: #cfe0ec;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .num {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .formula {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-variant-numeric: lining-nums;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .data-table th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--color-graphite);
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-rule);
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-rule);
+    vertical-align: middle;
+  }
+  .data-table td.r,
+  .data-table th.r {
+    text-align: right;
+  }
+}

@@ -1,0 +1,57 @@
+name: bioauth-optimizer
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bioauth
+      POSTGRES_USER: bioauth
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bioauth}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:55432:5432" # для локальной разработки; редкий порт, чтобы не конфликтовать с установленным PostgreSQL
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bioauth -d bioauth"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    environment:
+      DATABASE_URL: postgresql://bioauth:${POSTGRES_PASSWORD:-bioauth}@db:5432/bioauth
+      PORT: 4000
+      CORS_ORIGIN: http://localhost:3000
+      MAX_UPLOAD_MB: 50
+      LOG_LEVEL: info
+      NODE_ENV: production
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        API_INTERNAL_URL: http://api:4000
+        NEXT_PUBLIC_SWAGGER_URL: http://localhost:4000/api/docs
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:

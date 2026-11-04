@@ -1,0 +1,42 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+const LINKS = [
+  { href: '/threshold', label: 'Порог' },
+  { href: '/factors', label: 'Состав факторов' },
+  { href: '/experiments', label: 'История' },
+] as const;
+
+export function AppNav() {
+  const pathname = usePathname() ?? '';
+  return (
+    <header className="border-b border-rule bg-sheet">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-1 px-4 py-3 sm:px-6">
+        <Link href="/" className="flex items-baseline gap-2">
+          <span className="font-serif text-lg font-semibold">BioAuth Optimizer</span>
+          <span className="hidden text-sm text-graphite md:inline">оптимизация биометрической аутентификации</span>
+        </Link>
+        <nav aria-label="Разделы" className="-mx-1 flex w-full flex-1 gap-1 overflow-x-auto sm:w-auto">
+          {LINKS.map((l) => {
+            const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={active ? 'page' : undefined}
+                className={`shrink-0 rounded-md px-3 py-1.5 text-sm ${active ? 'bg-paper font-medium text-ink' : 'text-graphite hover:text-ink'}`}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <a href={process.env.NEXT_PUBLIC_SWAGGER_URL ?? 'http://localhost:4000/api/docs'} target="_blank" rel="noreferrer" className="hidden text-sm text-graphite hover:text-ink sm:inline">
+          API (Swagger)
+        </a>
+      </div>
+    </header>
+  );
+}

@@ -255,7 +255,7 @@ apps/web/
     │   └── score-dataset/
     └── shared/
         ├── api/                        # http-клиент (fetch + zod-парсинг ответов)
-        ├── ui/                         # shadcn/ui-компоненты, Formula (KaTeX)
+        ├── ui/                         # UI-кит: Button, поля, Panel, Notice, EChart
         ├── lib/format/                 # 5,0·10⁻¹¹, проценты, мс
         └── config/
 ```
@@ -272,7 +272,7 @@ flowchart TB
 
 **Правила FSD:** слой импортирует только нижележащие слои; слайсы одного слоя друг друга не импортируют; доступ к слайсу — только через его `index.ts` (public API). Проверяется линтером `steiger` (плагин `@feature-sliced/steiger-plugin`) в CI.
 
-**Состояние:** серверное — TanStack Query (кэш результатов и истории); формы — react-hook-form + `zodResolver` со схемами из `@bioauth/contracts`; глобального стора нет.
+**Состояние:** серверное — TanStack Query (кэш результатов и истории); формы — локальное состояние в модели фичи (`use-*-form.ts`) и `safeParse` схемой из `@bioauth/contracts`; глобального стора нет.
 
 ## 3.8. Ключевые сценарии
 
@@ -358,7 +358,7 @@ flowchart TD
 
 ## 3.10. Сквозные аспекты
 
-- **Валидация.** Одна zod-схема из `@bioauth/contracts` используется в форме (react-hook-form), в пайпе NestJS и для генерации OpenAPI (`zod-openapi`).
+- **Валидация.** Одна zod-схема из `@bioauth/contracts` используется в модели формы, в пайпе NestJS и для генерации OpenAPI (`z.toJSONSchema`).
 - **Ошибки** — формат RFC 7807 `application/problem+json`: `validation-error` (400), `infeasible-problem` (422, с диагностикой нарушенных ограничений), `problem-too-large` (413), `not-found` (404), `internal-consistency-error` (500, если верификация не сошлась).
 - **Логи** — pino, JSON, `request_id`, длительность расчёта, выбранный решатель, число итераций ЦЛП.
 - **Версионирование ядра.** В каждый эксперимент пишется `coreVersion` из package.json ядра, чтобы старые результаты можно было воспроизвести.

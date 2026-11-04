@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Типы, тесты, сборка
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: bioauth_test
+          POSTGRES_USER: bioauth
+          POSTGRES_PASSWORD: bioauth
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U bioauth -d bioauth_test"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://bioauth:bioauth@localhost:5432/bioauth_test
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build
+      - run: pnpm turbo run typecheck
+      - name: Тесты (ядро, контракты, API с e2e на PostgreSQL)
+        run: pnpm turbo run test
+      - name: Архитектура FSD (steiger)
+        run: pnpm --filter @bioauth/web lint
+
+  docker:
+    name: Docker Compose + e2e (Playwright)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Сборка и запуск всех сервисов
+        run: docker compose up -d --build --wait --wait-timeout 300
+      - name: Проверка API
+        run: |
+          curl -fsS http://localhost:4000/health/ready
+          curl -fsS http://localhost:3000/ > /dev/null
+          curl -fsS http://localhost:3000/api/v1/examples/sro1 > /dev/null
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @bioauth/web exec playwright install --with-deps chromium
+      - name: E2E против контейнеров
+        run: pnpm --filter @bioauth/web test:e2e
+      - name: Логи при ошибке
+        if: failure()
+        run: docker compose logs --no-color

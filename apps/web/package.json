@@ -1,0 +1,36 @@
+{
+  "name": "@bioauth/web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Интерфейс BioAuth Optimizer (Next.js, Feature-Sliced Design)",
+  "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit",
+    "lint": "steiger ./src",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@bioauth/contracts": "workspace:*",
+    "@fontsource-variable/golos-text": "5.3.0",
+    "@fontsource-variable/literata": "5.3.0",
+    "@tanstack/react-query": "5.105.3",
+    "echarts": "5.6.0",
+    "next": "15.5.29",
+    "react": "19.1.10",
+    "react-dom": "19.1.10"
+  },
+  "devDependencies": {
+    "@feature-sliced/steiger-plugin": "0.8.2",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.1.18",
+    "@types/node": "22.19.1",
+    "@types/react": "19.1.17",
+    "@types/react-dom": "19.1.11",
+    "steiger": "0.9.0",
+    "tailwindcss": "4.1.18",
+    "typescript": "5.9.3"
+  }
+}

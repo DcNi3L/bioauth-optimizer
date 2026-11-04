@@ -10,7 +10,7 @@
 | Property-based | Vitest + fast-check | Инварианты и согласие решателей | 1000 случайных задач на прогон |
 | Unit ядра | Vitest | Каждая функция и граничные случаи | покрытие ядра ≥ 95 % строк |
 | Unit бэкенда | Jest (NestJS) | Use cases с заглушками портов | ключевые ветки |
-| Интеграционные | Jest + Testcontainers (PostgreSQL) | Репозитории, миграции, HTTP через supertest | все эндпоинты |
+| Интеграционные | Jest + supertest на реальном PostgreSQL (`TEST_DATABASE_URL`; в CI — сервис postgres) | Репозитории, миграции, HTTP через supertest | все эндпоинты |
 | E2E | Playwright | «Пример из статьи» → правильные числа на экране | 3 сценария |
 | Smoke развёртывания | GitHub Actions | `docker compose up` → `/health/ready` = 200 | при каждом PR |
 
