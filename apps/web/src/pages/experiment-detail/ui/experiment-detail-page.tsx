@@ -56,7 +56,7 @@ export function ExperimentDetailPage({ id }: { id: string }) {
           <Panel title="Входные данные и полный результат" actions={<ExportButtons spec={{ baseName: `experiment-${e.id.slice(0, 8)}`, json: e }} />}>
             <details>
               <summary className="cursor-pointer text-sm text-graphite">Показать JSON</summary>
-              <pre className="num mt-3 max-h-[480px] overflow-auto rounded-md bg-paper p-4 text-xs">{JSON.stringify({ input: e.input, result: e.result }, null, 2)}</pre>
+              <pre className="num mt-3 max-h-120 overflow-auto rounded-md bg-paper p-4 text-xs">{JSON.stringify({ input: e.input, result: e.result }, null, 2)}</pre>
             </details>
           </Panel>
         </>

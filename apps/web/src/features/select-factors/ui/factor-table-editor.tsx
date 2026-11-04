@@ -60,7 +60,7 @@ export function FactorTableEditor({ form }: { form: FactorSelectionFormState }) 
                   <input
                     type="checkbox"
                     aria-label={`PAD, строка ${i + 1}`}
-                    className="size-4 accent-[var(--color-ink)]"
+                    className="size-4 accent-ink"
                     checked={f.hasPad}
                     onChange={(e) => updateFactor(f.key, { hasPad: e.target.checked })}
                   />
