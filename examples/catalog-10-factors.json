@@ -1,0 +1,96 @@
+{
+  "name": "Расширенный каталог: 10 факторов",
+  "description": "Демонстрация за пределами учебного примера: добавлены радужка, вены ладони, SMS-код, PIN, смарт-карта. Значения модельные.",
+  "factors": [
+    {
+      "code": "F1",
+      "name": "Лицо (ArcFace) + PAD",
+      "far": 0.0001,
+      "frr": 0.02,
+      "latencyMs": 350,
+      "cost": 1.0,
+      "hasPad": true
+    },
+    {
+      "code": "F2",
+      "name": "Отпечаток пальца",
+      "far": 5e-05,
+      "frr": 0.015,
+      "latencyMs": 250,
+      "cost": 0.6,
+      "hasPad": true
+    },
+    {
+      "code": "F3",
+      "name": "Голос",
+      "far": 0.005,
+      "frr": 0.06,
+      "latencyMs": 900,
+      "cost": 0.4,
+      "hasPad": false
+    },
+    {
+      "code": "F4",
+      "name": "Поведенческая биометрия",
+      "far": 0.02,
+      "frr": 0.05,
+      "latencyMs": 60,
+      "cost": 0.3,
+      "hasPad": false
+    },
+    {
+      "code": "F5",
+      "name": "Аутентификатор FIDO2",
+      "far": 1e-06,
+      "frr": 0.005,
+      "latencyMs": 400,
+      "cost": 1.5,
+      "hasPad": false
+    },
+    {
+      "code": "F6",
+      "name": "Радужная оболочка",
+      "far": 1e-06,
+      "frr": 0.03,
+      "latencyMs": 600,
+      "cost": 1.8,
+      "hasPad": true
+    },
+    {
+      "code": "F7",
+      "name": "Вены ладони",
+      "far": 1e-05,
+      "frr": 0.01,
+      "latencyMs": 450,
+      "cost": 1.2,
+      "hasPad": true
+    },
+    {
+      "code": "F8",
+      "name": "Одноразовый код по SMS",
+      "far": 0.001,
+      "frr": 0.04,
+      "latencyMs": 15000,
+      "cost": 0.05,
+      "hasPad": false
+    },
+    {
+      "code": "F9",
+      "name": "PIN-код",
+      "far": 0.0001,
+      "frr": 0.01,
+      "latencyMs": 3000,
+      "cost": 0.0,
+      "hasPad": false
+    },
+    {
+      "code": "F10",
+      "name": "Смарт-карта",
+      "far": 1e-05,
+      "frr": 0.008,
+      "latencyMs": 1500,
+      "cost": 0.8,
+      "hasPad": false
+    }
+  ]
+}
