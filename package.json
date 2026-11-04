@@ -1,0 +1,22 @@
+{
+  "name": "bioauth-optimizer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "BioAuth Optimizer — оптимизация порога и состава факторов биометрической аутентификации",
+  "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "2.11.10",
+    "typescript": "5.9.3",
+    "prettier": "3.6.2"
+  }
+}

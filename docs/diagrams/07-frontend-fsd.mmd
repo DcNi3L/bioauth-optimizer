@@ -1,0 +1,7 @@
+flowchart TB
+  app["app<br/><i>провайдеры, стили</i>"] --> pages
+  pages["pages<br/><i>threshold, factors, experiments</i>"] --> widgets
+  widgets["widgets<br/><i>графики, сводки</i>"] --> features
+  features["features<br/><i>optimize-threshold, select-factors,<br/>upload-scores, export-result…</i>"] --> entities
+  entities["entities<br/><i>factor, experiment, score-dataset</i>"] --> shared
+  shared["shared<br/><i>api, ui, lib, config</i>"]

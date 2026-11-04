@@ -1,0 +1,50 @@
+erDiagram
+  FACTOR_CATALOG ||--o{ FACTOR : contains
+  FACTOR_CATALOG |o--o{ EXPERIMENT : "used by"
+  SCORE_DATASET  |o--o{ EXPERIMENT : "used by"
+
+  FACTOR_CATALOG {
+    uuid id PK
+    text name UK
+    text description
+    boolean is_preset
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  FACTOR {
+    uuid id PK
+    uuid catalog_id FK
+    varchar code "UK with catalog_id"
+    text name
+    float8 far "0 < far < 1"
+    float8 frr "0 <= frr < 1"
+    float8 latency_ms ">= 0"
+    float8 cost ">= 0"
+    boolean has_pad
+    int position
+  }
+  SCORE_DATASET {
+    uuid id PK
+    text name
+    text original_filename
+    int genuine_count "> 0"
+    int impostor_count "> 0"
+    bytea genuine_scores
+    bytea impostor_scores
+    char sha256 UK
+    timestamptz created_at
+  }
+  EXPERIMENT {
+    uuid id PK
+    experiment_type type
+    experiment_status status
+    jsonb input
+    jsonb result
+    char input_hash
+    text solver
+    text core_version
+    int duration_ms
+    uuid factor_catalog_id FK
+    uuid score_dataset_id FK
+    timestamptz created_at
+  }

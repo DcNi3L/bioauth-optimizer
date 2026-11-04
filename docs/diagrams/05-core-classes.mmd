@@ -1,0 +1,59 @@
+classDiagram
+  direction LR
+  class ScoreModel {
+    <<interface>>
+    +far(tau) number
+    +frr(tau) number
+  }
+  class GaussianScoreModel
+  class EmpiricalScoreModel
+  ScoreModel <|.. GaussianScoreModel
+  ScoreModel <|.. EmpiricalScoreModel
+
+  class ThresholdOptimizer {
+    <<interface>>
+    +optimize(input) ThresholdResult
+  }
+  class GaussianAnalyticOptimizer
+  class EmpiricalSweepOptimizer
+  ThresholdOptimizer <|.. GaussianAnalyticOptimizer
+  ThresholdOptimizer <|.. EmpiricalSweepOptimizer
+  GaussianAnalyticOptimizer --> NumericVerifier
+  GaussianAnalyticOptimizer --> GaussianScoreModel
+  EmpiricalSweepOptimizer --> EmpiricalScoreModel
+
+  class FusionRule {
+    <<interface>>
+    +combineFar(logFars) number
+    +combineFrr(logSurvs) number
+  }
+  class AndFusionRule
+  FusionRule <|.. AndFusionRule
+
+  class SubsetEvaluator {
+    +evaluate(mask) SubsetMetrics
+    +isFeasible(metrics) boolean
+  }
+  SubsetEvaluator --> FusionRule
+
+  class FactorSelectionSolver {
+    <<interface>>
+    +solve(problem) SelectionResult
+  }
+  class ExhaustiveSolver
+  class CertifiedIlpSolver
+  class MilpPort {
+    <<interface>>
+    +solve(model) MilpSolution
+  }
+  class HighsMilpAdapter
+  FactorSelectionSolver <|.. ExhaustiveSolver
+  FactorSelectionSolver <|.. CertifiedIlpSolver
+  ExhaustiveSolver --> SubsetEvaluator
+  CertifiedIlpSolver --> SubsetEvaluator
+  CertifiedIlpSolver --> MilpPort
+  MilpPort <|.. HighsMilpAdapter
+  class SolverSelector {
+    +select(problem, mode) FactorSelectionSolver
+  }
+  SolverSelector --> FactorSelectionSolver

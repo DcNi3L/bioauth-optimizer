@@ -1,0 +1,10 @@
+flowchart TB
+  web["apps/web"] --> contracts["packages/contracts<br/><i>zod-схемы, типы DTO</i>"]
+  api["apps/api"] --> contracts
+  api --> core["packages/optimization-core<br/><i>математика</i>"]
+  core --> stdlib["@stdlib (math-base-special-*)<br/><i>erfc, erfcinv, log1p, expm1</i>"]
+  core --> highs["highs (WASM)<br/><i>MILP-решатель</i>"]
+  web --> config["packages/config"]
+  api --> config
+  core --> config
+  contracts --> zod["zod"]

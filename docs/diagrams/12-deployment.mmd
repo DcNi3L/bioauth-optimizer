@@ -1,0 +1,12 @@
+flowchart LR
+  B["Браузер<br/>localhost:3000"] --> WEB
+  subgraph net["docker network: bioauth"]
+    WEB["web<br/>node:22-alpine<br/>next start · :3000"]
+    API["api<br/>node:22-alpine<br/>migrate deploy → node dist/main · :4000"]
+    DB[("db<br/>postgres:16-alpine<br/>:5432")]
+    VOL[["volume: pgdata"]]
+  end
+  WEB -- "/api/* → http://api:4000" --> API
+  API --> DB
+  DB --- VOL
+  SW["Swagger<br/>localhost:4000/api/docs"] -.-> API

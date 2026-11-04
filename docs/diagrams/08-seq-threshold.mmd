@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  actor U as Пользователь
+  participant W as web (feature optimize-threshold)
+  participant C as ThresholdController
+  participant UC as OptimizeThresholdUseCase
+  participant O as GaussianAnalyticOptimizer (core)
+  participant V as NumericVerifier (core)
+  participant R as ExperimentRepository
+  U->>W: параметры μ, σ, cFA, cFR → «Рассчитать»
+  W->>W: zod-валидация (contracts)
+  W->>C: POST /api/v1/threshold/optimize
+  C->>C: ZodValidationPipe (та же схема)
+  C->>UC: execute(cmd)
+  UC->>O: optimize(input)
+  O->>O: τ_EER (замкнутая форма), корни квадратного уравнения
+  O->>V: verify(model, τ*)
+  V-->>O: ok (|Δτ| < 1e-7)
+  O-->>UC: ThresholdResult + кривые
+  UC->>R: save(experiment: input, result, coreVersion, durationMs)
+  UC-->>C: result + experimentId
+  C-->>W: 200 JSON
+  W-->>U: сводка τ_EER vs τ*, Δ %, графики

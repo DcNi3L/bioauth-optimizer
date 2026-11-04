@@ -1,0 +1,21 @@
+flowchart TB
+  subgraph P["Presentation"]
+    C["Controllers<br/>ZodValidationPipe · Swagger"]
+  end
+  subgraph A["Application"]
+    UC["Use cases<br/>OptimizeThreshold · SolveFactorSelection<br/>BudgetSweep · UploadDataset · ListExperiments"]
+    PORTS["Ports (interfaces)<br/>ExperimentRepository · FactorCatalogRepository<br/>ScoreDatasetRepository · ScoreFileParser"]
+  end
+  subgraph D["Domain = @bioauth/optimization-core"]
+    CORE["ScoreModel · ThresholdOptimizer<br/>SubsetEvaluator · FactorSelectionSolver"]
+  end
+  subgraph I["Infrastructure"]
+    REPO["Prisma repositories"]
+    CSV["CsvScoreFileParser"]
+  end
+  C --> UC
+  UC --> CORE
+  UC --> PORTS
+  REPO -.implements.-> PORTS
+  CSV -.implements.-> PORTS
+  REPO --> DB[(PostgreSQL)]

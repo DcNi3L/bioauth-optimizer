@@ -1,0 +1,20 @@
+sequenceDiagram
+  autonumber
+  participant UC as SolveFactorSelectionUseCase
+  participant SS as SolverSelector
+  participant S as CertifiedIlpSolver
+  participant M as HighsMilpAdapter
+  participant E as SubsetEvaluator
+  participant R as ExperimentRepository
+  UC->>SS: select(problem, mode)
+  SS-->>UC: CertifiedIlpSolver
+  UC->>S: solve(problem)
+  loop пока LB(S(x̂)) < best
+    S->>M: solve MILP(𝒞)
+    M-->>S: x̂, S(x̂)
+    S->>E: evaluate(x̂) — точное E
+    E-->>S: E(x̂)
+    S->>S: best = min(best, E), добавить x̂ в 𝒞
+  end
+  S-->>UC: optimum + certificate {iterations, lowerBound}
+  UC->>R: save(experiment)
