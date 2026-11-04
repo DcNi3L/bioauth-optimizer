@@ -10,7 +10,8 @@ export function wilson(k: number, n: number, z = Z95): [number, number] {
   const denom = 1 + z2 / n;
   const center = (p + z2 / (2 * n)) / denom;
   const half = (z * Math.sqrt((p * (1 - p)) / n + z2 / (4 * n * n))) / denom;
-  return [Math.max(0, center - half), Math.min(1, center + half)];
+  // При k = 0 и k = n границы точно 0 и 1 (без погрешности округления).
+  return [k === 0 ? 0 : Math.max(0, center - half), k === n ? 1 : Math.min(1, center + half)];
 }
 
 /**

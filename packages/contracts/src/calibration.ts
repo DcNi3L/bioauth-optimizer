@@ -248,3 +248,39 @@ export const batchJobRequestSchema = z.object({
     .default('false')
     .transform((v) => v === 'true'),
 });
+
+// ── Протокол испытаний §10.11: «до/после калибровки» ──
+
+const ciRate = z.object({
+  errors: z.number().int(),
+  total: z.number().int(),
+  rate: z.number().nullable(),
+  interval: z.tuple([z.number(), z.number()]).nullable(),
+});
+
+export const protocolRowSchema = z.object({
+  policyVersion: z.number().int(),
+  status: z.enum(['proposed', 'active', 'retired', 'rejected']),
+  tauFace: z.number().nullable(),
+  tauPad: z.number().nullable(),
+  far: ciRate,
+  frr: ciRate,
+  /** Верхняя 95%-граница FAR (правило трёх или Уилсон). */
+  confirmedFar: z.number().nullable(),
+  /** Ожидаемые потери E = cFA·FAR + cFR·FRR при общем профиле стоимостей. */
+  cost: z.number().nullable(),
+  bpcer: ciRate,
+  apcer: z.array(ciRate.extend({ attackType: attackTypeSchema })),
+  apcerMax: z.number().nullable(),
+});
+export type ProtocolRowDto = z.infer<typeof protocolRowSchema>;
+
+export const protocolReportSchema = z.object({
+  modelVersion: z.string().nullable(),
+  padVersion: z.string().nullable(),
+  costs: costsSchema,
+  sampleSizes: z.object({ genuine: z.number().int(), impostor: z.number().int() }),
+  rows: z.array(protocolRowSchema),
+  generatedAt: z.string(),
+});
+export type ProtocolReportDto = z.infer<typeof protocolReportSchema>;

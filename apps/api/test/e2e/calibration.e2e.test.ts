@@ -191,6 +191,36 @@ describeDb('API v2.2 e2e: калибровка, PAD, дрейф (PostgreSQL)', (
     expect(audit.rows[0].n).toBe(8);
   });
 
+  it('протокол §10.11: «до/после калибровки» на одних данных с интервалами Уилсона', async () => {
+    const r = await admin.get('/api/v1/calibration/report').expect(200);
+    expect(r.body.modelVersion).toBe(MODEL);
+    expect(r.body.costs).toEqual({ cFA: 100, cFR: 1 });
+    expect(r.body.rows.map((x: { policyVersion: number }) => x.policyVersion)).toEqual([1, 2]);
+    const [before, after] = r.body.rows as {
+      tauFace: number;
+      cost: number;
+      far: { rate: number; interval: [number, number]; total: number };
+      frr: { rate: number; interval: [number, number] };
+      bpcer: { total: number };
+    }[];
+    expect(before!.tauFace).toBe(0.363);
+    expect(after!.tauFace).toBeGreaterThan(0.363);
+    // Калибровка по этим же данным не может ухудшить ожидаемые потери при том же профиле стоимостей.
+    expect(after!.cost).toBeLessThanOrEqual(before!.cost + 1e-12);
+    for (const row of [before!, after!]) {
+      expect(row.far.total).toBe(r.body.sampleSizes.impostor);
+      expect(row.far.interval[0]).toBeLessThanOrEqual(row.far.rate);
+      expect(row.far.interval[1]).toBeGreaterThanOrEqual(row.far.rate);
+      expect(row.frr.interval[0]).toBeLessThanOrEqual(row.frr.rate);
+      expect(row.bpcer.total).toBeGreaterThan(0);
+    }
+    const custom = await admin.get('/api/v1/calibration/report?versions=2&cFA=1&cFR=1').expect(200);
+    expect(custom.body.rows).toHaveLength(1);
+    expect(custom.body.costs).toEqual({ cFA: 1, cFR: 1 });
+    await admin.get('/api/v1/calibration/report?versions=99').expect(404);
+    await admin.get('/api/v1/calibration/report?cFA=1').expect(400);
+  });
+
   it('измеренный каталог факторов решается решателем состава факторов v1', async () => {
     // Попытки: субъект входит лицом; passkey — одна успешная и одна отменённая церемония.
     const s = ctx.agent();

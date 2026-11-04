@@ -12,6 +12,7 @@ import { CalibrationService } from './application/calibration.service';
 import { DriftService } from './application/drift.service';
 import { PadTestService } from './application/pad-test.service';
 import { CALIBRATION_QUERY, DRIFT_ALERTS } from './application/ports';
+import { ProtocolReportService } from './application/protocol-report.service';
 import {
   KyselyCalibrationQuery,
   KyselyDriftAlertRepository,
@@ -53,6 +54,7 @@ import {
     DriftService,
     AttemptsService,
     BatchJobsService,
+    ProtocolReportService,
   ],
 })
 export class CalibrationModule {}

@@ -1,1 +1,7 @@
-export { calibrationKeys, useCalibrationOverview, useMeasuredFactors, usePadReport } from './api/queries';
+export {
+  calibrationKeys,
+  useCalibrationOverview,
+  useMeasuredFactors,
+  usePadReport,
+  useProtocolReport,
+} from './api/queries';

@@ -14,6 +14,7 @@ import {
   padSampleRequestSchema,
   padSampleResponseSchema,
   proposeFromCalibrationSchema,
+  protocolReportSchema,
   z,
 } from '@bioauth/contracts';
 import {
@@ -45,6 +46,7 @@ import { CalibrationService } from '../application/calibration.service';
 import { DriftService } from '../application/drift.service';
 import { PadTestService } from '../application/pad-test.service';
 import { DRIFT_ALERTS, type DriftAlertRepository } from '../application/ports';
+import { ProtocolReportService } from '../application/protocol-report.service';
 
 const isoOrNull = (v: string | undefined, path: string): string | null => {
   if (v === undefined || v === '') return null;
@@ -58,6 +60,7 @@ export class CalibrationController {
   constructor(
     private readonly calibration: CalibrationService,
     private readonly driftService: DriftService,
+    private readonly protocol: ProtocolReportService,
   ) {}
 
   @Get('overview')
@@ -112,6 +115,36 @@ export class CalibrationController {
     body: z.output<typeof createMeasuredCatalogSchema>,
   ) {
     return this.calibration.createMeasuredCatalog(body);
+  }
+
+  @Get('report')
+  @Roles('admin', 'researcher', 'auditor')
+  @ApiOperation({
+    summary:
+      'Протокол испытаний §10.11: FAR/FRR, E и APCER/BPCER при порогах версий политики на одних данных',
+  })
+  @ApiZodOk(protocolReportSchema)
+  report(
+    @Query('versions') versions?: string,
+    @Query('modelVersion') modelVersion?: string,
+    @Query('cFA') cFA?: string,
+    @Query('cFR') cFR?: string,
+  ) {
+    const parsed = versions ? versions.split(',').map((v) => Number(v.trim())) : null;
+    if (
+      parsed &&
+      (parsed.length === 0 || parsed.length > 10 || parsed.some((v) => !Number.isInteger(v) || v < 1))
+    )
+      throw new ValidationError('versions: до 10 номеров версий через запятую', 'versions');
+    const fa = cFA === undefined ? null : Number(cFA);
+    const fr = cFR === undefined ? null : Number(cFR);
+    if ((fa === null) !== (fr === null) || (fa !== null && !(fa > 0 && fr! > 0)))
+      throw new ValidationError('cFA и cFR задаются вместе и должны быть > 0', 'cFA');
+    return this.protocol.build({
+      versions: parsed,
+      modelVersion: modelVersion ?? null,
+      costs: fa !== null ? { cFA: fa, cFR: fr! } : null,
+    });
   }
 
   @Post('drift/check')
