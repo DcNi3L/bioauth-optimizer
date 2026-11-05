@@ -1,0 +1,51 @@
+erDiagram
+  app_user ||--o{ user_session : "сессии"
+  app_user ||--o{ login_event : "история входов"
+  app_user ||--o| user_avatar : "фото"
+  app_user ||--o{ oauth_consent : "согласия"
+  app_user ||--o{ oauth_code : "коды"
+  app_user ||--o{ oauth_refresh_token : "refresh"
+  oauth_client ||--o{ oauth_request : "запросы"
+  oauth_client ||--o{ oauth_code : ""
+  oauth_client ||--o{ oauth_refresh_token : ""
+  oauth_client ||--o{ oauth_consent : ""
+  app_user { uuid id PK
+    text email "уникальна без учёта регистра"
+    timestamptz last_login_at
+    timestamptz disabled_at }
+  user_session { uuid id PK
+    text user_agent
+    inet ip
+    text_arr amr
+    timestamptz last_seen_at }
+  login_event { uuid id PK
+    bool success
+    text method
+    text reason
+    text client_id }
+  user_avatar { uuid user_id PK
+    text mime
+    bytea data }
+  oauth_client { text client_id PK
+    text secret_hash "SHA-256, null у публичного"
+    text_arr redirect_uris
+    text_arr grant_types
+    text_arr scopes
+    bool first_party }
+  oauth_request { uuid id PK
+    jsonb params
+    timestamptz expires_at }
+  oauth_code { text code_hash PK
+    text code_challenge
+    text nonce
+    timestamptz used_at }
+  oauth_refresh_token { text token_hash PK
+    uuid family "цепочка ротации"
+    timestamptz revoked_at }
+  oauth_consent { uuid user_id PK
+    text client_id PK
+    text_arr scopes }
+  oauth_signing_key { text kid PK
+    jsonb public_jwk
+    bytea private_enc "AES-256-GCM"
+    bool active }

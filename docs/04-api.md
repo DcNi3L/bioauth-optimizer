@@ -266,3 +266,54 @@ v2 закрыт по умолчанию: глобальная проверка �
 Коды ответов v2 дополнительно используют `401` (нет сессии), `403` (роль, MFA или Origin), `409` (конфликт версии
 модели, уже выполняется задача), `413` (размер), `422` с машинным полем `code` (например, качество кадров — с массивом
 `frames`) и `429` (блокировка после неудачных попыток, поле `lockedUntil`).
+
+## 4.7. API v3: учётная запись, админ-панель, OpenID Connect
+
+**Учётная запись** (нужен вход):
+
+| Метод и путь                                       | Назначение                                                              |
+| -------------------------------------------------- | ----------------------------------------------------------------------- |
+| `PATCH /identity/me`                               | Имя и почта (`email: null` — удалить); 409 — почта занята               |
+| `PUT /identity/me/avatar`, `DELETE …`              | Аватар: data URL PNG/JPEG/WebP до 1 МБ, формат проверяется по сигнатуре |
+| `GET /avatars/{userId}` (открыт)                   | Изображение аватара с ETag; на него ссылается claim `picture`           |
+| `GET /identity/sessions`                           | Сессии: устройство (браузер, ОС, тип), IP, `amr`, текущая               |
+| `DELETE /identity/sessions/{id}`                   | Завершить другую сессию (текущую завершает выход)                       |
+| `POST /identity/sessions/revoke-others`            | Завершить все, кроме текущей                                            |
+| `GET /identity/login-history?limit=`               | Входы и отказы с причиной, устройством и приложением                    |
+| `GET /oauth/apps`, `DELETE /oauth/apps/{clientId}` | Подключённые приложения; отключение отзывает согласие и refresh-токены  |
+
+**Админ-панель** (роли `admin`, `auditor`; изменения — `admin` с MFA):
+
+| Метод и путь                                              | Назначение                                                                          |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `GET /admin/stats`                                        | Пользователи, сессии, входы за 14 дней, способы, причины отказов, приложения        |
+| `GET /admin/users?q&role&status`                          | Поиск и фильтры, постранично                                                        |
+| `POST /admin/users`                                       | Создать сотрудника (пароль ≥ 12 символов)                                           |
+| `GET /admin/users/{id}`                                   | Карточка: сессии, история, разрешения приложениям                                   |
+| `PATCH /admin/users/{id}`                                 | Роль, отключение, снятие блокировки; нельзя менять себя и последнего администратора |
+| `DELETE /admin/users/{id}/sessions`                       | Завершить все сессии пользователя                                                   |
+| `GET /admin/login-events?failures`                        | Журнал входов всех пользователей                                                    |
+| `GET/POST/PATCH/DELETE /admin/oauth-clients[/{clientId}]` | Клиенты OAuth; секрет показывается один раз, `rotateSecret` выпускает новый         |
+
+**OpenID Connect** (без префикса `/api/v1`, ответы об ошибках — RFC 6749):
+
+| Метод и путь                                      | Назначение                                                                        |
+| ------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `GET /.well-known/openid-configuration`           | Документ обнаружения                                                              |
+| `GET /oidc/jwks`                                  | Открытые ключи RS256                                                              |
+| `GET /oidc/authorize`                             | Код авторизации; PKCE S256 обязателен для публичных клиентов; `prompt`, `max_age` |
+| `GET /oidc/authorize/resume?request=`             | Продолжение после входа                                                           |
+| `POST /oidc/token`                                | `authorization_code`, `refresh_token` (ротация), `client_credentials`             |
+| `GET/POST /oidc/userinfo`                         | Claims по scope: `profile`, `email`, `roles`, `biometrics`                        |
+| `POST /oidc/introspect`, `POST /oidc/revoke`      | RFC 7662 и RFC 7009 (только конфиденциальные клиенты для интроспекции)            |
+| `GET /oidc/logout`                                | Выход: с `id_token_hint` — сразу, иначе — подтверждение `/oauth/logout`           |
+| `GET/POST /api/v1/oauth/requests/{id}[/decision]` | Данные для экранов входа и согласия; решение пользователя                         |
+| `GET/POST /api/v1/oauth/logout`                   | Название приложения и подтверждённый выход                                        |
+
+Пример подключения сервиса (код авторизации + PKCE):
+
+```text
+GET  /oidc/authorize?response_type=code&client_id=crm&redirect_uri=https://crm.example/cb
+     &scope=openid%20profile%20offline_access&state=…&nonce=…&code_challenge=…&code_challenge_method=S256
+POST /oidc/token  grant_type=authorization_code&code=…&redirect_uri=…&code_verifier=…  (Basic client_id:secret)
+```

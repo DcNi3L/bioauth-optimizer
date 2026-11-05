@@ -1,0 +1,21 @@
+sequenceDiagram
+  autonumber
+  participant U as Браузер пользователя
+  participant RP as Стороннее приложение
+  participant W as BioAuth web (issuer)
+  participant A as BioAuth api
+  RP->>U: перенаправление на /oidc/authorize<br/>(client_id, redirect_uri, scope, state, nonce, code_challenge S256)
+  U->>W: GET /oidc/authorize
+  W->>A: прокси /oidc/*
+  A-->>U: 302 /login?oauth=<id> (нет сессии)
+  U->>A: вход: лицо + команды, passkey
+  U->>A: GET /oidc/authorize/resume?request=<id>
+  A-->>U: 302 /oauth/consent?request=<id>
+  U->>A: POST /api/v1/oauth/requests/<id>/decision {approve}
+  A-->>U: redirectTo = redirect_uri?code&state&iss
+  U->>RP: code, state
+  RP->>A: POST /oidc/token (code, code_verifier)
+  A-->>RP: access_token (at+jwt), id_token (RS256, amr, acr, nonce), refresh_token
+  RP->>A: GET /oidc/jwks — проверка подписи
+  RP->>A: GET /oidc/userinfo (Bearer)
+  RP->>A: POST /oidc/token (refresh_token) — ротация, повтор старого отзывает цепочку

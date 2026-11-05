@@ -1,6 +1,6 @@
 {
   "name": "@bioauth/contracts",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "private": true,
   "description": "Единые zod-схемы запросов и ответов API (ADR-0009)",
   "author": "Daniel Mekenbaev <donniekun03@gmail.com>",

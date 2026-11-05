@@ -32,9 +32,7 @@ export function LoginHistory({ events, showUser = false }: { events: Event[]; sh
   const method = (e: Event) => (
     <span className="flex flex-wrap items-center gap-1.5">
       <span>{methodLabel(t, e.method)}</span>
-      {e.clientId && (
-        <span className="text-graphite text-xs">{t('profile.history.via', { app: e.clientId })}</span>
-      )}
+      {e.clientId && <code className="text-graphite text-xs">{e.clientId}</code>}
       {e.amr.map((a) => (
         <Badge key={a}>{amrLabel(t, a)}</Badge>
       ))}

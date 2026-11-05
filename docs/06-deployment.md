@@ -72,6 +72,19 @@ flowchart LR
 | `BATCH_MAX_BYTES`, `BATCH_TIMEOUT_MS`        | api             | 256 МБ, 30 мин                     | Пакетный режим: размер архива и время обработки                                          |
 | `BIO_MAX_BATCH_BYTES`, `BIO_MAX_BATCH_FILES` | bio-engine      | 256 МБ, 5000                       | Лимиты архива в bio-engine (также `BIO_MAX_BATCH_UNPACKED_BYTES`)                        |
 
+**v3 (сервер авторизации, PWA, SEO):**
+
+| Переменная                    | Сервис       | По умолчанию          | Назначение                                                          |
+| ----------------------------- | ------------ | --------------------- | ------------------------------------------------------------------- |
+| `OIDC_ISSUER`                 | api          | `RP_ORIGIN`           | Идентификатор издателя токенов                                      |
+| `OIDC_ACCESS_TOKEN_TTL_S`     | api          | 600                   | Срок токена доступа и ID-токена                                     |
+| `OIDC_REFRESH_TOKEN_TTL_DAYS` | api          | 30                    | Срок refresh-токена                                                 |
+| `OIDC_DEMO_CLIENT`            | api          | true                  | Создать публичный клиент `bioauth-demo` для страницы демо           |
+| `NEXT_PUBLIC_SITE_URL`        | web (сборка) | `RP_ORIGIN` в compose | Публичный адрес для канонических ссылок, Open Graph и `sitemap.xml` |
+
+Для реального домена: `RP_ORIGIN=https://bioauth.example.kz RP_ID=bioauth.example.kz make up` за обратным прокси с
+сертификатом (камера, passkey и установка PWA работают только по HTTPS или на localhost).
+
 Все переменные api валидируются zod-схемой при старте: без `DATABASE_URL` процесс завершается с понятной ошибкой.
 
 ## 6.5. Команды
