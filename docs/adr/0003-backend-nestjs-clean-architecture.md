@@ -10,7 +10,7 @@
 
 Каждый модуль (`threshold`, `factor-selection`, `factor-catalogs`, `score-datasets`, `experiments`, `examples`) разделён на слои:
 
-- **presentation** — контроллеры, Swagger, `ZodValidationPipe`; без бизнес-логики;
+- **presentation** — контроллеры, описание OpenAPI (`@nestjs/swagger`, справочник — Scalar), `ZodValidationPipe`; без бизнес-логики;
 - **application** — use cases (один класс = один сценарий, метод `execute`) и **порты** (интерфейсы репозиториев, парсеров);
 - **infrastructure** — адаптеры: Kysely-репозитории, потоковый CSV-парсер.
 

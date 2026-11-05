@@ -2,7 +2,7 @@ flowchart LR
   user(["👤 Пользователь"])
   subgraph compose["docker compose"]
     web["<b>web</b><br/>Next.js 15 · React 19<br/>FSD · TanStack Query · ECharts<br/>:3000"]
-    api["<b>api</b><br/>NestJS 11 · Clean Architecture<br/>@bioauth/optimization-core<br/>Swagger · :4000"]
+    api["<b>api</b><br/>NestJS 11 · Clean Architecture<br/>@bioauth/optimization-core<br/>OpenAPI · Scalar · :4000"]
     db[("<b>db</b><br/>PostgreSQL 16<br/>эксперименты, каталоги,<br/>наборы оценок")]
   end
   user -->|HTTP| web

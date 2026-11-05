@@ -83,7 +83,7 @@ export function SidebarNav({ groups, onNavigate }: { groups: NavGroup[]; onNavig
           </button>
         </div>
       )}
-      <p className="text-graphite border-rule border-t px-5 py-3 text-[11px]">BioAuth Optimizer · v3.1.1</p>
+      <p className="text-graphite border-rule border-t px-5 py-3 text-[11px]">BioAuth Optimizer · v3.1.2</p>
     </div>
   );
 }

@@ -18,7 +18,7 @@ export const kkV3: DictV3 = {
     audit: 'Аудит',
     developers: 'Әзірлеушілерге',
     oidcDemo: 'OIDC демо-клиенті',
-    swagger: 'API (Swagger)',
+    apiDocs: 'API құжаттамасы (Scalar)',
     discovery: 'OpenID конфигурациясы',
     menu: 'Мәзірді ашу',
     closeMenu: 'Мәзірді жабу',

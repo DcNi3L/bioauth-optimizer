@@ -62,7 +62,7 @@ describe('контракты', () => {
     expect(r.success).toBe(false);
   });
 
-  it('схемы конвертируются в JSON Schema для Swagger', () => {
+  it('схемы конвертируются в JSON Schema для OpenAPI', () => {
     const schema = z.toJSONSchema(factorSelectionRequestSchema, { io: 'input', unrepresentable: 'any' });
     expect(schema.type).toBe('object');
   });

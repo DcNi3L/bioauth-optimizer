@@ -18,7 +18,7 @@ export const enV3: DictV3 = {
     audit: 'Audit',
     developers: 'Developers',
     oidcDemo: 'OIDC demo client',
-    swagger: 'API (Swagger)',
+    apiDocs: 'API reference (Scalar)',
     discovery: 'OpenID configuration',
     menu: 'Open menu',
     closeMenu: 'Close menu',

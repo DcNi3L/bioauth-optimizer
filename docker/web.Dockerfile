@@ -14,10 +14,10 @@ RUN pnpm dlx turbo@2.11.10 prune @bioauth/web --docker
 FROM base AS builder
 # Адрес API для серверных rewrites Next.js фиксируется при сборке.
 ARG API_INTERNAL_URL=http://api:4000
-ARG NEXT_PUBLIC_SWAGGER_URL=http://localhost:4000/api/docs
+ARG NEXT_PUBLIC_API_DOCS_URL=http://localhost:4000/api/docs
 # Публичный адрес сайта — для канонических ссылок, Open Graph, robots.txt и sitemap.xml.
 ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
-ENV API_INTERNAL_URL=$API_INTERNAL_URL NEXT_PUBLIC_SWAGGER_URL=$NEXT_PUBLIC_SWAGGER_URL \
+ENV API_INTERNAL_URL=$API_INTERNAL_URL NEXT_PUBLIC_API_DOCS_URL=$NEXT_PUBLIC_API_DOCS_URL \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL NEXT_TELEMETRY_DISABLED=1
 COPY --from=pruner /repo/out/json/ .
 RUN pnpm install --frozen-lockfile

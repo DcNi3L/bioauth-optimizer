@@ -153,6 +153,19 @@ describeDb('API v3 e2e: учётные записи, админ-панель, Op
     );
   });
 
+  it('справочник API (Scalar) работает без внешних ресурсов; спецификация OpenAPI доступна', async () => {
+    const page = await ctx.agent().get('/api/docs').expect(200);
+    expect(page.headers['content-type']).toMatch(/text\/html/);
+    expect(page.text).toContain('<script src="/api/docs/assets/standalone.js"></script>');
+    expect(page.text).not.toMatch(/cdn\.jsdelivr|fonts\.scalar|unpkg/);
+    const asset = await ctx.agent().get('/api/docs/assets/standalone.js').expect(200);
+    expect(asset.headers['content-type']).toMatch(/javascript/);
+    const spec = await ctx.agent().get('/api/openapi.json').expect(200);
+    expect(spec.body).toMatchObject({ info: { title: 'BioAuth API' } });
+    expect(Object.keys(spec.body.paths as object)).toEqual(expect.arrayContaining(['/api/v1/admin/users']));
+    await ctx.agent().get('/api/docs-json').expect(200);
+  });
+
   describe('OpenID Connect', () => {
     let jwks: { keys: Record<string, unknown>[] };
     let secret: string;

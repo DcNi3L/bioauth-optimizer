@@ -31,7 +31,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 
 import {
@@ -65,6 +65,7 @@ export class OauthApiController {
   @Get('logout')
   @Public()
   @ApiOperation({ summary: 'Название приложения для страницы подтверждения выхода' })
+  @ApiQuery({ name: 'client_id', required: false, description: 'Идентификатор приложения' })
   @ApiZodOk(oauthLogoutInfoSchema)
   async logoutInfo(@Query('client_id') clientId: unknown): Promise<{ clientName: string | null }> {
     return {

@@ -218,7 +218,7 @@ smoke: up health test-e2e ## Поднять систему, проверить �
 
 .PHONY: urls
 urls: ## Адреса интерфейса и API
-	@printf "  Интерфейс  $(CYAN)%s$(RESET)\n  Swagger    $(CYAN)%s/api/docs$(RESET)\n" "$(WEB_URL)" "$(API_URL)"
+	@printf "  Интерфейс  $(CYAN)%s$(RESET)\n  API (Scalar) $(CYAN)%s/api/docs$(RESET)\n" "$(WEB_URL)" "$(API_URL)"
 
 .PHONY: demo
 demo: ## Загрузить демонстрационный каталог из 10 факторов в запущенный API

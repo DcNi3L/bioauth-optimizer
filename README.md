@@ -28,7 +28,8 @@
 make up            # или: docker compose up --build
 ```
 
-Интерфейс — <http://localhost:3000>, Swagger — <http://localhost:4000/api/docs>. Поднимаются `db`, `api`, `web` и сервис
+Интерфейс — <http://localhost:3000>, справочник API (Scalar) — <http://localhost:4000/api/docs>, спецификация OpenAPI —
+<http://localhost:4000/api/openapi.json>. Поднимаются `db`, `api`, `web` и сервис
 распознавания `bio-engine` (только во внутренней сети). Администратор по умолчанию — `admin` / `change-me-admin-123`
 (смените через `ADMIN_PASSWORD`); при первом входе он регистрирует passkey. Других сотрудников создаёт команда
 `STAFF_PASSWORD=… pnpm --filter @bioauth/api staff -- --login anna --role researcher`.

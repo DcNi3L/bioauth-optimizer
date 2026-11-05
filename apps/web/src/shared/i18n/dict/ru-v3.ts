@@ -17,7 +17,7 @@ export const ruV3 = {
     audit: 'Аудит',
     developers: 'Разработчикам',
     oidcDemo: 'Демо-клиент OIDC',
-    swagger: 'API (Swagger)',
+    apiDocs: 'Документация API (Scalar)',
     discovery: 'OpenID-конфигурация',
     menu: 'Открыть меню',
     closeMenu: 'Закрыть меню',

@@ -32,7 +32,8 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-const SWAGGER = process.env.NEXT_PUBLIC_SWAGGER_URL ?? 'http://localhost:4000/api/docs';
+/** Справочник API (Scalar) на сервере api. */
+const API_DOCS = process.env.NEXT_PUBLIC_API_DOCS_URL ?? 'http://localhost:4000/api/docs';
 
 /** Навигация зависит от того, кто вошёл: гость, пользователь или сотрудник. */
 export function navFor(me: MeDto | null | undefined): NavGroup[] {
@@ -71,7 +72,7 @@ export function navFor(me: MeDto | null | undefined): NavGroup[] {
     items: [
       { href: '/oauth/demo', label: 'nav.oidcDemo', icon: KeyRound },
       { href: '/.well-known/openid-configuration', label: 'nav.discovery', icon: Braces, external: true },
-      { href: SWAGGER, label: 'nav.swagger', icon: FileCode2, external: true },
+      { href: API_DOCS, label: 'nav.apiDocs', icon: FileCode2, external: true },
     ],
   });
   return groups;

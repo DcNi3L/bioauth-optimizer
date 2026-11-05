@@ -1,6 +1,6 @@
 {
   "name": "@bioauth/api",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "private": true,
   "description": "REST API BioAuth Optimizer (NestJS, Clean Architecture)",
   "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
@@ -24,6 +24,7 @@
     "@nestjs/platform-express": "11.2.8",
     "@nestjs/swagger": "11.4.7",
     "@nestjs/throttler": "6.7.1",
+    "@scalar/api-reference": "1.75.0",
     "@simplewebauthn/server": "14.0.3",
     "kysely": "0.28.19",
     "multer": "2.4.0",

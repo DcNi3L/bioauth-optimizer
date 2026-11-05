@@ -16,7 +16,7 @@ flowchart LR
   API --> DB
   API -- "X-Bio-Secret" --> BIO
   DB --- VOL
-  SW["Swagger<br/>localhost:4000/api/docs"] -.-> API
+  SW["Справочник API (Scalar)<br/>localhost:4000/api/docs"] -.-> API
 ```
 
 Порядок запуска гарантируется `depends_on: condition: service_healthy`: db и bio-engine → api (миграции + seed, затем healthcheck `/health/ready`) → web. bio-engine подключён только к внутренней сети `internal` без выхода наружу, файловая система контейнера — только для чтения, модели лежат в образе (проверка SHA-256 при сборке).
@@ -41,16 +41,16 @@ flowchart LR
 
 ## 6.4. Переменные окружения
 
-| Переменная                | Сервис       | По умолчанию                     | Назначение                                             |
-| ------------------------- | ------------ | -------------------------------- | ------------------------------------------------------ |
-| `DATABASE_URL`            | api          | — (обязательна)                  | Строка подключения PostgreSQL                          |
-| `PORT`                    | api          | 4000                             | Порт HTTP                                              |
-| `CORS_ORIGIN`             | api          | <http://localhost:3000>          | Разрешённый origin                                     |
-| `MAX_UPLOAD_MB`           | api          | 50                               | Лимит размера CSV                                      |
-| `LOG_LEVEL`               | api          | info                             | Уровень логов pino                                     |
-| `API_INTERNAL_URL`        | web (сборка) | <http://api:4000>                | Адрес API для rewrites Next.js                         |
-| `NEXT_PUBLIC_SWAGGER_URL` | web (сборка) | <http://localhost:4000/api/docs> | Ссылка «API (Swagger)» в шапке                         |
-| `POSTGRES_PASSWORD`       | db, api      | bioauth                          | Пароль БД (для локального запуска; в `.env`, не в git) |
+| Переменная                 | Сервис       | По умолчанию                     | Назначение                                             |
+| -------------------------- | ------------ | -------------------------------- | ------------------------------------------------------ |
+| `DATABASE_URL`             | api          | — (обязательна)                  | Строка подключения PostgreSQL                          |
+| `PORT`                     | api          | 4000                             | Порт HTTP                                              |
+| `CORS_ORIGIN`              | api          | <http://localhost:3000>          | Разрешённый origin                                     |
+| `MAX_UPLOAD_MB`            | api          | 50                               | Лимит размера CSV                                      |
+| `LOG_LEVEL`                | api          | info                             | Уровень логов pino                                     |
+| `API_INTERNAL_URL`         | web (сборка) | <http://api:4000>                | Адрес API для rewrites Next.js                         |
+| `NEXT_PUBLIC_API_DOCS_URL` | web (сборка) | <http://localhost:4000/api/docs> | Ссылка «Документация API (Scalar)» в боковой панели    |
+| `POSTGRES_PASSWORD`        | db, api      | bioauth                          | Пароль БД (для локального запуска; в `.env`, не в git) |
 
 **v2 (живая биометрия):**
 
@@ -84,6 +84,9 @@ flowchart LR
 
 Для реального домена: `RP_ORIGIN=https://bioauth.example.kz RP_ID=bioauth.example.kz make up` за обратным прокси с
 сертификатом (камера, passkey и установка PWA работают только по HTTPS или на localhost).
+
+Справочник API (Scalar) открывается на `http://localhost:4000/api/docs` и работает без интернета: его сборка входит в
+образ api (ADR-0019).
 
 Все переменные api валидируются zod-схемой при старте: без `DATABASE_URL` процесс завершается с понятной ошибкой.
 

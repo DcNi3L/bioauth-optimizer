@@ -69,7 +69,7 @@ services:
       dockerfile: docker/web.Dockerfile
       args:
         API_INTERNAL_URL: http://api:4000
-        NEXT_PUBLIC_SWAGGER_URL: http://localhost:4000/api/docs
+        NEXT_PUBLIC_API_DOCS_URL: http://localhost:4000/api/docs
         NEXT_PUBLIC_SITE_URL: ${RP_ORIGIN:-http://localhost:3000}
     ports:
       - "3000:3000"
