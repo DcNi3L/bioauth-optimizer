@@ -26,6 +26,12 @@ export const enV3: DictV3 = {
     skip: 'Skip to content',
     tagline: 'Biometric authentication server',
   },
+  pwa: {
+    offlineTitle: 'You are offline',
+    offlineText:
+      'This page is not available offline. Computations and sign-in need the server — check your connection and try again.',
+    install: 'Install app',
+  },
   topbar: {
     language: 'Language',
     theme: 'Theme',

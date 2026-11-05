@@ -15,7 +15,10 @@ FROM base AS builder
 # Адрес API для серверных rewrites Next.js фиксируется при сборке.
 ARG API_INTERNAL_URL=http://api:4000
 ARG NEXT_PUBLIC_SWAGGER_URL=http://localhost:4000/api/docs
-ENV API_INTERNAL_URL=$API_INTERNAL_URL NEXT_PUBLIC_SWAGGER_URL=$NEXT_PUBLIC_SWAGGER_URL NEXT_TELEMETRY_DISABLED=1
+# Публичный адрес сайта — для канонических ссылок, Open Graph, robots.txt и sitemap.xml.
+ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ENV API_INTERNAL_URL=$API_INTERNAL_URL NEXT_PUBLIC_SWAGGER_URL=$NEXT_PUBLIC_SWAGGER_URL \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL NEXT_TELEMETRY_DISABLED=1
 COPY --from=pruner /repo/out/json/ .
 RUN pnpm install --frozen-lockfile
 COPY --from=pruner /repo/out/full/ .
@@ -26,6 +29,8 @@ ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 WORKDIR /app
 COPY --from=builder --chown=node:node /repo/apps/web/.next/standalone ./
 COPY --from=builder --chown=node:node /repo/apps/web/.next/static ./apps/web/.next/static
+# Иконки PWA, service worker и снимки для манифеста.
+COPY --from=builder --chown=node:node /repo/apps/web/public ./apps/web/public
 USER node
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]

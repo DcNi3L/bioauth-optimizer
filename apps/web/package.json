@@ -1,6 +1,6 @@
 {
   "name": "@bioauth/web",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "description": "Интерфейс BioAuth Optimizer (Next.js, Feature-Sliced Design)",
   "author": "Daniel Mekenbaev <donniekun03@gmail.com>",

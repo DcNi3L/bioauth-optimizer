@@ -20,6 +20,30 @@ const config: NextConfig = {
       { source: '/.well-known/:path*', destination: `${apiUrl}/.well-known/:path*` },
     ]);
   },
+  headers() {
+    const security = [
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'X-Frame-Options', value: 'DENY' },
+      // Камера и passkey нужны только самому сайту.
+      {
+        key: 'Permissions-Policy',
+        value:
+          'camera=(self), publickey-credentials-get=(self), publickey-credentials-create=(self), microphone=(), geolocation=()',
+      },
+    ];
+    return Promise.resolve([
+      { source: '/:path*', headers: security },
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Service-Worker-Allowed', value: '/' },
+        ],
+      },
+    ]);
+  },
   // Адреса v2 сохраняются: закладки и ссылки из документации ведут на вкладки «Алгоритма».
   redirects() {
     const to = (source: string, destination: string) => ({ source, destination, permanent: false });

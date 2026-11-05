@@ -1,10 +1,11 @@
 'use client';
 
-import { ExternalLink } from 'lucide-react';
+import { Download, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { useT } from '@/shared/i18n';
+import { useInstallPrompt } from '@/shared/lib/pwa';
 
 import { isActive, type NavGroup } from '../model/nav';
 import { Logo } from './logo';
@@ -12,6 +13,7 @@ import { Logo } from './logo';
 export function SidebarNav({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => void }) {
   const t = useT();
   const pathname = usePathname() ?? '';
+  const pwa = useInstallPrompt();
   return (
     <div className="flex h-full flex-col">
       <Link href="/" onClick={onNavigate} className="flex items-center gap-3 px-5 pb-6 pt-5">
@@ -69,7 +71,19 @@ export function SidebarNav({ groups, onNavigate }: { groups: NavGroup[]; onNavig
           </div>
         ))}
       </nav>
-      <p className="text-graphite border-rule border-t px-5 py-3 text-[11px]">BioAuth Optimizer · v3.0.0</p>
+      {pwa.canInstall && (
+        <div className="px-3 pb-3">
+          <button
+            type="button"
+            onClick={() => void pwa.install()}
+            className="border-rule hover:bg-hover text-ink flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-sm"
+          >
+            <Download className="text-frr size-[18px]" aria-hidden />
+            {t('pwa.install')}
+          </button>
+        </div>
+      )}
+      <p className="text-graphite border-rule border-t px-5 py-3 text-[11px]">BioAuth Optimizer · v3.1.0</p>
     </div>
   );
 }
