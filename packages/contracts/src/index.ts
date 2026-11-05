@@ -1,3 +1,4 @@
+export * from './admin';
 export * from './bio-engine';
 export * from './calibration';
 export * from './catalogs';
@@ -7,6 +8,7 @@ export * from './examples';
 export * from './experiments';
 export * from './factor-selection';
 export * from './identity';
+export * from './oauth';
 export * from './problem';
 export * from './threshold';
 export { z } from 'zod';

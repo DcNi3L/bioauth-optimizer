@@ -10,6 +10,7 @@ import { AppModule } from './app.module';
 
 export { AppModule };
 import { APP_CONFIG, type AppConfig } from './shared/config/env';
+import { requestContextMiddleware } from './shared/http/request-context';
 
 /** Сборка приложения отдельно от прослушивания порта — используется и в main.ts, и в e2e-тестах. */
 export async function createApp(): Promise<INestApplication> {
@@ -24,8 +25,29 @@ export function configureApp(nest: INestApplication): INestApplication {
   const config = app.get<AppConfig>(APP_CONFIG);
   // Кадры камеры передаются в JSON (base64): до 16 кадров по ~200 КБ с запасом.
   app.useBodyParser('json', { limit: '20mb' });
-  app.setGlobalPrefix('api/v1', { exclude: [{ path: 'health/(.*)', method: RequestMethod.GET }] });
-  app.enableCors({ origin: config.CORS_ORIGIN });
+  // Конечная точка токенов OAuth принимает application/x-www-form-urlencoded (RFC 6749).
+  app.useBodyParser('urlencoded', { extended: false, limit: '64kb' });
+  // web (Next.js) проксирует запросы из той же сети: его X-Forwarded-For — адрес пользователя.
+  app.set('trust proxy', 'loopback, linklocal, uniquelocal');
+  app.use(requestContextMiddleware);
+  app.setGlobalPrefix('api/v1', {
+    exclude: [
+      { path: 'health/(.*)', method: RequestMethod.GET },
+      { path: '.well-known/(.*)', method: RequestMethod.ALL },
+      { path: 'oidc/(.*)', method: RequestMethod.ALL },
+    ],
+  });
+  // Конечные точки OIDC (токены, userinfo, JWKS) вызываются приложениями с других адресов и без cookie;
+  // остальной API — только с адреса интерфейса.
+  app.enableCors(
+    (
+      req: { url?: string },
+      cb: (err: Error | null, o: { origin: string | boolean; credentials?: boolean }) => void,
+    ) => {
+      const open = /^\/(oidc\/(token|userinfo|jwks|introspect|revoke)|\.well-known\/)/.test(req.url ?? '');
+      cb(null, open ? { origin: '*', credentials: false } : { origin: config.CORS_ORIGIN });
+    },
+  );
   app.enableShutdownHooks();
 
   const document = SwaggerModule.createDocument(
@@ -36,7 +58,7 @@ export function configureApp(nest: INestApplication): INestApplication {
         'Оптимизация порога (формула 1 СРО1) и состава факторов (формулы 2–3 СРО1) биометрической аутентификации. ' +
           'Ошибки — RFC 7807 application/problem+json.',
       )
-      .setVersion('2.0.0')
+      .setVersion('3.0.0')
       .build(),
   );
   SwaggerModule.setup('api/docs', app, document);

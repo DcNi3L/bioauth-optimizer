@@ -20,7 +20,15 @@ export type AuditAction =
   | 'templates.rekeyed'
   | 'pad_test.recorded'
   | 'face.enroll_failed'
-  | 'batch.scored';
+  | 'batch.scored'
+  | 'session.revoked'
+  | 'user.updated'
+  | 'user.created'
+  | 'oauth.client_created'
+  | 'oauth.client_updated'
+  | 'oauth.client_deleted'
+  | 'oauth.consent_granted'
+  | 'oauth.consent_revoked';
 
 export interface AuditEventInput {
   readonly actorId: string | null;

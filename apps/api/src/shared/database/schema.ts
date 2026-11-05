@@ -67,6 +67,9 @@ export interface AppUserTable {
   failed_attempts: Generated<number>;
   locked_until: Date | null;
   created_at: ColumnType<Date, never, never>;
+  email: string | null;
+  last_login_at: Date | null;
+  disabled_at: Date | null;
 }
 
 export interface UserSessionTable {
@@ -77,6 +80,10 @@ export interface UserSessionTable {
   webauthn_challenge: string | null;
   created_at: ColumnType<Date, never, never>;
   expires_at: Date;
+  user_agent: string | null;
+  ip: string | null;
+  amr: Generated<string[]>;
+  last_seen_at: Generated<Date>;
 }
 
 export interface ConsentTable {
@@ -183,6 +190,14 @@ export interface ScoreSampleTable {
 }
 
 export interface Database {
+  login_event: LoginEventTable;
+  user_avatar: UserAvatarTable;
+  oauth_client: OauthClientTable;
+  oauth_request: OauthRequestTable;
+  oauth_code: OauthCodeTable;
+  oauth_refresh_token: OauthRefreshTokenTable;
+  oauth_consent: OauthConsentTable;
+  oauth_signing_key: OauthSigningKeyTable;
   factor_catalog: FactorCatalogTable;
   factor: FactorTable;
   score_dataset: ScoreDatasetTable;
@@ -227,4 +242,106 @@ export interface AuditEventTable {
   details: ColumnType<unknown, string, never>;
   prev_hash: string;
   hash: string;
+}
+
+// ── Учётные записи и OpenID Connect (миграция 0005) ──
+
+export type LoginMethodDb = 'register' | 'password' | 'face' | 'passkey' | 'oidc';
+
+export interface LoginEventTable {
+  id: Generated<string>;
+  user_id: string;
+  at: Generated<Date>;
+  success: boolean;
+  method: LoginMethodDb;
+  amr: Generated<string[]>;
+  reason: string | null;
+  user_agent: string | null;
+  ip: string | null;
+  client_id: string | null;
+}
+
+export interface UserAvatarTable {
+  user_id: string;
+  mime: 'image/png' | 'image/jpeg' | 'image/webp';
+  data: Buffer;
+  updated_at: Generated<Date>;
+}
+
+export type GrantTypeDb = 'authorization_code' | 'refresh_token' | 'client_credentials';
+
+export interface OauthClientTable {
+  client_id: string;
+  secret_hash: string | null;
+  name: string;
+  description: string | null;
+  redirect_uris: string[];
+  post_logout_redirect_uris: Generated<string[]>;
+  grant_types: GrantTypeDb[];
+  scopes: string[];
+  first_party: Generated<boolean>;
+  disabled: Generated<boolean>;
+  created_by: string | null;
+  created_at: Generated<Date>;
+}
+
+export interface OauthRequestTable {
+  id: Generated<string>;
+  client_id: string;
+  params: ColumnType<unknown, string, string>;
+  created_at: Generated<Date>;
+  expires_at: Date;
+}
+
+export interface OauthCodeTable {
+  code_hash: string;
+  client_id: string;
+  user_id: string;
+  redirect_uri: string;
+  scope: string[];
+  code_challenge: string | null;
+  nonce: string | null;
+  auth_time: Date;
+  amr: string[];
+  expires_at: Date;
+  used_at: Date | null;
+}
+
+export interface OauthRefreshTokenTable {
+  token_hash: string;
+  family: string;
+  client_id: string;
+  user_id: string;
+  scope: string[];
+  auth_time: Date;
+  amr: string[];
+  created_at: Generated<Date>;
+  expires_at: Date;
+  revoked_at: Date | null;
+}
+
+export interface OauthConsentTable {
+  user_id: string;
+  client_id: string;
+  scopes: string[];
+  granted_at: Generated<Date>;
+}
+
+export interface OauthSigningKeyTable {
+  kid: string;
+  public_jwk: ColumnType<JsonWebKeyShape, string, string>;
+  private_enc: Buffer;
+  iv: Buffer;
+  kek_id: string;
+  active: Generated<boolean>;
+  created_at: Generated<Date>;
+}
+
+export interface JsonWebKeyShape {
+  kty: string;
+  n: string;
+  e: string;
+  kid?: string;
+  alg?: string;
+  use?: string;
 }

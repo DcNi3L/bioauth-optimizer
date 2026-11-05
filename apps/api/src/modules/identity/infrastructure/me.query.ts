@@ -19,7 +19,7 @@ export class MeQuery {
   }
 
   async me(user: AuthUser): Promise<MeDto> {
-    const [consent, face, passkeys] = await Promise.all([
+    const [consent, face, passkeys, account, avatar] = await Promise.all([
       this.db
         .selectFrom('consent')
         .select(['text_version', 'granted_at'])
@@ -32,6 +32,16 @@ export class MeQuery {
         .where('user_id', '=', user.id)
         .executeTakeFirst(),
       this.passkeyCount(user.id),
+      this.db
+        .selectFrom('app_user')
+        .select(['email', 'created_at', 'last_login_at'])
+        .where('id', '=', user.id)
+        .executeTakeFirstOrThrow(),
+      this.db
+        .selectFrom('user_avatar')
+        .select('updated_at')
+        .where('user_id', '=', user.id)
+        .executeTakeFirst(),
     ]);
     return {
       id: user.id,
@@ -50,6 +60,11 @@ export class MeQuery {
           }
         : null,
       passkeys,
+      email: account.email,
+      createdAt: account.created_at.toISOString(),
+      lastLoginAt: account.last_login_at?.toISOString() ?? null,
+      avatarUrl: avatar ? `/api/v1/avatars/${user.id}?v=${avatar.updated_at.getTime().toString(36)}` : null,
+      amr: [...user.amr],
     };
   }
 }

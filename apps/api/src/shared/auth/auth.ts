@@ -25,6 +25,10 @@ export interface AuthUser {
   readonly sessionId: string;
   /** Вход завершён полностью: для сотрудника с passkey — пароль и passkey. */
   readonly mfaComplete: boolean;
+  /** Способы проверки текущей сессии (RFC 8176). */
+  readonly amr: readonly string[];
+  /** Момент входа (создания сессии) — auth_time в ID-токене OIDC. */
+  readonly authTime: Date;
 }
 
 export const SESSION_COOKIE = 'bioauth_session';

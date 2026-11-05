@@ -7,6 +7,8 @@ import { ConflictError, TooManyAttemptsError, UnauthorizedError } from '../../..
 import { AUDIT_LOG, type AuditLog } from '../../audit/application/audit-log';
 import { MeQuery } from '../infrastructure/me.query';
 import {
+  LOGIN_EVENTS,
+  type LoginEvents,
   PASSWORD_HASHER,
   type PasswordHasher,
   SESSION_STORE,
@@ -37,7 +39,7 @@ export class RegisterSubjectUseCase {
     });
     if (!user) throw new ConflictError(`логин «${cmd.login}» уже занят`);
     await this.audit.record({ actorId: user.id, action: 'subject.registered', target: user.id });
-    return this.issuer.issue(user.id, true);
+    return this.issuer.issue(user.id, true, { method: 'register', amr: [] });
   }
 }
 
@@ -56,6 +58,7 @@ export class PasswordLoginUseCase {
     private readonly me: MeQuery,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Inject(AUDIT_LOG) private readonly audit: AuditLog,
+    @Inject(LOGIN_EVENTS) private readonly events: LoginEvents,
   ) {}
 
   async execute(login: string, password: string): Promise<IssuedSession & { mfaRequired: boolean }> {
@@ -82,6 +85,14 @@ export class PasswordLoginUseCase {
           });
         }
       }
+      if (user)
+        await this.events.record({
+          userId: user.id,
+          success: false,
+          method: 'password',
+          amr: ['pwd'],
+          reason: 'BAD_CREDENTIALS',
+        });
       throw new UnauthorizedError('неверный логин или пароль');
     }
     await this.users.resetFailures(user.id);
@@ -93,7 +104,10 @@ export class PasswordLoginUseCase {
       target: user.id,
       details: { factor: 'password' },
     });
-    return { ...(await this.issuer.issue(user.id, !mfaRequired)), mfaRequired };
+    return {
+      ...(await this.issuer.issue(user.id, !mfaRequired, { method: 'password', amr: ['pwd'] })),
+      mfaRequired,
+    };
   }
 }
 

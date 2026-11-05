@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
+import { AdminModule } from './modules/admin/admin.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { BiometricsModule } from './modules/biometrics/biometrics.module';
 import { CalibrationModule } from './modules/calibration/calibration.module';
@@ -12,6 +13,7 @@ import { ExperimentsModule } from './modules/experiments/experiments.module';
 import { FactorCatalogsModule } from './modules/factor-catalogs/factor-catalogs.module';
 import { FactorSelectionModule } from './modules/factor-selection/factor-selection.module';
 import { IdentityModule } from './modules/identity/identity.module';
+import { OidcModule } from './modules/oidc/oidc.module';
 import { PolicyModule } from './modules/policy/policy.module';
 import { ScoreDatasetsModule } from './modules/score-datasets/score-datasets.module';
 import { ThresholdModule } from './modules/threshold/threshold.module';
@@ -43,6 +45,8 @@ import { LoggingModule } from './shared/logging/logging.module';
     EnrollmentModule,
     VerificationModule,
     CalibrationModule,
+    AdminModule,
+    OidcModule,
     ThresholdModule,
     FactorSelectionModule,
     FactorCatalogsModule,

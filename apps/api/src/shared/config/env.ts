@@ -60,6 +60,12 @@ const envSchema = z.object({
   DRIFT_CHECK_HOURS: z.coerce.number().min(0).default(24),
   DRIFT_WINDOW_DAYS: z.coerce.number().positive().default(7),
   CROSS_IMPOSTOR_LIMIT: z.coerce.number().int().min(0).max(500).default(50),
+  /** OpenID Connect: идентификатор издателя (по умолчанию — адрес интерфейса RP_ORIGIN). */
+  OIDC_ISSUER: z.url().optional(),
+  OIDC_ACCESS_TOKEN_TTL_S: z.coerce.number().int().min(60).max(86_400).default(600),
+  OIDC_REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+  /** Создать демо-клиента bioauth-demo (страница /oauth/demo) при старте. */
+  OIDC_DEMO_CLIENT: booleanFlag.default(true),
 });
 
 type RawConfig = z.infer<typeof envSchema>;

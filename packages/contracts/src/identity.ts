@@ -36,6 +36,12 @@ export const meSchema = z.object({
   consent: z.object({ textVersion: z.string(), grantedAt: z.string() }).nullable(),
   face: z.object({ modelVersion: z.string(), samples: z.number().int(), updatedAt: z.string() }).nullable(),
   passkeys: z.number().int(),
+  email: z.string().nullable(),
+  createdAt: z.string(),
+  lastLoginAt: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  /** Способы проверки текущей сессии (RFC 8176): face, hwk (passkey), pwd, mfa. */
+  amr: z.array(z.string()),
 });
 export type MeDto = z.infer<typeof meSchema>;
 
@@ -209,3 +215,56 @@ export const chainVerificationSchema = z.object({
   brokenAt: z.number().int().nullable(),
 });
 export type ChainVerificationDto = z.infer<typeof chainVerificationSchema>;
+
+// ── Учётная запись: профиль, сессии и устройства, история входов, аватар ──
+
+export const updateProfileSchema = z.strictObject({
+  displayName: z.string().trim().min(1).max(200).optional(),
+  email: z.email({ error: 'некорректный адрес почты' }).max(254).nullable().optional(),
+});
+export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
+
+export const avatarUploadSchema = z.strictObject({
+  /** data:image/png|jpeg|webp;base64,… не больше 1 МБ после декодирования. */
+  image: z
+    .string()
+    .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/, {
+      error: 'ожидается изображение PNG, JPEG или WebP',
+    })
+    .max(1_450_000),
+});
+
+export const deviceSchema = z.object({
+  browser: z.string().nullable(),
+  os: z.string().nullable(),
+  type: z.enum(['desktop', 'mobile', 'tablet', 'unknown']),
+});
+export type DeviceDto = z.infer<typeof deviceSchema>;
+
+export const userSessionSchema = z.object({
+  id: z.uuid(),
+  current: z.boolean(),
+  createdAt: z.string(),
+  lastSeenAt: z.string(),
+  expiresAt: z.string(),
+  ip: z.string().nullable(),
+  device: deviceSchema,
+  amr: z.array(z.string()),
+  mfa: z.boolean(),
+});
+export type UserSessionDto = z.infer<typeof userSessionSchema>;
+
+export const loginMethodSchema = z.enum(['register', 'password', 'face', 'passkey', 'oidc']);
+
+export const loginEventSchema = z.object({
+  id: z.uuid(),
+  at: z.string(),
+  success: z.boolean(),
+  method: loginMethodSchema,
+  amr: z.array(z.string()),
+  reason: z.string().nullable(),
+  ip: z.string().nullable(),
+  device: deviceSchema,
+  clientId: z.string().nullable(),
+});
+export type LoginEventDto = z.infer<typeof loginEventSchema>;

@@ -30,6 +30,7 @@ import {
 } from '../../biometrics/application/ports';
 import { BackgroundTasks } from '../../biometrics/infrastructure/background-tasks';
 import { USER_REPOSITORY, type UserRepository } from '../../identity/application/ports';
+import { LOGIN_EVENTS, type LoginEvents } from '../../identity/application/ports';
 import { type IssuedSession, SessionIssuer } from '../../identity/application/session-issuer';
 import { type ActivePolicy, POLICY_READER, type PolicyReader } from '../../policy/application/ports';
 import {
@@ -81,6 +82,7 @@ export class AuthService {
     @Inject(POLICY_READER) private readonly policies: PolicyReader,
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
     @Inject(FACE_ENGINE) private readonly engine: FaceEngine,
+    @Inject(LOGIN_EVENTS) private readonly events: LoginEvents,
     @Inject(FACE_TEMPLATES) private readonly templates: FaceTemplateRepository,
     @Inject(TEMPLATE_CIPHER) private readonly cipher: TemplateCipher,
     @Inject(AUTH_ATTEMPTS) private readonly attempts: AttemptRepository,
@@ -305,7 +307,10 @@ export class AuthService {
     };
     if (!done || !session.userId) return { result, session: null };
     await this.users.resetFailures(session.userId);
-    return { result, session: await this.issuer.issue(session.userId, true) };
+    const amr: string[] = [...new Set(policy.steps.map((s) => (s.factor === 'face' ? 'face' : 'hwk')))];
+    if (amr.length > 1) amr.push('mfa');
+    const method = policy.steps.some((s) => s.factor === 'face') ? 'face' : 'passkey';
+    return { result, session: await this.issuer.issue(session.userId, true, { method, amr }) };
   }
 
   private async fail(
@@ -324,6 +329,15 @@ export class AuthService {
         outcome: reason === 'FACE_QUALITY' ? 'error' : 'reject',
         durationMs: opts.durationMs ?? 0,
         rejectReason: reason,
+      });
+    }
+    if (session.userId) {
+      await this.events.record({
+        userId: session.userId,
+        success: false,
+        method: factor,
+        amr: [factor === 'face' ? 'face' : 'hwk'],
+        reason,
       });
     }
     const failures = session.failures + 1;
