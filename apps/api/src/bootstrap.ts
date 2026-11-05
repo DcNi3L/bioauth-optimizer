@@ -36,7 +36,7 @@ export function configureApp(nest: INestApplication): INestApplication {
         'Оптимизация порога (формула 1 СРО1) и состава факторов (формулы 2–3 СРО1) биометрической аутентификации. ' +
           'Ошибки — RFC 7807 application/problem+json.',
       )
-      .setVersion('1.0.0')
+      .setVersion('2.0.0')
       .build(),
   );
   SwaggerModule.setup('api/docs', app, document);
