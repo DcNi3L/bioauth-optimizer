@@ -3,6 +3,10 @@ import {
   authSessionSchema,
   type AuthStepResultDto,
   authStepResultSchema,
+  type PosePreviewDto,
+  type PosePreviewRequest,
+  posePreviewRequestSchema,
+  posePreviewSchema,
   startAuthRequestSchema,
   type SubmitFaceRequest,
   submitFaceRequestSchema,
@@ -18,6 +22,7 @@ import { Public, setSessionCookie } from '../../../shared/auth/auth';
 import { APP_CONFIG, type AppConfig } from '../../../shared/config/env';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
+import { PosePreviewService } from '../../biometrics/application/pose-preview';
 import { AuthService, type StepOutcome } from '../application/auth.service';
 
 const cancelSchema = z.strictObject({ durationMs: z.number().int().min(0).max(600_000) });
@@ -30,6 +35,7 @@ const cancelSchema = z.strictObject({ durationMs: z.number().int().min(0).max(60
 export class AuthController {
   constructor(
     private readonly auth: AuthService,
+    private readonly pose: PosePreviewService,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
 
@@ -40,13 +46,29 @@ export class AuthController {
 
   @Post()
   @HttpCode(201)
-  @ApiOperation({ summary: 'Начать вход: шаги политики и 3 случайные команды; срок жизни 2 минуты' })
+  @ApiOperation({ summary: 'Начать вход: шаги политики и 3 случайные команды; срок жизни 3 минуты' })
   @ApiZodBody(startAuthRequestSchema)
   @ApiZodOk(authSessionSchema)
   start(
     @Body(new ZodValidationPipe(startAuthRequestSchema)) body: z.infer<typeof startAuthRequestSchema>,
   ): Promise<AuthSessionDto> {
     return this.auth.start(body.login);
+  }
+
+  @Post(':id/pose')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 600, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Живая подсказка позы по одному кадру (решение не принимается, кадр не хранится)',
+  })
+  @ApiZodBody(posePreviewRequestSchema)
+  @ApiZodOk(posePreviewSchema)
+  async posePreview(
+    @Param('id', UuidPipe) id: string,
+    @Body(new ZodValidationPipe(posePreviewRequestSchema)) body: PosePreviewRequest,
+  ): Promise<PosePreviewDto> {
+    await this.auth.assertPoseAllowed(id);
+    return this.pose.preview(body);
   }
 
   @Post(':id/face')

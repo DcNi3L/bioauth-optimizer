@@ -99,6 +99,8 @@ class FaceService:
                     brightness=bright,
                     yaw_deg=p.yaw_deg,
                     pitch_deg=p.pitch_deg,
+                    yaw_ratio=p.yaw_ratio,
+                    pitch_ratio=p.pitch_ratio if p.pitch_ratio != float('inf') else 99.0,
                 )
         issues = assess(
             QualityInput(len(faces), face.score if face else None, p, sharp, bright),
@@ -215,9 +217,17 @@ class FaceService:
             )
 
         with_face = [f for f in all_frames if self._usable(f, _IGNORED_FOR_MATCHING) and f.face is not None]
-        p_live = [self._pad.p_live(f.image, f.face) for f in with_face if f.face is not None]
-        embeddings = [self._emb.embed(f.image, f.face) for f in with_face if f.face is not None]
-        min_sim = matching.min_pairwise(embeddings)
+        # Пассивная PAD — по фронтальным кадрам: на сильно повёрнутом лице MiniFASNet менее надёжна.
+        max_yaw = self._cfg.liveness.frontal_max_yaw_deg
+        frontal = [f for f in with_face if f.pose is not None and abs(f.pose.yaw_deg) <= max_yaw] or with_face
+        p_live = [self._pad.p_live(f.image, f.face) for f in frontal if f.face is not None]
+        # Согласованность личности: каждый кадр сравнивается с центроидом нейтральных кадров.
+        base_ids = {id(f) for f in base_frames}
+        base_emb = [self._emb.embed(f.image, f.face) for f in with_face if id(f) in base_ids and f.face]
+        other_emb = [self._emb.embed(f.image, f.face) for f in with_face if id(f) not in base_ids and f.face]
+        centroid = matching.template(base_emb)
+        sims = [matching.cosine(e, centroid) for e in [*base_emb, *other_emb]]
+        min_sim = min(sims) if sims else 1.0
         return s.LivenessResponse(
             p_live_median=matching.median(p_live),
             p_live=p_live,

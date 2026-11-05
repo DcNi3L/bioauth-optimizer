@@ -8,6 +8,7 @@ import {
   SCORE_SAMPLES,
   TEMPLATE_CIPHER,
 } from './application/ports';
+import { PosePreviewService } from './application/pose-preview';
 import { AesGcmTemplateCipher } from './infrastructure/aes-gcm-template-cipher';
 import { BackgroundTasks } from './infrastructure/background-tasks';
 import { HttpBioEngineAdapter } from './infrastructure/http-bio-engine.adapter';
@@ -29,6 +30,7 @@ import {
     { provide: AUTH_ATTEMPTS, useClass: KyselyAttemptRepository },
     { provide: BIOMETRIC_ERASER, useClass: KyselyBiometricEraser },
     BackgroundTasks,
+    PosePreviewService,
   ],
   exports: [
     FACE_ENGINE,
@@ -38,6 +40,7 @@ import {
     AUTH_ATTEMPTS,
     BIOMETRIC_ERASER,
     BackgroundTasks,
+    PosePreviewService,
   ],
 })
 export class BiometricsModule {}

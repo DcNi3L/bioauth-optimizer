@@ -76,3 +76,22 @@ export function grabFrame(video: HTMLVideoElement, maxSide = 640, quality = 0.85
 }
 
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** Кадр для проверки и уменьшенный кадр для подсказки позы — из одного и того же момента видео. */
+export function grabPair(video: HTMLVideoElement): {
+  full: CapturedFrame;
+  small: { image: string; width: number; height: number };
+} {
+  const full = grabFrame(video);
+  const w = video.videoWidth || 640;
+  const h = video.videoHeight || 480;
+  const k = Math.min(1, 320 / Math.max(w, h));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(w * k);
+  canvas.height = Math.round(h * k);
+  canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+  return {
+    full,
+    small: { image: canvas.toDataURL('image/jpeg', 0.7), width: canvas.width, height: canvas.height },
+  };
+}

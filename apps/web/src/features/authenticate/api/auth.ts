@@ -6,6 +6,8 @@ import {
   type AuthStepResultDto,
   authStepResultSchema,
   meSchema,
+  type PosePreviewDto,
+  posePreviewSchema,
   type SubmitFaceRequest,
 } from '@bioauth/contracts';
 import { startAuthentication } from '@simplewebauthn/browser';
@@ -16,6 +18,11 @@ type AuthOptions = Parameters<typeof startAuthentication>[0]['optionsJSON'];
 
 export const startSession = (login: string): Promise<AuthSessionDto> =>
   apiSend('POST', '/auth/sessions', { login }, authSessionSchema);
+
+export const posePreview = (
+  id: string,
+  frame: { image: string; width: number; height: number },
+): Promise<PosePreviewDto> => apiSend('POST', `/auth/sessions/${id}/pose`, frame, posePreviewSchema);
 
 export const submitFace = (id: string, body: SubmitFaceRequest): Promise<AuthStepResultDto> =>
   apiSend('POST', `/auth/sessions/${id}/face`, body, authStepResultSchema);

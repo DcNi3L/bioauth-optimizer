@@ -3,17 +3,17 @@
 import { useState } from 'react';
 
 import { type AttemptFilter, useAttempts } from '@/entities/attempt';
-import { REASON_TITLES } from '@/entities/face';
+import { type TKey, useT } from '@/shared/i18n';
 import { formatDateTime, formatMs, formatNumber, formatPercent } from '@/shared/lib';
 import { ApiErrorNotice, Button, Metric, SelectField } from '@/shared/ui';
 
 const OUTCOME_LABELS = { accept: 'допуск', reject: 'отказ', error: 'ошибка', cancel: 'отмена' } as const;
 const FACTOR_LABELS = { face: 'лицо', passkey: 'passkey' } as const;
 
-const reasonTitle = (r: string) => (REASON_TITLES as Record<string, string | undefined>)[r] ?? r;
-
 /** Журнал попыток (UC-9): фильтры, сводка по факторам за выборку, постраничная подгрузка по курсору. */
 export function AttemptsTable() {
+  const t = useT();
+  const reasonTitle = (r: string) => t(`face.reason.${r}` as TKey);
   const [filter, setFilter] = useState<AttemptFilter>({ factor: '', outcome: '' });
   const q = useAttempts(filter);
   const items = q.data?.pages.flatMap((p) => p.items) ?? [];

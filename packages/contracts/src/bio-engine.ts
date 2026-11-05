@@ -51,6 +51,8 @@ export const frameAnalysisSchema = z.object({
       brightness: z.number(),
       yawDeg: z.number(),
       pitchDeg: z.number(),
+      yawRatio: z.number(),
+      pitchRatio: z.number(),
     })
     .nullable(),
   issues: z.array(faceIssueSchema),
@@ -61,6 +63,7 @@ export const bioAnalyzeResponseSchema = z.object({
   frames: z.array(frameAnalysisSchema),
   modelVersion: z.string(),
 });
+export type BioAnalyzeResponse = z.infer<typeof bioAnalyzeResponseSchema>;
 
 export const bioTemplateResponseSchema = z.object({
   embedding: embeddingSchema,

@@ -1,4 +1,6 @@
 import {
+  type BioAnalyzeResponse,
+  bioAnalyzeResponseSchema,
   type BioBatchResponse,
   bioBatchResponseSchema,
   type BioLivenessRequest,
@@ -39,6 +41,10 @@ export class HttpBioEngineAdapter implements FaceEngine {
     template: { embedding: number[]; modelVersion: string },
   ): Promise<BioVerifyResponse> {
     return this.call('/v1/face/verify', { frames: frames.map(toBio), template }, bioVerifyResponseSchema);
+  }
+
+  analyze(frame: Frame): Promise<BioAnalyzeResponse> {
+    return this.call('/v1/face/analyze', { frames: [toBio(frame)] }, bioAnalyzeResponseSchema);
   }
 
   liveness(req: BioLivenessRequest): Promise<BioLivenessResponse> {

@@ -1,92 +1,147 @@
 'use client';
 
-import type { ReactNode, RefObject } from 'react';
+import type { LivenessCommand } from '@bioauth/contracts';
+import { type ReactNode, type RefObject, useEffect, useState } from 'react';
 
+import { type TKey, useT } from '@/shared/i18n';
 import type { CameraState } from '@/shared/lib/camera';
 
-const STATE_TEXT: Partial<Record<CameraState, string>> = {
-  idle: 'Камера выключена',
-  starting: 'Включаю камеру…',
-  denied: 'Доступ к камере запрещён. Разрешите его в настройках браузера и обновите страницу.',
-  unavailable: 'Камера не найдена или занята другим приложением.',
-  insecure: 'Камера доступна только по HTTPS или на localhost.',
+import { type GuideTone, HeadGuide } from './head-guide';
+
+export interface ViewportGuide {
+  readonly command: LivenessCommand | null;
+  /** Выполнение текущей команды или совмещения, 0…1: контур заполняется зелёным. */
+  readonly progress: number;
+  readonly tone: GuideTone;
+  readonly box: readonly [number, number, number, number] | null;
+  readonly showCenter: boolean;
+}
+
+export interface ViewportStep {
+  readonly command: LivenessCommand;
+  readonly status: 'pending' | 'active' | 'done' | 'failed';
+}
+
+const STATE_KEY: Partial<Record<CameraState, TKey>> = {
+  idle: 'face.camera.idle',
+  starting: 'face.camera.starting',
+  denied: 'face.camera.denied',
+  unavailable: 'face.camera.unavailable',
+  insecure: 'face.camera.insecure',
+};
+
+const STEP_ICON: Record<LivenessCommand, string> = {
+  TURN_LEFT: '←',
+  TURN_RIGHT: '→',
+  CHIN_UP: '↑',
+  MOVE_CLOSER: '⤢',
 };
 
 /**
- * Окно камеры с овалом-ориентиром. Предпросмотр зеркальный — так привычнее; отправляемые кадры — нет.
- * Подсказка дублируется для экранного диктора (aria-live).
+ * Окно камеры с контуром головы, направляющими линиями текущей команды и живой подсказкой.
+ * Предпросмотр зеркальный — так привычнее; отправляемые кадры не зеркальные. Подсказка дублируется
+ * для экранного диктора (aria-live).
  */
 export function FaceViewport({
   videoRef,
   state,
   prompt,
-  icon,
-  progress,
+  guide,
+  overall,
+  steps,
 }: {
   videoRef: RefObject<HTMLVideoElement | null>;
   state: CameraState;
   prompt?: ReactNode;
-  icon?: string;
-  progress?: number;
+  guide?: ViewportGuide;
+  overall?: number;
+  steps?: readonly ViewportStep[];
 }) {
-  const overlay = STATE_TEXT[state];
+  const t = useT();
+  const overlay = STATE_KEY[state];
+  const [aspect, setAspect] = useState(4 / 3);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const update = () => v.videoWidth && setAspect(v.videoWidth / v.videoHeight);
+    v.addEventListener('loadedmetadata', update);
+    update();
+    return () => v.removeEventListener('loadedmetadata', update);
+  }, [videoRef, state]);
+  const tone = guide?.tone ?? 'neutral';
   return (
-    <div className="flex flex-col gap-3">
-      <div className="bg-ink relative aspect-[4/3] w-full max-w-xl overflow-hidden rounded-lg">
+    <div className="flex w-full max-w-xl flex-col gap-3">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[#0b1118] shadow-lg ring-1 ring-black/5">
         <video
           ref={videoRef}
           muted
           playsInline
-          aria-label="Изображение с камеры"
+          aria-label={t('face.camera.label')}
           className="h-full w-full -scale-x-100 object-cover"
         />
         {state === 'ready' && (
-          <svg
-            viewBox="0 0 400 300"
-            className="pointer-events-none absolute inset-0 h-full w-full"
-            aria-hidden
-          >
-            <defs>
-              <mask id="face-hole">
-                <rect width="400" height="300" fill="white" />
-                <ellipse cx="200" cy="140" rx="82" ry="108" fill="black" />
-              </mask>
-            </defs>
-            <rect width="400" height="300" fill="rgba(23,32,43,0.45)" mask="url(#face-hole)" />
-            <ellipse
-              cx="200"
-              cy="140"
-              rx="82"
-              ry="108"
-              fill="none"
-              stroke="#fbfcfa"
-              strokeWidth="2"
-              strokeDasharray="6 5"
-            />
-          </svg>
+          <HeadGuide
+            tone={tone}
+            progress={guide?.progress ?? 0}
+            command={guide?.command ?? null}
+            showCenter={guide?.showCenter ?? true}
+            box={guide?.box ?? null}
+            aspect={aspect}
+          />
         )}
-        {icon && state === 'ready' && (
-          <span className="text-sheet absolute right-4 top-3 font-serif text-5xl drop-shadow" aria-hidden>
-            {icon}
-          </span>
+        {state === 'ready' && prompt && (
+          <div className="absolute inset-x-0 top-3 flex justify-center px-3">
+            <p
+              className={`max-w-[92%] rounded-full px-4 py-1.5 text-center text-sm font-medium shadow backdrop-blur ${
+                tone === 'ok'
+                  ? 'bg-emerald-500/85 text-white'
+                  : tone === 'warn'
+                    ? 'bg-amber-400/90 text-[#1b1300]'
+                    : 'bg-black/55 text-white'
+              }`}
+            >
+              {prompt}
+            </p>
+          </div>
         )}
         {overlay && (
-          <p className="text-sheet absolute inset-0 flex items-center justify-center px-8 text-center text-sm">
-            {overlay}
+          <p className="absolute inset-0 flex items-center justify-center px-8 text-center text-sm text-white/90">
+            {t(overlay)}
           </p>
         )}
-        {progress !== undefined && (
-          <div className="bg-sheet/30 absolute bottom-0 left-0 right-0 h-1.5">
+        {overall !== undefined && (
+          <div className="absolute inset-x-0 bottom-0 h-1.5 bg-white/20">
             <div
-              className="bg-optimum h-full transition-[width] duration-300"
-              style={{ width: `${Math.round(progress * 100)}%` }}
+              className="h-full bg-emerald-400 transition-[width] duration-300"
+              style={{ width: `${Math.round(overall * 100)}%` }}
             />
           </div>
         )}
       </div>
-      <p aria-live="assertive" className="min-h-7 text-lg font-medium">
+      <p aria-live="assertive" className="sr-only">
         {prompt}
       </p>
+      {steps && steps.length > 0 && (
+        <ol className="flex flex-wrap gap-2" aria-label={t('face.guide.step', { n: 1, total: steps.length })}>
+          {steps.map((s, i) => (
+            <li
+              key={`${s.command}-${i}`}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                s.status === 'done'
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                  : s.status === 'active'
+                    ? 'border-ink bg-ink text-sheet'
+                    : s.status === 'failed'
+                      ? 'border-far/40 bg-far/10 text-far'
+                      : 'border-rule text-graphite'
+              }`}
+            >
+              <span aria-hidden>{s.status === 'done' ? '✓' : STEP_ICON[s.command]}</span>
+              {t(`face.commandShort.${s.command}`)}
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }

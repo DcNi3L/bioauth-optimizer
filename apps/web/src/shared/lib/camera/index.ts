@@ -1,1 +1,1 @@
-export { type CameraState, type CapturedFrame, grabFrame, sleep, useCamera } from './use-camera';
+export { type CameraState, type CapturedFrame, grabFrame, grabPair, sleep, useCamera } from './use-camera';

@@ -205,11 +205,28 @@ describeDb('API v2 e2e: биометрия и вход (PostgreSQL)', () => {
     expect(face.commands).toHaveLength(3);
     expect(new Set(face.commands).size).toBe(3);
 
+    // Живые подсказки позы: геометрия кадра без решения; кадр без лица — понятный ответ.
+    const pose = await a
+      .post(`/api/v1/auth/sessions/${s.sessionId}/pose`)
+      .send({ image: frame('alice').image, width: 320, height: 240 })
+      .expect(200);
+    expect(pose.body).toMatchObject({ face: true, issues: [], yawRatio: 0, interocularPx: 80 });
+    expect(pose.body.box[0]).toBeCloseTo(0.25, 6);
+    const noFace = await a
+      .post(`/api/v1/auth/sessions/${s.sessionId}/pose`)
+      .send({ image: frame('alice', 'bad').image, width: 320, height: 240 })
+      .expect(200);
+    expect(noFace.body).toMatchObject({ face: false, box: null });
+
     const r = await a
       .post(`/api/v1/auth/sessions/${s.sessionId}/face`)
       .send(attemptFrames('alice', face.commands!))
       .expect(200);
     expect(r.body).toMatchObject({ outcome: 'accepted', reason: null });
+    await a
+      .post(`/api/v1/auth/sessions/${s.sessionId}/pose`)
+      .send({ image: frame('alice').image, width: 320, height: 240 })
+      .expect(409);
     expect(JSON.stringify(r.body)).not.toMatch(/score|tau|0\.8/i); // пороги и оценки клиенту не отдаются
     const me = await a.get('/api/v1/identity/me').expect(200);
     expect(me.body.login).toBe('alice');

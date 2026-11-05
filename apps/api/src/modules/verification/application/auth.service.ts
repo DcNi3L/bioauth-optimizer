@@ -45,7 +45,9 @@ import { AUTH_SESSIONS, type AuthSessionRecord, type AuthSessionRepository } fro
 export const MAX_SESSION_FAILURES = 3;
 export const USER_LOCK_THRESHOLD = 3;
 export const USER_LOCK_MS = 15 * 60_000;
-export const SESSION_TTL_MS = 2 * 60_000;
+/** Кадров-подсказок позы на одну сессию входа (~4 в секунду в течение 2 минут). */
+export const MAX_POSE_CHECKS = 500;
+export const SESSION_TTL_MS = 3 * 60_000;
 
 export interface StepOutcome {
   readonly result: AuthStepResultDto;
@@ -123,6 +125,18 @@ export class AuthService {
 
   // ── шаг «лицо» ──
 
+  private readonly poseChecks = new Map<string, number>();
+
+  /** Подсказки позы допустимы только в действующей сессии на шаге «лицо» и не чаще лимита на сессию. */
+  async assertPoseAllowed(sessionId: string): Promise<void> {
+    await this.current(sessionId, 'face');
+    const n = (this.poseChecks.get(sessionId) ?? 0) + 1;
+    if (n > MAX_POSE_CHECKS)
+      throw new TooManyAttemptsError('слишком много кадров-подсказок в этой сессии', null);
+    if (this.poseChecks.size > 10_000) this.poseChecks.clear();
+    this.poseChecks.set(sessionId, n);
+  }
+
   async submitFace(sessionId: string, body: SubmitFaceRequest): Promise<StepOutcome> {
     const started = Date.now();
     const { session, policy, step } = await this.current(sessionId, 'face');
@@ -139,13 +153,14 @@ export class AuthService {
       embedding: this.cipher.decrypt(session.userId, stored.modelVersion, stored),
       modelVersion: stored.modelVersion,
     };
-    const allFrames = [...body.baseline, ...body.steps.flatMap((s) => s.frames)];
+    // Сходство с шаблоном — по фронтальным нейтральным кадрам: шаблон снят анфас, а кадры команд
+    // (поворот, подбородок вверх) закономерно дают меньшее сходство и занижали медиану.
 
     let liveness, verify;
     try {
       [liveness, verify] = await Promise.all([
         this.engine.liveness({ baseline: body.baseline, steps: body.steps }),
-        this.engine.verify(allFrames, template),
+        this.engine.verify(body.baseline, template),
       ]);
     } catch (err) {
       if (err instanceof FaceRejectedError) {

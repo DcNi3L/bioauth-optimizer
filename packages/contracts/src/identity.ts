@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { livenessCommandSchema } from './bio-engine';
+import { faceIssueSchema, livenessCommandSchema } from './bio-engine';
 import { costsSchema, finite } from './common';
 
 /** v2: пользователи, согласие, регистрация биометрии и вход по политике (docs/10 §10.4). */
@@ -137,6 +137,32 @@ export const submitFaceRequestSchema = z.strictObject({
     .max(4),
 });
 export type SubmitFaceRequest = z.infer<typeof submitFaceRequestSchema>;
+
+// ── Живые подсказки позы (кадр низкого разрешения, решение не принимается) ──
+
+export const posePreviewRequestSchema = z.strictObject({
+  image: z.string().min(100).max(600_000),
+  width: z.number().int().min(32).max(1920),
+  height: z.number().int().min(32).max(1920),
+});
+export type PosePreviewRequest = z.infer<typeof posePreviewRequestSchema>;
+
+export const posePreviewSchema = z.object({
+  face: z.boolean(),
+  issues: z.array(faceIssueSchema),
+  /** Рамка лица в долях кадра: x, y, ширина, высота (кадр не зеркальный). */
+  box: z.tuple([z.number(), z.number(), z.number(), z.number()]).nullable(),
+  yawRatio: z.number().nullable(),
+  pitchRatio: z.number().nullable(),
+  interocularPx: z.number().nullable(),
+});
+export type PosePreviewDto = z.infer<typeof posePreviewSchema>;
+
+/**
+ * Пороги активных команд для подсказок в интерфейсе — те же, что проверяет bio-engine
+ * (services/bio-engine/app/config.py, LivenessThresholds). Окончательное решение принимает сервер.
+ */
+export const LIVENESS_GUIDE = { yawDelta: 0.1, pitchFactor: 0.88, closerFactor: 1.18 } as const;
 
 export const authRejectReasonSchema = z.enum([
   'FACE_QUALITY',

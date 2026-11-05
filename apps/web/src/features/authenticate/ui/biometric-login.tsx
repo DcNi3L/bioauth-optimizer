@@ -1,62 +1,78 @@
 'use client';
 
-import type {
-  AuthSessionDto,
-  AuthStepResultDto,
-  LivenessCommand,
-  SubmitFaceRequest,
-} from '@bioauth/contracts';
+import type { AuthSessionDto, AuthStepResultDto, LivenessCommand } from '@bioauth/contracts';
 import { useState } from 'react';
 
-import { COMMAND_ICON, COMMAND_TEXT, FaceViewport, REASON_TITLES } from '@/entities/face';
+import { FaceViewport, type ViewportGuide, type ViewportStep } from '@/entities/face';
 import { useRefreshViewer } from '@/entities/viewer';
 import { ApiError } from '@/shared/api';
-import { grabFrame, sleep, useCamera } from '@/shared/lib/camera';
+import { type TKey, useI18n } from '@/shared/i18n';
+import { grabPair, sleep, useCamera } from '@/shared/lib/camera';
 import { ApiErrorNotice, Button, Notice, TextField } from '@/shared/ui';
 
-import { passkeyStep, startSession, submitFace } from '../api/auth';
-
-const BASELINE_FRAMES = 2;
-const STEP_FRAMES = 4;
-const FRAME_INTERVAL_MS = 350;
+import { passkeyStep, posePreview, startSession, submitFace } from '../api/auth';
+import { guidedCapture, type GuideState } from '../model/guided-capture';
 
 type Phase = 'login' | 'face' | 'passkey' | 'done' | 'failed';
 
-/** Съёмка попытки: нейтральные кадры, затем кадры каждой команды с подсказкой и пиктограммой. */
-async function captureAttempt(
-  video: HTMLVideoElement,
-  commands: readonly LivenessCommand[],
-  show: (text: string, icon?: string, progress?: number) => void,
-): Promise<SubmitFaceRequest> {
-  const total = BASELINE_FRAMES + commands.length * STEP_FRAMES;
-  let done = 0;
-  show('Смотрите прямо в камеру');
-  await sleep(1200);
-  const baseline = [];
-  for (let i = 0; i < BASELINE_FRAMES; i++) {
-    baseline.push(grabFrame(video));
-    show('Смотрите прямо в камеру', undefined, ++done / total);
-    await sleep(FRAME_INTERVAL_MS);
+const ALIGN_KEY: Record<string, TKey> = {
+  closer: 'face.guide.alignCloser',
+  farther: 'face.guide.alignFarther',
+  center: 'face.guide.alignCenter',
+  straight: 'face.guide.alignStraight',
+  hold: 'face.guide.hold',
+};
+
+/** Подсказка, тон контура и направляющие для текущего состояния управляемой съёмки. */
+function present(
+  g: GuideState | null,
+  t: ReturnType<typeof useI18n>['t'],
+): { text: string; guide: ViewportGuide } {
+  if (!g)
+    return {
+      text: t('face.guide.align'),
+      guide: { command: null, progress: 0, tone: 'neutral', box: null, showCenter: true },
+    };
+  const base = { box: g.box, showCenter: g.phase !== 'command' };
+  if (g.phase === 'align') {
+    const key =
+      g.hint && g.hint in ALIGN_KEY
+        ? ALIGN_KEY[g.hint]!
+        : g.hint && g.hint !== 'ok'
+          ? (`face.issue.${g.hint}` as TKey)
+          : 'face.guide.align';
+    return {
+      text: t(key),
+      guide: { ...base, command: null, progress: g.progress, tone: g.hint === 'hold' ? 'ok' : 'warn' },
+    };
   }
-  const steps = [];
-  for (const command of commands) {
-    show(COMMAND_TEXT[command], COMMAND_ICON[command], done / total);
-    await sleep(900);
-    const frames = [];
-    for (let i = 0; i < STEP_FRAMES; i++) {
-      frames.push(grabFrame(video));
-      show(COMMAND_TEXT[command], COMMAND_ICON[command], ++done / total);
-      await sleep(FRAME_INTERVAL_MS);
-    }
-    steps.push({ command, frames });
-    show('Вернитесь в исходное положение', undefined, done / total);
-    await sleep(500);
+  if (g.phase === 'baseline')
+    return {
+      text: t('face.guide.lookStraight'),
+      guide: { ...base, command: null, progress: g.progress, tone: 'ok' },
+    };
+  if (g.phase === 'command' && g.command) {
+    const text =
+      g.hint === 'NO_FACE'
+        ? t('face.issue.NO_FACE')
+        : g.hint === 'done'
+          ? t('face.guide.done')
+          : g.hint === 'timeout'
+            ? t('face.guide.timeout')
+            : g.hint === 'more'
+              ? `${t(`face.command.${g.command}`)} · ${t('face.guide.more')}`
+              : t(`face.command.${g.command}`);
+    const tone = g.hint === 'done' ? 'ok' : g.hint === 'NO_FACE' || g.hint === 'timeout' ? 'warn' : 'neutral';
+    return { text, guide: { ...base, command: g.command, progress: g.progress, tone } };
   }
-  return { baseline, steps };
+  if (g.phase === 'return')
+    return { text: t('face.guide.back'), guide: { ...base, command: null, progress: 0, tone: 'neutral' } };
+  return { text: t('face.guide.checking'), guide: { ...base, command: null, progress: 1, tone: 'ok' } };
 }
 
-/** Вход субъекта по активной политике (UC-4): лицо с командами, затем passkey, если он в политике. */
+/** Вход субъекта по активной политике (UC-4): лицо с управляемыми командами, затем passkey, если он в политике. */
 export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
+  const { t, locale } = useI18n();
   const { videoRef, state, start, stop } = useCamera();
   const refresh = useRefreshViewer();
   const [login, setLogin] = useState('');
@@ -64,7 +80,8 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
   const [session, setSession] = useState<AuthSessionDto | null>(null);
   const [commands, setCommands] = useState<LivenessCommand[]>([]);
   const [result, setResult] = useState<AuthStepResultDto | null>(null);
-  const [prompt, setPrompt] = useState<{ text: string; icon?: string; progress?: number }>({ text: '' });
+  const [guide, setGuide] = useState<GuideState | null>(null);
+  const [capturing, setCapturing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -105,22 +122,31 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
   }
 
   async function runFace() {
-    if (!session || !videoRef.current) return;
+    const video = videoRef.current;
+    if (!session || !video) return;
     setBusy(true);
+    setCapturing(true);
     setError(null);
+    setResult(null);
     try {
-      const body = await captureAttempt(videoRef.current, commands, (text, icon, progress) =>
-        setPrompt({ text, icon, progress }),
-      );
-      setPrompt({ text: 'Проверяю…' });
+      const body = await guidedCapture(commands, {
+        grab: () => {
+          const { full, small } = grabPair(video);
+          return { full: { image: full.image, ts: full.ts }, small };
+        },
+        pose: (f) => posePreview(session.sessionId, f),
+        sleep,
+        now: () => performance.now(),
+        onUpdate: setGuide,
+      });
       const r = await submitFace(session.sessionId, body);
       setResult(r);
-      setPrompt({ text: '' });
       nextPhase(session, r);
     } catch (err) {
       setError(err);
-      setPrompt({ text: '' });
     } finally {
+      setGuide(null);
+      setCapturing(false);
       setBusy(false);
     }
   }
@@ -146,10 +172,24 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
     setSession(null);
     setResult(null);
     setError(null);
+    setGuide(null);
   }
 
   const locked = error instanceof ApiError && error.status === 429;
   const lockedUntil = locked ? (error.problem.lockedUntil ?? null) : result?.lockedUntil;
+  const shown = present(guide, t);
+  const steps: ViewportStep[] = commands.map((command, i) => ({
+    command,
+    status: !guide
+      ? 'pending'
+      : guide.phase === 'checking' || i < guide.stepIndex
+        ? 'done'
+        : i === guide.stepIndex && guide.phase === 'command'
+          ? guide.hint === 'done'
+            ? 'done'
+            : 'active'
+          : 'pending',
+  }));
 
   return (
     <div className="flex flex-col gap-5">
@@ -162,7 +202,7 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
           }}
         >
           <TextField
-            label="Логин"
+            label={t('auth.login')}
             value={login}
             onChange={(e) => setLogin(e.target.value)}
             autoComplete="username"
@@ -170,49 +210,52 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
           />
           <div>
             <Button type="submit" busy={busy} disabled={login.trim().length < 3}>
-              Продолжить
+              {t('auth.continue')}
             </Button>
           </div>
         </form>
       )}
 
       {session && !session.calibrated && phase !== 'done' && (
-        <Notice tone="caution">
-          Пороги политики v{session.policyVersion} ещё не откалиброваны: используются значения по умолчанию.
-        </Notice>
+        <Notice tone="caution">{t('auth.uncalibrated', { v: session.policyVersion })}</Notice>
       )}
 
-      {result?.outcome === 'retry' && (
-        <Notice tone="caution" title={result.reason ? REASON_TITLES[result.reason] : 'Повторите'}>
-          {result.message}. Осталось попыток: {result.attemptsLeft}.
+      {result?.outcome === 'retry' && !capturing && (
+        <Notice
+          tone="caution"
+          title={result.reason ? t(`face.reason.${result.reason}`) : t('auth.retryTitle')}
+        >
+          {result.reason ? t(`auth.reasonText.${result.reason}`) : result.message}{' '}
+          {t('auth.attemptsLeft', { n: result.attemptsLeft })}
         </Notice>
       )}
 
       {phase === 'face' && (
         <div className="flex flex-col gap-4">
           <p className="text-graphite text-sm">
-            Шаг 1. Расположите лицо в овале и выполните команды на экране:{' '}
-            {commands.map((c) => COMMAND_TEXT[c].toLowerCase()).join(', ')}.
+            {t('auth.faceIntro', { list: commands.map((c) => t(`face.commandShort.${c}`)).join(', ') })}
           </p>
           <FaceViewport
             videoRef={videoRef}
             state={state}
-            prompt={prompt.text}
-            icon={prompt.icon}
-            progress={prompt.progress}
+            prompt={capturing ? shown.text : state === 'ready' ? t('face.guide.align') : undefined}
+            guide={capturing ? shown.guide : undefined}
+            overall={capturing ? guide?.overall : undefined}
+            steps={steps}
           />
-          <div className="flex gap-2">
+          {!capturing && <p className="text-graphite text-xs">{t('auth.tips')}</p>}
+          <div className="flex flex-wrap gap-2">
             {state === 'ready' ? (
               <Button onClick={() => void runFace()} busy={busy}>
-                {result?.outcome === 'retry' ? 'Повторить проверку' : 'Начать проверку'}
+                {result?.outcome === 'retry' ? t('auth.retryCheck') : t('auth.startCheck')}
               </Button>
             ) : (
               <Button onClick={() => void start()} busy={state === 'starting'}>
-                Включить камеру
+                {t('face.camera.enable')}
               </Button>
             )}
             <Button variant="secondary" onClick={reset} disabled={busy}>
-              Отмена
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
@@ -220,38 +263,38 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
 
       {phase === 'passkey' && (
         <div className="flex flex-col gap-3">
-          {result?.outcome === 'continue' && <Notice tone="success">Лицо подтверждено.</Notice>}
-          <p className="text-sm">
-            Шаг 2. Подтвердите вход passkey на этом устройстве: отпечатком пальца, Face ID или Windows Hello.
-          </p>
+          {result?.outcome === 'continue' && <Notice tone="success">{t('auth.faceAccepted')}</Notice>}
+          <p className="text-sm">{t('auth.passkeyIntro')}</p>
           <div className="flex gap-2">
             <Button onClick={() => void runPasskey()} busy={busy}>
-              Подтвердить passkey
+              {t('auth.passkeyConfirm')}
             </Button>
             <Button variant="secondary" onClick={reset} disabled={busy}>
-              Отмена
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
       )}
 
       {phase === 'done' && (
-        <Notice tone="success" title="Вход выполнен">
-          Добро пожаловать.
+        <Notice tone="success" title={t('auth.done')}>
+          {t('auth.welcome')}
         </Notice>
       )}
 
       {(phase === 'failed' || locked) && (
-        <Notice tone="error" title={result?.reason ? REASON_TITLES[result.reason] : 'Вход не выполнен'}>
-          {locked ? error.message : result?.message}
-          {lockedUntil && <> Повторить можно после {new Date(lockedUntil).toLocaleTimeString('ru-RU')}.</>}
+        <Notice tone="error" title={result?.reason ? t(`face.reason.${result.reason}`) : t('auth.failed')}>
+          {locked ? error.message : result?.reason ? t(`auth.reasonText.${result.reason}`) : result?.message}
+          {lockedUntil && (
+            <> {t('auth.retryAfter', { time: new Date(lockedUntil).toLocaleTimeString(locale) })}</>
+          )}
         </Notice>
       )}
       {!locked && <ApiErrorNotice error={error} />}
       {phase === 'failed' && (
         <div>
           <Button variant="secondary" onClick={reset}>
-            Начать заново
+            {t('auth.restart')}
           </Button>
         </div>
       )}

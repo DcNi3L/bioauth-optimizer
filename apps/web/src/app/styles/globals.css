@@ -89,3 +89,92 @@
     text-align: right;
   }
 }
+
+/* Направляющие команд в окне камеры: шевроны «бегут» в сторону движения, рамки «раскрываются». */
+@layer components {
+  .guide-chevron {
+    transform-box: fill-box;
+    animation: guide-fade 1.2s ease-in-out infinite;
+  }
+  .guide-chevron-left {
+    animation-name: guide-left;
+  }
+  .guide-chevron-right {
+    animation-name: guide-right;
+  }
+  .guide-chevron-up {
+    animation-name: guide-up;
+  }
+  .guide-dash {
+    animation: guide-dash 1s linear infinite;
+  }
+  .guide-expand {
+    transform-box: view-box;
+    transform-origin: 200px 140px;
+    animation: guide-expand 1.4s ease-in-out infinite;
+  }
+}
+@keyframes guide-left {
+  0% {
+    opacity: 0;
+    translate: 8px 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: -10px 0;
+  }
+}
+@keyframes guide-right {
+  0% {
+    opacity: 0;
+    translate: -8px 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 10px 0;
+  }
+}
+@keyframes guide-up {
+  0% {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -10px;
+  }
+}
+@keyframes guide-fade {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes guide-dash {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+@keyframes guide-expand {
+  0%,
+  100% {
+    scale: 0.92;
+    opacity: 0.6;
+  }
+  50% {
+    scale: 1.08;
+    opacity: 1;
+  }
+}

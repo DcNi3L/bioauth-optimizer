@@ -1,4 +1,5 @@
 import type {
+  BioAnalyzeResponse,
   BioBatchResponse,
   BioLivenessRequest,
   BioLivenessResponse,
@@ -35,6 +36,8 @@ export interface FaceEngine {
     template: { embedding: number[]; modelVersion: string },
   ): Promise<BioVerifyResponse>;
   liveness(req: BioLivenessRequest): Promise<BioLivenessResponse>;
+  /** Анализ одного кадра без решения — для живых подсказок позы. */
+  analyze(frame: Frame): Promise<BioAnalyzeResponse>;
   /** Пакетная оценка набора изображений (UC-9); отмена — через signal. */
   batchFace(archive: Buffer, opts: BatchFaceOptions, signal: AbortSignal): Promise<BioBatchResponse>;
 }

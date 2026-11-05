@@ -1,6 +1,6 @@
 'use client';
 
-import { enrollFaceResponseSchema } from '@bioauth/contracts';
+import { enrollFaceResponseSchema, type PosePreviewDto, posePreviewSchema } from '@bioauth/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { viewerKeys } from '@/entities/viewer';
@@ -23,3 +23,9 @@ export function useDeleteFace() {
     onSuccess: () => qc.invalidateQueries({ queryKey: viewerKeys.me }),
   });
 }
+
+export const enrollPose = (frame: {
+  image: string;
+  width: number;
+  height: number;
+}): Promise<PosePreviewDto> => apiSend('POST', '/enrollment/pose', frame, posePreviewSchema);

@@ -95,6 +95,44 @@ export async function startFakeBioEngine(): Promise<FakeBioEngine> {
       }
       const json = JSON.parse(body) as Record<string, unknown>;
       const version = 'fake-sface+fake-yunet';
+      if (req.url === '/v1/face/analyze') {
+        const f = parse((json.frames as Frame[])[0]!.image);
+        const ok = f.tag !== 'bad';
+        send(200, {
+          modelVersion: version,
+          frames: [
+            {
+              faces: ok ? 1 : 0,
+              face: ok
+                ? {
+                    bbox: [80, 60, 160, 180],
+                    landmarks: [
+                      [120, 120],
+                      [200, 120],
+                      [160, 160],
+                      [130, 200],
+                      [190, 200],
+                    ],
+                    score: 0.95,
+                  }
+                : null,
+              quality: ok
+                ? {
+                    interocularPx: 80,
+                    sharpness: 120,
+                    brightness: 120,
+                    yawDeg: 0,
+                    pitchDeg: 0,
+                    yawRatio: f.tag === 'TURN_LEFT' ? 0.2 : 0,
+                    pitchRatio: 1.6,
+                  }
+                : null,
+              issues: ok ? [] : ['NO_FACE'],
+            },
+          ],
+        });
+        return;
+      }
       if (req.url === '/v1/face/template') {
         const frames = (json.frames as Frame[]).map((f) => parse(f.image));
         const good = frames.filter((f) => f.tag !== 'bad');

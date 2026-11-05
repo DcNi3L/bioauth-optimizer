@@ -37,6 +37,8 @@ class QualityOut(Model):
     brightness: float
     yaw_deg: float
     pitch_deg: float
+    yaw_ratio: float = Field(description='Смещение носа от середины глаз в долях межзрачкового расстояния')
+    pitch_ratio: float = Field(description='(глаза–нос)/(нос–рот); меньше — подбородок выше')
 
 
 class FrameAnalysis(Model):
