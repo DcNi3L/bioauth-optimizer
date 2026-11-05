@@ -59,6 +59,12 @@ export const CurrentUser = createParamDecorator((_: unknown, ctx: ExecutionConte
   return user;
 });
 
+/** Пользователь, если вход выполнен; для открытых (@Public) маршрутов. */
+export const OptionalUser = createParamDecorator(
+  (_: unknown, ctx: ExecutionContext): AuthUser | null =>
+    ctx.switchToHttp().getRequest<Request & { user?: AuthUser }>().user ?? null,
+);
+
 export function readCookie(req: Request, name: string): string | undefined {
   const header = req.headers.cookie;
   if (!header) return undefined;

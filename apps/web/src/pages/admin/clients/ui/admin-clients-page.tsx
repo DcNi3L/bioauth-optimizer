@@ -1,0 +1,142 @@
+'use client';
+
+import type { OauthClientDto } from '@bioauth/contracts';
+import { useQuery } from '@tanstack/react-query';
+import { AppWindow, Plus } from 'lucide-react';
+import { useState } from 'react';
+
+import { useOauthClients } from '@/entities/oauth-client';
+import { useViewer } from '@/entities/viewer';
+import { ClientActions, ClientFormDialog, CopyButton } from '@/features/admin/manage-oauth-client';
+import { useT } from '@/shared/i18n';
+import { useFormat } from '@/shared/lib';
+import { ApiErrorNotice, Badge, Button, EmptyState, Panel, Skeleton } from '@/shared/ui';
+
+interface Discovery {
+  issuer: string;
+  authorization_endpoint: string;
+  token_endpoint: string;
+  userinfo_endpoint: string;
+  jwks_uri: string;
+  introspection_endpoint?: string;
+  revocation_endpoint?: string;
+  end_session_endpoint?: string;
+}
+
+function Endpoints() {
+  const t = useT();
+  const d = useQuery({
+    queryKey: ['oidc', 'discovery'],
+    queryFn: async () => (await fetch('/.well-known/openid-configuration')).json() as Promise<Discovery>,
+  });
+  if (!d.data) return <Skeleton className="h-40 w-full" />;
+  const rows: [string, string | undefined][] = [
+    [t('admin.clients.issuer'), d.data.issuer],
+    ['discovery', `${d.data.issuer}/.well-known/openid-configuration`],
+    ['authorize', d.data.authorization_endpoint],
+    ['token', d.data.token_endpoint],
+    ['userinfo', d.data.userinfo_endpoint],
+    ['jwks', d.data.jwks_uri],
+    ['introspect', d.data.introspection_endpoint],
+    ['revoke', d.data.revocation_endpoint],
+    ['logout', d.data.end_session_endpoint],
+  ];
+  return (
+    <dl className="divide-rule divide-y">
+      {rows
+        .filter((r): r is [string, string] => !!r[1])
+        .map(([k, v]) => (
+          <div key={k} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
+            <dt className="text-graphite w-24 shrink-0 text-xs">{k}</dt>
+            <dd className="min-w-0 flex-1 break-all font-mono text-[12.5px]">{v}</dd>
+            <CopyButton value={v} />
+          </div>
+        ))}
+    </dl>
+  );
+}
+
+function ClientCard({ c, canEdit }: { c: OauthClientDto; canEdit: boolean }) {
+  const t = useT();
+  const f = useFormat();
+  return (
+    <li
+      className={`border-rule bg-sheet flex flex-col gap-3 rounded-xl border p-4 ${c.disabled ? 'opacity-70' : ''}`}
+    >
+      <div className="flex items-start gap-3">
+        <span className="bg-frr-bg text-frr flex size-11 shrink-0 items-center justify-center rounded-xl font-serif text-xl font-semibold">
+          {c.name.slice(0, 1).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-2 font-medium">
+            {c.name}
+            <Badge tone={c.type === 'confidential' ? 'ink' : 'neutral'}>
+              {c.type === 'confidential' ? t('admin.clients.confidential') : t('admin.clients.public')}
+            </Badge>
+            {c.firstParty && <Badge tone="optimum">{t('admin.clients.firstPartyBadge')}</Badge>}
+            {c.disabled && <Badge tone="far">{t('admin.clients.disabled')}</Badge>}
+          </p>
+          <p className="text-graphite num mt-0.5 text-xs">
+            {c.clientId} · {f.date(c.createdAt)} · {t('admin.clients.grantsN', { n: c.activeGrants })}
+          </p>
+          {c.description && <p className="text-graphite mt-1 text-sm">{c.description}</p>}
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {c.grantTypes.map((g) => (
+          <Badge key={g}>{g}</Badge>
+        ))}
+        {c.scopes.map((s) => (
+          <Badge key={s} tone="frr">
+            {s}
+          </Badge>
+        ))}
+      </div>
+      {c.redirectUris.length > 0 && (
+        <ul className="text-graphite break-all font-mono text-[12px]">
+          {c.redirectUris.map((u) => (
+            <li key={u}>↩ {u}</li>
+          ))}
+        </ul>
+      )}
+      {canEdit && <ClientActions client={c} />}
+    </li>
+  );
+}
+
+/** Приложения OAuth: регистрация клиентов сервера авторизации, ротация секретов, конечные точки. */
+export function AdminClientsPage() {
+  const t = useT();
+  const me = useViewer().data;
+  const clients = useOauthClients();
+  const [creating, setCreating] = useState(false);
+  const canEdit = me?.role === 'admin' && me.mfaComplete;
+  return (
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg">{t('nav.clients')}</h2>
+          <Button onClick={() => setCreating(true)} disabled={!canEdit}>
+            <Plus className="size-4" /> {t('admin.clients.create')}
+          </Button>
+        </div>
+        <ApiErrorNotice error={clients.error} />
+        {!clients.data ? (
+          <Skeleton className="h-48 w-full" />
+        ) : clients.data.length === 0 ? (
+          <EmptyState icon={<AppWindow />} title={t('admin.clients.empty')} />
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {clients.data.map((c) => (
+              <ClientCard key={c.clientId} c={c} canEdit={canEdit} />
+            ))}
+          </ul>
+        )}
+      </div>
+      <Panel title={t('admin.clients.endpoints')} className="h-fit xl:sticky xl:top-20">
+        <Endpoints />
+      </Panel>
+      {creating && <ClientFormDialog open client={null} onClose={() => setCreating(false)} />}
+    </div>
+  );
+}

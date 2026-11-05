@@ -9,9 +9,9 @@ export const STATUS_LABELS: Record<AuthPolicyDto['status'], string> = {
 
 export const STATUS_TONE: Record<AuthPolicyDto['status'], string> = {
   proposed: 'bg-caution-bg text-caution',
-  active: 'bg-[#e7f3ec] text-optimum',
+  active: 'bg-optimum-bg text-optimum',
   retired: 'bg-paper text-graphite',
-  rejected: 'bg-[#fbecee] text-far',
+  rejected: 'bg-far-bg text-far',
 };
 
 const n = (x: number) => x.toLocaleString('ru-RU', { maximumFractionDigits: 4 });

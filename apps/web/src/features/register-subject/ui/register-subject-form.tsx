@@ -3,11 +3,13 @@
 import { registerSubjectRequestSchema } from '@bioauth/contracts';
 import { useState } from 'react';
 
+import { useT } from '@/shared/i18n';
 import { ApiErrorNotice, Button, TextField } from '@/shared/ui';
 
 import { useRegisterSubject } from '../api/register';
 
 export function RegisterSubjectForm() {
+  const t = useT();
   const register = useRegisterSubject();
   const [login, setLogin] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -32,15 +34,15 @@ export function RegisterSubjectForm() {
       }}
     >
       <TextField
-        label="Логин"
+        label={t('enroll.login')}
         value={login}
         onChange={(e) => setLogin(e.target.value)}
         error={errors.login}
-        hint="Латиница и цифры, например ivan.petrov"
+        hint={t('enroll.loginHint')}
         autoComplete="username"
       />
       <TextField
-        label="Имя"
+        label={t('enroll.name')}
         value={displayName}
         onChange={(e) => setDisplayName(e.target.value)}
         error={errors.displayName}
@@ -49,7 +51,7 @@ export function RegisterSubjectForm() {
       <ApiErrorNotice error={register.error} />
       <div>
         <Button type="submit" busy={register.isPending}>
-          Создать учётную запись
+          {t('enroll.create')}
         </Button>
       </div>
     </form>

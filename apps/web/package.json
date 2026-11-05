@@ -1,6 +1,6 @@
 {
   "name": "@bioauth/web",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "description": "Интерфейс BioAuth Optimizer (Next.js, Feature-Sliced Design)",
   "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
@@ -20,6 +20,7 @@
     "@simplewebauthn/browser": "14.0.0",
     "@tanstack/react-query": "5.105.3",
     "echarts": "5.6.0",
+    "lucide-react": "0.468.0",
     "next": "15.5.29",
     "react": "19.1.10",
     "react-dom": "19.1.10"

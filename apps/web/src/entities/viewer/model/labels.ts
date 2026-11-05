@@ -8,3 +8,5 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export const isStaff = (role: Role) => role !== 'subject';
+
+export const roleLabel = (t: (k: `role.${Role}`) => string, role: Role) => t(`role.${role}`);

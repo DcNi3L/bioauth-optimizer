@@ -1,4 +1,10 @@
-import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, useId } from 'react';
+import {
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+  useId,
+} from 'react';
 
 interface FieldShellProps {
   label: ReactNode;
@@ -90,6 +96,32 @@ export function SelectField({
         <select id={id} aria-describedby={describedBy} className={`${inputClass(error)} pr-8`} {...props}>
           {children}
         </select>
+      )}
+    </FieldShell>
+  );
+}
+
+export function TextAreaField({
+  label,
+  hint,
+  error,
+  className,
+  ...props
+}: Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> & {
+  label: ReactNode;
+  hint?: ReactNode;
+  error?: string;
+}) {
+  return (
+    <FieldShell label={label} hint={hint} error={error} className={className}>
+      {(id, describedBy) => (
+        <textarea
+          id={id}
+          aria-describedby={describedBy}
+          aria-invalid={!!error || undefined}
+          className={`${inputClass(error)} h-auto min-h-20 py-2 font-mono text-[13px]`}
+          {...props}
+        />
       )}
     </FieldShell>
   );

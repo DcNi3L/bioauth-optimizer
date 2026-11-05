@@ -3,7 +3,7 @@
 import type { AuthPolicyDto } from '@bioauth/contracts';
 
 import { describeStep, PolicyStatus } from '@/entities/policy';
-import { PolicyActions } from '@/features/manage-policy';
+import { PolicyActions } from '@/features/admin/manage-policy';
 import { formatDateTime, formatNumber } from '@/shared/lib';
 
 /**

@@ -1,5 +1,8 @@
+import { ruV3 } from './ru-v3';
+
 /** Русский — основной язык; структура этого словаря задаёт ключи для остальных. */
 export const ru = {
+  ...ruV3,
   common: {
     loading: 'Загрузка…',
     cancel: 'Отмена',
@@ -15,6 +18,8 @@ export const ru = {
     current: 'текущая',
     copy: 'Копировать',
     copied: 'Скопировано',
+    edit: 'Изменить',
+    refresh: 'Обновить',
   },
   face: {
     camera: {
@@ -75,6 +80,7 @@ export const ru = {
     },
   },
   auth: {
+    passwordAccepted: 'Пароль принят. Подтвердите вход passkey.',
     login: 'Логин',
     password: 'Пароль',
     continue: 'Продолжить',
@@ -115,6 +121,31 @@ export const ru = {
     },
   },
   enroll: {
+    title: 'Регистрация биометрии',
+    lead: 'Четыре шага: учётная запись, согласие на обработку данных, снимок лица и, по желанию, passkey — отпечаток пальца или Face ID на вашем устройстве.',
+    staffNote: 'Вы вошли как сотрудник. Регистрация биометрии предназначена для пользователей.',
+    stepAccount: 'Учётная запись',
+    stepConsent: 'Согласие на обработку биометрических данных',
+    stepFace: 'Снимок лица',
+    stepPasskey: 'Passkey (по желанию)',
+    already: 'Уже зарегистрированы?',
+    doneTo: 'Готово? Перейдите в профиль или проверьте вход.',
+    stepDone: 'Готово.',
+    stepLocked: 'Будет доступно после предыдущего шага.',
+    completed: '(выполнено)',
+    login: 'Логин',
+    loginHint: 'Латиница и цифры, например ivan.petrov',
+    name: 'Имя',
+    create: 'Создать учётную запись',
+    consentLoading: 'Загружаю текст согласия…',
+    consentVersion: 'Редакция {v}',
+    consentCheck: 'Я прочитал(а) текст и даю согласие',
+    consentGive: 'Дать согласие',
+    pkUnsupported: 'Этот браузер не поддерживает passkey (WebAuthn). Вход будет возможен только по лицу.',
+    pkCancelled: 'Регистрация отменена на устройстве. Попробуйте ещё раз.',
+    pkDone: 'Passkey зарегистрирован.',
+    pkAdd: 'Добавить ещё passkey',
+    pkRegister: 'Зарегистрировать passkey',
     capture: 'Снять лицо',
     recapture: 'Снять заново',
     holding: 'Держите так — снимаю кадры',
@@ -127,3 +158,4 @@ export const ru = {
 
 type Widen<T> = { [K in keyof T]: T[K] extends string ? string : Widen<T[K]> };
 export type Dict = Widen<typeof ru>;
+export type DictV3 = Widen<typeof ruV3>;

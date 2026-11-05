@@ -2,7 +2,7 @@
 
 import type { DriftAlertDto } from '@bioauth/contracts';
 
-import { AcknowledgeDriftButton } from '@/features/acknowledge-drift';
+import { AcknowledgeDriftButton } from '@/features/admin/acknowledge-drift';
 import { formatDateTime, formatNumber, formatPercent } from '@/shared/lib';
 import { Notice } from '@/shared/ui';
 

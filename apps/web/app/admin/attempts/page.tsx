@@ -1,1 +1,1 @@
-export { AdminAttemptsPage as default } from '@/pages/admin-attempts';
+export { AdminAttemptsPage as default } from '@/pages/admin/attempts';

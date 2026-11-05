@@ -32,10 +32,10 @@ export function ThresholdPage() {
   };
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl">Оптимальный порог</h1>
+          <h2 className="text-xl">Оптимальный порог</h2>
           <p className="text-graphite mt-1 max-w-prose text-sm">
             Минимум байесовской стоимости E(τ) = cFA·FAR(τ) + cFR·FRR(τ) — формула (1) статьи СРО1.
           </p>

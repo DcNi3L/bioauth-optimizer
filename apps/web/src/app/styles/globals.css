@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * «Калибровочный стенд»: светлая лабораторная бумага, чернила, у каждой ошибки — свой постоянный цвет.
  * FAR (злоумышленник прошёл) — малиновый, FRR (законный отвергнут) — синий, выбранный оптимум — зелёный.
@@ -15,9 +17,42 @@
   --color-optimum: #2e7d4f;
   --color-caution: #8a5a00;
   --color-caution-bg: #fbf1dc;
+  --color-far-bg: #fbecee;
+  --color-far-ink: #7d1a2b;
+  --color-frr-bg: #e8f0f6;
+  --color-frr-ink: #16486b;
+  --color-optimum-bg: #e7f3ec;
+  --color-optimum-ink: #1f5a38;
+  --color-hover: #e9ede8;
+  --color-ink-hover: #2a3644;
+  --color-overlay: rgb(23 32 43 / 0.45);
 
   --font-sans: 'Golos Text Variable', 'Golos Text', system-ui, sans-serif;
   --font-serif: 'Literata Variable', 'Literata', Georgia, serif;
+}
+
+/* Тёмная тема — ночная лаборатория: те же роли цветов, яркость поднята для контраста на тёмном. */
+.dark {
+  color-scheme: dark;
+  --color-paper: #0e1318;
+  --color-sheet: #151c23;
+  --color-ink: #e4e9ee;
+  --color-graphite: #96a1ad;
+  --color-rule: #27313b;
+  --color-far: #ef6a82;
+  --color-frr: #6db1e2;
+  --color-optimum: #5cc58c;
+  --color-caution: #e3b45a;
+  --color-caution-bg: #2b2313;
+  --color-far-bg: #34161d;
+  --color-far-ink: #f7b3c0;
+  --color-frr-bg: #12283a;
+  --color-frr-ink: #b5d8f2;
+  --color-optimum-bg: #12291d;
+  --color-optimum-ink: #a9e2c1;
+  --color-hover: #1d262f;
+  --color-ink-hover: #c9d1d9;
+  --color-overlay: rgb(0 0 0 / 0.6);
 }
 
 @layer base {
@@ -45,7 +80,7 @@
     outline-offset: 2px;
   }
   ::selection {
-    background: #cfe0ec;
+    background: color-mix(in srgb, var(--color-frr) 30%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -176,5 +211,48 @@
   50% {
     scale: 1.08;
     opacity: 1;
+  }
+}
+
+/* Выезжающая боковая панель на телефоне. */
+@layer components {
+  .drawer-in {
+    animation: drawer-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/* Обложка профиля: сетка калибровочного стенда с кривыми FAR/FRR. */
+@layer components {
+  .profile-cover {
+    background:
+      radial-gradient(
+        120% 140% at 0% 100%,
+        color-mix(in srgb, var(--color-frr) 28%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        120% 140% at 100% 0%,
+        color-mix(in srgb, var(--color-optimum) 26%, transparent),
+        transparent 55%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--color-rule) 70%, transparent) 0 1px,
+        transparent 1px 22px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-rule) 70%, transparent) 0 1px,
+        transparent 1px 22px
+      ),
+      var(--color-paper);
   }
 }

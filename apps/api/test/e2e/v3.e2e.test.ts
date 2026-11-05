@@ -223,6 +223,10 @@ describeDb('API v3 e2e: учётные записи, админ-панель, Op
       const r = await subject.get(`/oidc/authorize?${q.toString()}`).expect(302);
       expect(r.headers.location).toMatch(new RegExp(`^${ORIGIN}/oauth/consent\\?request=`));
       const id = new URL(r.headers.location!).searchParams.get('request')!;
+      // Страница входа показывает название приложения и без сессии.
+      const anonId = new URL(anon.headers.location!).searchParams.get('oauth')!;
+      const anonInfo = await ctx.agent().get(`/api/v1/oauth/requests/${anonId}`).expect(200);
+      expect(anonInfo.body).toMatchObject({ client: { name: expect.any(String) }, user: null });
       const info = await subject.get(`/api/v1/oauth/requests/${id}`).expect(200);
       expect(info.body).toMatchObject({
         client: { clientId: 'bioauth-demo' },

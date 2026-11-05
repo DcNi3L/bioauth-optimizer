@@ -64,10 +64,10 @@ export function FactorsPage() {
   );
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl">Состав факторов</h1>
+          <h2 className="text-xl">Состав факторов</h2>
           <p className="text-graphite mt-1 max-w-prose text-sm">
             Целочисленная задача (2)–(3) статьи СРО1: FAR = ∏FARᵢ, FRR = 1 − ∏(1 − FRRᵢ), задержка и стоимость
             складываются.

@@ -21,3 +21,4 @@
 | [0015](0015-closed-loop-calibration.md)              | Замкнутый контур калибровки: измерение → ядро v1 → утверждаемая политика              | Принято с уточнением (v2.2)     |
 | [0016](0016-sessions-roles-mfa.md)                   | Сессии в httpOnly cookie, роли, MFA сотрудников                                       | Принято                         |
 | [0017](0017-audit-hash-chain.md)                     | Журнал аудита: только добавление, цепочка SHA-256                                     | Принято                         |
+| [0018](0018-oidc-authorization-server.md)            | BioAuth как сервер авторизации OpenID Connect (код + PKCE, RS256, JWKS)               | Принято                         |

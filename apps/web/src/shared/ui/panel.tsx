@@ -15,7 +15,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`border-rule bg-sheet rounded-lg border ${className}`}>
+    <section className={`border-rule bg-sheet rounded-xl border ${className}`}>
       {(title !== undefined || actions !== undefined) && (
         <header className="border-rule flex flex-wrap items-start justify-between gap-3 border-b px-5 py-4">
           <div className="max-w-prose">

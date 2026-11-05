@@ -49,7 +49,7 @@ export async function apiGet<T>(path: string, schema?: z.ZodType<T>): Promise<T>
 }
 
 export async function apiSend<T>(
-  method: 'POST' | 'PUT' | 'DELETE',
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
   body?: unknown,
   schema?: z.ZodType<T>,

@@ -27,7 +27,7 @@ export function ExperimentsTable() {
       {list.isSuccess && items.length === 0 && (
         <p className="text-graphite text-sm">
           Экспериментов пока нет. Выполните расчёт на странице{' '}
-          <Link className="text-frr underline" href="/threshold">
+          <Link className="text-frr underline" href="/algorithm/threshold">
             «Порог»
           </Link>{' '}
           или{' '}
@@ -56,7 +56,7 @@ export function ExperimentsTable() {
                   <td className="whitespace-nowrap">{EXPERIMENT_TYPE_LABELS[e.type]}</td>
                   <td>
                     <Link
-                      href={`/experiments/${e.id}`}
+                      href={`/algorithm/history/${e.id}`}
                       className={`hover:underline ${e.status === 'INFEASIBLE' ? 'text-far' : 'text-ink'}`}
                     >
                       {e.headline}

@@ -266,7 +266,7 @@ export class OidcService {
     return { redirect: this.redirectWith(p.redirectUri, { code, state: p.state }) };
   }
 
-  async requestInfo(id: string, user: AuthUser): Promise<OauthRequestInfoDto> {
+  async requestInfo(id: string, user: AuthUser | null): Promise<OauthRequestInfoDto> {
     const p = await this.repo.request(id);
     if (!p) throw new NotFoundError('запрос авторизации не найден или истёк');
     const client = await this.activeClient(p.clientId);
@@ -280,7 +280,7 @@ export class OidcService {
       },
       scopes: p.scope,
       redirectHost: new URL(p.redirectUri).host,
-      user: { login: user.login, displayName: user.displayName },
+      user: user && { login: user.login, displayName: user.displayName },
     };
   }
 

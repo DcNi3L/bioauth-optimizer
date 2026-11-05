@@ -21,7 +21,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'optimizer', testMatch: /sro1\.spec\.ts/ },
+    { name: 'optimizer', testMatch: /(sro1|oidc)\.spec\.ts/ },
     ...(biometrics
       ? [
           {

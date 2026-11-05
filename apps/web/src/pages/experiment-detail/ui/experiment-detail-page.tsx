@@ -20,15 +20,15 @@ export function ExperimentDetailPage({ id }: { id: string }) {
   const q = useExperiment(id);
   const e = q.data;
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <Link href="/experiments" className="text-frr w-fit text-sm hover:underline">
+    <div className="flex max-w-5xl flex-col gap-6">
+      <Link href="/algorithm/history" className="text-frr w-fit text-sm hover:underline">
         К истории
       </Link>
       <ApiErrorNotice error={q.error} />
       {e && (
         <>
           <div>
-            <h1 className="text-2xl">{EXPERIMENT_TYPE_LABELS[e.type]}</h1>
+            <h2 className="text-xl">{EXPERIMENT_TYPE_LABELS[e.type]}</h2>
             <p className="text-graphite mt-1 text-sm">
               {formatDateTime(e.createdAt)}; метод: {e.solver ? (SOLVER_LABELS[e.solver] ?? e.solver) : '—'};
               ядро {e.coreVersion}; {e.durationMs} мс

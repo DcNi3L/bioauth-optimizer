@@ -1,1 +1,1 @@
-export { AdminPoliciesPage as default } from '@/pages/admin-policies';
+export { AdminPoliciesPage as default } from '@/pages/admin/policies';

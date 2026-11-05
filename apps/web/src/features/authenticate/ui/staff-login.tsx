@@ -3,12 +3,14 @@
 import { useState } from 'react';
 
 import { useRefreshViewer } from '@/entities/viewer';
+import { useT } from '@/shared/i18n';
 import { ApiErrorNotice, Button, Notice, TextField } from '@/shared/ui';
 
 import { staffLogin, staffPasskey } from '../api/auth';
 
 /** Вход сотрудника: пароль, затем passkey (если зарегистрирован); без passkey — предложение зарегистрировать. */
 export function StaffLogin({ onSuccess }: { onSuccess?: (needsPasskey: boolean) => void }) {
+  const t = useT();
   const refresh = useRefreshViewer();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
@@ -56,14 +58,14 @@ export function StaffLogin({ onSuccess }: { onSuccess?: (needsPasskey: boolean) 
           }}
         >
           <TextField
-            label="Логин"
+            label={t('auth.login')}
             value={login}
             onChange={(e) => setLogin(e.target.value)}
             autoComplete="username"
             required
           />
           <TextField
-            label="Пароль"
+            label={t('auth.password')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -72,16 +74,16 @@ export function StaffLogin({ onSuccess }: { onSuccess?: (needsPasskey: boolean) 
           />
           <div>
             <Button type="submit" busy={busy}>
-              Войти
+              {t('auth.signIn')}
             </Button>
           </div>
         </form>
       ) : (
         <>
-          <Notice tone="info">Пароль принят. Подтвердите вход passkey.</Notice>
+          <Notice tone="info">{t('auth.passwordAccepted')}</Notice>
           <div>
             <Button onClick={() => void confirmPasskey()} busy={busy}>
-              Подтвердить passkey
+              {t('auth.passkeyConfirm')}
             </Button>
           </div>
         </>

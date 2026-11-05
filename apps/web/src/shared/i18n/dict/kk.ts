@@ -1,6 +1,8 @@
+import { kkV3 } from './kk-v3';
 import type { Dict } from './ru';
 
 export const kk: Dict = {
+  ...kkV3,
   common: {
     loading: 'Жүктелуде…',
     cancel: 'Бас тарту',
@@ -16,6 +18,8 @@ export const kk: Dict = {
     current: 'ағымдағы',
     copy: 'Көшіру',
     copied: 'Көшірілді',
+    edit: 'Өзгерту',
+    refresh: 'Жаңарту',
   },
   face: {
     camera: {
@@ -76,6 +80,7 @@ export const kk: Dict = {
     },
   },
   auth: {
+    passwordAccepted: 'Құпиясөз қабылданды. Кіруді passkey арқылы растаңыз.',
     login: 'Логин',
     password: 'Құпиясөз',
     continue: 'Жалғастыру',
@@ -115,6 +120,31 @@ export const kk: Dict = {
     },
   },
   enroll: {
+    title: 'Биометрияны тіркеу',
+    lead: 'Төрт қадам: тіркелгі, деректерді өңдеуге келісім, бет суреті және қаласаңыз passkey — құрылғыңыздағы саусақ ізі немесе Face ID.',
+    staffNote: 'Сіз қызметкер ретінде кірдіңіз. Биометрияны тіркеу пайдаланушыларға арналған.',
+    stepAccount: 'Тіркелгі',
+    stepConsent: 'Биометриялық деректерді өңдеуге келісім',
+    stepFace: 'Бет суреті',
+    stepPasskey: 'Passkey (қалау бойынша)',
+    already: 'Тіркелгенсіз бе?',
+    doneTo: 'Дайын ба? Профильге өтіңіз немесе кіруді тексеріңіз.',
+    stepDone: 'Дайын.',
+    stepLocked: 'Алдыңғы қадамнан кейін қолжетімді болады.',
+    completed: '(орындалды)',
+    login: 'Логин',
+    loginHint: 'Латын әріптері мен сандар, мысалы ivan.petrov',
+    name: 'Аты',
+    create: 'Тіркелгі құру',
+    consentLoading: 'Келісім мәтіні жүктелуде…',
+    consentVersion: 'Редакция {v}',
+    consentCheck: 'Мәтінді оқыдым және келісім беремін',
+    consentGive: 'Келісім беру',
+    pkUnsupported: 'Бұл браузер passkey (WebAuthn) қолдамайды. Кіру тек бет арқылы мүмкін болады.',
+    pkCancelled: 'Тіркеу құрылғыда тоқтатылды. Қайталап көріңіз.',
+    pkDone: 'Passkey тіркелді.',
+    pkAdd: 'Тағы passkey қосу',
+    pkRegister: 'Passkey тіркеу',
     capture: 'Бетті түсіру',
     recapture: 'Қайта түсіру',
     holding: 'Осылай ұстаңыз — кадрлар түсірілуде',

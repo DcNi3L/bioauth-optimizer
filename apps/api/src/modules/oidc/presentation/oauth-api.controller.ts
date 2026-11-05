@@ -17,7 +17,14 @@ import {
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { type AuthUser, CurrentUser, RequireMfa, Roles } from '../../../shared/auth/auth';
+import {
+  type AuthUser,
+  CurrentUser,
+  OptionalUser,
+  Public,
+  RequireMfa,
+  Roles,
+} from '../../../shared/auth/auth';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import { ClientsService } from '../application/clients.service';
@@ -29,9 +36,13 @@ export class OauthApiController {
   constructor(private readonly oidc: OidcService) {}
 
   @Get('requests/:id')
-  @ApiOperation({ summary: 'Запрос авторизации для страницы согласия' })
+  @Public()
+  @ApiOperation({ summary: 'Запрос авторизации для страниц входа и согласия (user = null без входа)' })
   @ApiZodOk(oauthRequestInfoSchema)
-  request(@CurrentUser() user: AuthUser, @Param('id', UuidPipe) id: string): Promise<OauthRequestInfoDto> {
+  request(
+    @OptionalUser() user: AuthUser | null,
+    @Param('id', UuidPipe) id: string,
+  ): Promise<OauthRequestInfoDto> {
     return this.oidc.requestInfo(id, user);
   }
 

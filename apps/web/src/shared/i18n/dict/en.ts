@@ -1,6 +1,8 @@
+import { enV3 } from './en-v3';
 import type { Dict } from './ru';
 
 export const en: Dict = {
+  ...enV3,
   common: {
     loading: 'Loading…',
     cancel: 'Cancel',
@@ -16,6 +18,8 @@ export const en: Dict = {
     current: 'current',
     copy: 'Copy',
     copied: 'Copied',
+    edit: 'Edit',
+    refresh: 'Refresh',
   },
   face: {
     camera: {
@@ -76,6 +80,7 @@ export const en: Dict = {
     },
   },
   auth: {
+    passwordAccepted: 'Password accepted. Confirm sign-in with your passkey.',
     login: 'Login',
     password: 'Password',
     continue: 'Continue',
@@ -115,6 +120,32 @@ export const en: Dict = {
     },
   },
   enroll: {
+    title: 'Biometric sign-up',
+    lead: 'Four steps: account, consent to data processing, face capture and, optionally, a passkey — fingerprint or Face ID on your device.',
+    staffNote: 'You are signed in as staff. Biometric sign-up is meant for users.',
+    stepAccount: 'Account',
+    stepConsent: 'Consent to biometric data processing',
+    stepFace: 'Face capture',
+    stepPasskey: 'Passkey (optional)',
+    already: 'Already registered?',
+    doneTo: 'Done? Go to your profile or try signing in.',
+    stepDone: 'Done.',
+    stepLocked: 'Available after the previous step.',
+    completed: '(completed)',
+    login: 'Login',
+    loginHint: 'Latin letters and digits, e.g. ivan.petrov',
+    name: 'Name',
+    create: 'Create account',
+    consentLoading: 'Loading consent text…',
+    consentVersion: 'Version {v}',
+    consentCheck: 'I have read the text and give consent',
+    consentGive: 'Give consent',
+    pkUnsupported:
+      'This browser does not support passkeys (WebAuthn). Sign-in will be possible by face only.',
+    pkCancelled: 'Registration was cancelled on the device. Try again.',
+    pkDone: 'Passkey registered.',
+    pkAdd: 'Add another passkey',
+    pkRegister: 'Register passkey',
     capture: 'Capture face',
     recapture: 'Capture again',
     holding: 'Hold still — capturing frames',

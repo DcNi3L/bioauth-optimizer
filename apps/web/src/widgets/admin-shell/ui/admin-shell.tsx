@@ -5,79 +5,70 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { useCalibrationOverview } from '@/entities/calibration';
-import { isStaff, ROLE_LABELS, useViewer } from '@/entities/viewer';
-import { Notice } from '@/shared/ui';
+import { isStaff, useViewer } from '@/entities/viewer';
+import { type TKey, useT } from '@/shared/i18n';
+import { Notice, PageHeader, Skeleton } from '@/shared/ui';
 
 import { DriftBanner } from './drift-banner';
 
-const TABS = [
-  { href: '/admin', label: 'Обзор' },
-  { href: '/admin/calibration', label: 'Калибровка' },
-  { href: '/admin/policies', label: 'Политики' },
-  { href: '/admin/attempts', label: 'Попытки' },
-  { href: '/admin/pad-test', label: 'Испытание PAD' },
-  { href: '/admin/batch', label: 'Пакетный режим' },
-  { href: '/admin/report', label: 'Протокол' },
-  { href: '/admin/audit', label: 'Аудит' },
-] as const;
+const HEADERS: readonly { href: string; title: TKey; description?: TKey; exact?: boolean }[] = [
+  { href: '/admin', title: 'nav.dashboard', description: 'admin.dash.subtitle', exact: true },
+  { href: '/admin/users', title: 'nav.users', description: 'admin.users.subtitle', exact: true },
+  { href: '/admin/logins', title: 'nav.logins', description: 'admin.logins.subtitle' },
+  { href: '/admin/policies', title: 'nav.policies' },
+  { href: '/admin/attempts', title: 'nav.attempts' },
+  { href: '/admin/clients', title: 'nav.clients', description: 'admin.clients.subtitle' },
+  { href: '/admin/audit', title: 'nav.audit' },
+];
 
 /**
- * Рабочее место сотрудника (UC-6…UC-9). Доступ проверяет сервер (роли, MFA); здесь — понятные сообщения
- * вместо пустых экранов и баннер дрейфа на всех вкладках.
+ * Админ-панель. Навигация — в боковой панели; здесь заголовок раздела, понятные сообщения вместо пустых
+ * экранов (доступ проверяет сервер: роли и MFA) и баннер дрейфа калибровки.
  */
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
+  const t = useT();
   const pathname = usePathname() ?? '';
   const viewer = useViewer();
   const me = viewer.data;
   const staff = !!me && isStaff(me.role);
   const overview = useCalibrationOverview({ enabled: staff });
+  const header = HEADERS.find((h) => (h.exact ? pathname === h.href : pathname.startsWith(h.href)));
 
-  if (viewer.isPending) return <p className="text-graphite px-6 py-10">Загрузка…</p>;
+  if (viewer.isPending) {
+    return (
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:px-6">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
   if (!staff) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <Notice tone="info" title="Раздел для сотрудников">
-          Администрирование доступно администратору безопасности, исследователю и аудитору.{' '}
+        <Notice tone="info" title={t('admin.staffOnly')}>
+          {t('admin.staffOnlyText')}{' '}
           <Link href="/login" className="underline underline-offset-4">
-            Войти как сотрудник
+            {t('admin.signInStaff')}
           </Link>
         </Notice>
       </div>
     );
   }
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <header className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="text-2xl">Администрирование</h1>
-          <p className="text-graphite text-sm">
-            <span className="num">{me.login}</span> · {ROLE_LABELS[me.role]}
-          </p>
-        </div>
-        <nav
-          aria-label="Разделы администрирования"
-          className="border-rule -mx-1 flex gap-1 overflow-x-auto border-b"
-        >
-          {TABS.map((t) => {
-            const active = t.href === '/admin' ? pathname === t.href : pathname.startsWith(t.href);
-            return (
-              <Link
-                key={t.href}
-                href={t.href}
-                aria-current={active ? 'page' : undefined}
-                className={`-mb-px shrink-0 border-b-2 px-3 py-2 text-sm ${active ? 'border-ink text-ink font-medium' : 'text-graphite hover:text-ink border-transparent'}`}
-              >
-                {t.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </header>
+    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+      {header && (
+        <PageHeader
+          eyebrow={t('admin.title')}
+          title={t(header.title)}
+          description={header.description && t(header.description)}
+          actions={actions}
+        />
+      )}
       {!me.mfaComplete && (
-        <Notice tone="caution" title="Вход выполнен одним фактором">
-          Изменение политик требует двухфакторного входа.{' '}
-          <Link href="/profile" className="underline underline-offset-4">
-            Подтвердите вход passkey в профиле
+        <Notice tone="caution" title={t('admin.mfaTitle')}>
+          {t('admin.mfaText')}{' '}
+          <Link href="/profile/security" className="underline underline-offset-4">
+            {t('admin.mfaLink')}
           </Link>
           .
         </Notice>
