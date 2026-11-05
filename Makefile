@@ -156,9 +156,25 @@ check: format-check lint typecheck test ## Всё, что проверяет CI:
 ##@ Docker
 
 .PHONY: up
-up: ## Собрать и запустить всё: db, api, web (ждёт готовности)
+up: ## Собрать и запустить всё: db, bio-engine, api, web (ждёт готовности)
 	$(call log,"docker compose up")
 	@$(COMPOSE) up -d --build --wait
+	@$(MAKE) --no-print-directory urls
+
+.PHONY: images-save
+images-save: ## Собрать образы и сохранить в bioauth-images.tar — для запуска без интернета (защита)
+	$(call log,"docker compose build + docker save")
+	@$(COMPOSE) build
+	@docker save -o bioauth-images.tar $$($(COMPOSE) config --images)
+	@printf "Сохранено $(CYAN)bioauth-images.tar$(RESET) (%s)\n" "$$(du -h bioauth-images.tar | cut -f1)"
+
+.PHONY: images-load
+images-load: ## Загрузить образы из bioauth-images.tar (затем make up-offline)
+	@docker load -i bioauth-images.tar
+
+.PHONY: up-offline
+up-offline: ## Запустить из уже собранных образов, без сборки и без сети
+	@$(COMPOSE) up -d --no-build --wait
 	@$(MAKE) --no-print-directory urls
 
 .PHONY: down
