@@ -25,6 +25,21 @@ export const ruV3 = {
     skip: 'Перейти к содержимому',
     tagline: 'Сервер биометрической аутентификации',
   },
+  errors: {
+    title: 'Ошибка',
+    unknown: 'Неизвестная ошибка',
+  },
+  drift: {
+    title: 'Обнаружен дрейф доли ложных отказов',
+    text: 'Политика v{v}, модель {m}: FRR {from} → {to} на {n} попытках (z = {z}), окно до {date}.',
+  },
+  logout: {
+    title: 'Выйти из BioAuth?',
+    textApp: 'Приложение «{app}» просит завершить вашу сессию в BioAuth.',
+    text: 'Приложение просит завершить вашу сессию в BioAuth.',
+    confirm: 'Выйти',
+    cancel: 'Остаться',
+  },
   pwa: {
     offlineTitle: 'Нет соединения',
     offlineText:

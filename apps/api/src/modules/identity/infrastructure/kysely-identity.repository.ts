@@ -17,7 +17,10 @@ import type {
   UserRepository,
 } from '../application/ports';
 
-type UserRow = Pick<AppUserTable, 'login' | 'display_name' | 'role' | 'password_hash' | 'locked_until'> & {
+type UserRow = Pick<
+  AppUserTable,
+  'login' | 'display_name' | 'role' | 'password_hash' | 'locked_until' | 'disabled_at'
+> & {
   id: string;
   failed_attempts: number;
 };
@@ -30,6 +33,7 @@ const toUser = (r: UserRow): UserRecord => ({
   passwordHash: r.password_hash,
   failedAttempts: r.failed_attempts,
   lockedUntil: r.locked_until,
+  disabled: r.disabled_at !== null,
 });
 
 const USER_COLUMNS = [
@@ -40,6 +44,7 @@ const USER_COLUMNS = [
   'password_hash',
   'failed_attempts',
   'locked_until',
+  'disabled_at',
 ] as const;
 
 @Injectable()

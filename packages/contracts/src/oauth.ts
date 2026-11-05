@@ -84,3 +84,12 @@ export const connectedAppSchema = z.object({
   lastUsedAt: z.string().nullable(),
 });
 export type ConnectedAppDto = z.infer<typeof connectedAppSchema>;
+
+/** Подтверждение выхода по запросу приложения (RP-Initiated Logout без id_token_hint). */
+export const oauthLogoutRequestSchema = z.strictObject({
+  clientId: z.string().max(64).optional(),
+  postLogoutRedirectUri: z.string().max(2000).optional(),
+  state: z.string().max(500).optional(),
+});
+export type OauthLogoutRequest = z.infer<typeof oauthLogoutRequestSchema>;
+export const oauthLogoutInfoSchema = z.object({ clientName: z.string().nullable() });

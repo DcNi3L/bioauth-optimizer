@@ -1,7 +1,11 @@
+'use client';
+
 import { ApiError } from '../api';
+import { useT } from '../i18n';
 import { Notice } from './notice';
 
 export function ApiErrorNotice({ error }: { error: unknown }) {
+  const t = useT();
   if (!error) return null;
   if (error instanceof ApiError) {
     const fieldErrors = error.problem.errors ?? [];
@@ -21,8 +25,8 @@ export function ApiErrorNotice({ error }: { error: unknown }) {
     );
   }
   return (
-    <Notice tone="error" title="Ошибка">
-      {error instanceof Error ? error.message : typeof error === 'string' ? error : 'Неизвестная ошибка'}
+    <Notice tone="error" title={t('errors.title')}>
+      {error instanceof Error ? error.message : typeof error === 'string' ? error : t('errors.unknown')}
     </Notice>
   );
 }

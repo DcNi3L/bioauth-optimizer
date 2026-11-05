@@ -80,6 +80,7 @@ export class AdminUsersService {
     }
     await this.query.setUser(id, patch);
     if (patch.disabled || (patch.role && patch.role !== target.role)) await this.query.deleteSessions(id);
+    if (patch.disabled) await this.query.revokeOauthTokens(id);
     await this.audit.record({ actorId: actor.id, action: 'user.updated', target: id, details: { ...patch } });
     return (await this.query.user(id))!;
   }
@@ -96,6 +97,9 @@ export class AdminUsersService {
   }
 
   async create(actor: AuthUser, cmd: AdminCreateUser & { email: string | null }): Promise<AdminUserDto> {
+    // Почта проверяется до создания: иначе при конфликте осталась бы учётная запись без почты.
+    if (cmd.email && (await this.query.emailTaken(cmd.email)))
+      throw new ConflictError('эта почта уже используется');
     const created = await this.users.create({
       login: cmd.login,
       displayName: cmd.displayName,

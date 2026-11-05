@@ -7,6 +7,9 @@ import {
   type OauthClientDto,
   oauthClientSchema,
   oauthDecisionSchema,
+  oauthLogoutInfoSchema,
+  type OauthLogoutRequest,
+  oauthLogoutRequestSchema,
   oauthRedirectSchema,
   type OauthRequestInfoDto,
   oauthRequestInfoSchema,
@@ -14,26 +17,81 @@ import {
   updateOauthClientSchema,
   z,
 } from '@bioauth/contracts';
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
 
 import {
   type AuthUser,
+  clearSessionCookie,
   CurrentUser,
+  hashSessionToken,
   OptionalUser,
   Public,
+  readCookie,
   RequireMfa,
   Roles,
+  SESSION_COOKIE,
 } from '../../../shared/auth/auth';
+import { APP_CONFIG, type AppConfig } from '../../../shared/config/env';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
+import { SESSION_STORE, type SessionStore } from '../../identity/application/ports';
 import { ClientsService } from '../application/clients.service';
 import { OidcService } from '../application/oidc.service';
 
 @ApiTags('OpenID Connect')
 @Controller('oauth')
 export class OauthApiController {
-  constructor(private readonly oidc: OidcService) {}
+  constructor(
+    private readonly oidc: OidcService,
+    @Inject(SESSION_STORE) private readonly sessions: SessionStore,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
+  ) {}
+
+  @Get('logout')
+  @Public()
+  @ApiOperation({ summary: 'Название приложения для страницы подтверждения выхода' })
+  @ApiZodOk(oauthLogoutInfoSchema)
+  async logoutInfo(@Query('client_id') clientId: unknown): Promise<{ clientName: string | null }> {
+    return {
+      clientName: await this.oidc.logoutClientName(typeof clientId === 'string' ? clientId : undefined),
+    };
+  }
+
+  @Post('logout')
+  @Public()
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Подтверждённый выход по запросу приложения: завершает сессию и возвращает адрес',
+  })
+  @ApiZodBody(oauthLogoutRequestSchema)
+  @ApiZodOk(oauthRedirectSchema)
+  async logout(
+    @Body(new ZodValidationPipe(oauthLogoutRequestSchema)) body: OauthLogoutRequest,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ redirectTo: string }> {
+    const token = readCookie(req, SESSION_COOKIE);
+    if (token) await this.sessions.deleteByTokenHash(hashSessionToken(token));
+    clearSessionCookie(res, this.config.COOKIE_SECURE);
+    return {
+      redirectTo: await this.oidc.postLogoutTarget(body.clientId, body.postLogoutRedirectUri, body.state),
+    };
+  }
 
   @Get('requests/:id')
   @Public()

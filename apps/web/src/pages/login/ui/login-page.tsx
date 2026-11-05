@@ -25,7 +25,8 @@ export function LoginPage() {
   const [mode, setMode] = useState<Mode>('subject');
 
   const done = (staffNeedsPasskey = false) => {
-    if (oauth) {
+    // Сотрудник без passkey не завершил двухфакторный вход: приложение его не примет — сначала passkey.
+    if (oauth && !staffNeedsPasskey) {
       window.location.assign(`/oidc/authorize/resume?request=${encodeURIComponent(oauth)}`);
       return;
     }

@@ -26,6 +26,21 @@ export const enV3: DictV3 = {
     skip: 'Skip to content',
     tagline: 'Biometric authentication server',
   },
+  errors: {
+    title: 'Error',
+    unknown: 'Unknown error',
+  },
+  drift: {
+    title: 'False rejection rate drift detected',
+    text: 'Policy v{v}, model {m}: FRR {from} → {to} over {n} attempts (z = {z}), window until {date}.',
+  },
+  logout: {
+    title: 'Sign out of BioAuth?',
+    textApp: '“{app}” asks to end your BioAuth session.',
+    text: 'An app asks to end your BioAuth session.',
+    confirm: 'Sign out',
+    cancel: 'Stay signed in',
+  },
   pwa: {
     offlineTitle: 'You are offline',
     offlineText:

@@ -3,7 +3,7 @@
  * Service worker BioAuth (PWA). Кэширует только оболочку интерфейса и статику; запросы к API, OIDC и
  * биометрии всегда идут в сеть и в кэш не попадают — данные пользователя и токены на устройстве не хранятся.
  */
-const VERSION = 'bioauth-v3.1.0';
+const VERSION = 'bioauth-v3.1.1';
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const PRECACHE = [
@@ -70,7 +70,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          if (res.ok && res.type === 'basic') {
+          // Адреса с параметрами (код авторизации, идентификатор запроса) и экраны OAuth не сохраняются.
+          if (res.ok && res.type === 'basic' && !url.search && !url.pathname.startsWith('/oauth/')) {
             const copy = res.clone();
             caches.open(PAGES).then((c) => c.put(req, copy));
           }

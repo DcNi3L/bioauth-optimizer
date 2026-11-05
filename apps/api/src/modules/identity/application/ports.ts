@@ -14,6 +14,8 @@ export interface UserRecord {
   readonly passwordHash: string | null;
   readonly failedAttempts: number;
   readonly lockedUntil: Date | null;
+  /** Учётная запись отключена администратором: вход и выдача токенов запрещены. */
+  readonly disabled: boolean;
 }
 
 export interface UserRepository {

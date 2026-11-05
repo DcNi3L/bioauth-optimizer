@@ -3,7 +3,12 @@ import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs
 
 import { hashSessionToken } from '../../../shared/auth/auth';
 import { APP_CONFIG, type AppConfig } from '../../../shared/config/env';
-import { ConflictError, TooManyAttemptsError, UnauthorizedError } from '../../../shared/errors';
+import {
+  ConflictError,
+  ForbiddenError,
+  TooManyAttemptsError,
+  UnauthorizedError,
+} from '../../../shared/errors';
 import { AUDIT_LOG, type AuditLog } from '../../audit/application/audit-log';
 import { MeQuery } from '../infrastructure/me.query';
 import {
@@ -94,6 +99,17 @@ export class PasswordLoginUseCase {
           reason: 'BAD_CREDENTIALS',
         });
       throw new UnauthorizedError('неверный логин или пароль');
+    }
+    if (user.disabled) {
+      // Сообщаем об отключении только после верного пароля — иначе ответ выдавал бы состояние учётной записи.
+      await this.events.record({
+        userId: user.id,
+        success: false,
+        method: 'password',
+        amr: ['pwd'],
+        reason: 'ACCOUNT_DISABLED',
+      });
+      throw new ForbiddenError('учётная запись отключена администратором');
     }
     await this.users.resetFailures(user.id);
     const passkeys = await this.me.passkeyCount(user.id);

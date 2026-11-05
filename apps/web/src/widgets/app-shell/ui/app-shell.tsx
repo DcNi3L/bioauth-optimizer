@@ -3,7 +3,7 @@
 import { Menu as MenuIcon, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useViewer } from '@/entities/viewer';
 import { useT } from '@/shared/i18n';
@@ -24,6 +24,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const groups = useMemo(() => navFor(me), [me]);
   const current = currentItem(pathname, groups);
   const [open, setOpen] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
@@ -31,9 +33,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
+    // Фокус — в панель, после закрытия — обратно на кнопку меню.
+    closeRef.current?.focus();
+    const trigger = menuRef.current;
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
+      trigger?.focus();
     };
   }, [open]);
 
@@ -65,6 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
           <div className="bg-sheet border-rule drawer-in absolute inset-y-0 left-0 w-[min(20rem,86vw)] border-r shadow-2xl">
             <button
+              ref={closeRef}
               type="button"
               aria-label={t('nav.closeMenu')}
               onClick={() => setOpen(false)}
@@ -81,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="border-rule bg-paper/85 sticky top-0 z-20 border-b backdrop-blur-md">
           <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
             <button
+              ref={menuRef}
               type="button"
               aria-label={t('nav.menu')}
               aria-expanded={open}

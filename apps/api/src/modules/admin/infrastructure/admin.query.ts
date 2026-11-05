@@ -313,6 +313,25 @@ export class AdminQuery {
     return Number(r.numDeletedRows);
   }
 
+  /** Отзыв refresh-токенов приложений: отключённый пользователь не продлевает доступ сторонних сервисов. */
+  async revokeOauthTokens(userId: string): Promise<void> {
+    await this.db
+      .updateTable('oauth_refresh_token')
+      .set({ revoked_at: new Date() })
+      .where('user_id', '=', userId)
+      .where('revoked_at', 'is', null)
+      .execute();
+  }
+
+  async emailTaken(email: string): Promise<boolean> {
+    const r = await this.db
+      .selectFrom('app_user')
+      .select('id')
+      .where(sql<boolean>`lower(email) = lower(${email})`)
+      .executeTakeFirst();
+    return !!r;
+  }
+
   async countAdmins(excludeId: string): Promise<number> {
     const r = await this.db
       .selectFrom('app_user')

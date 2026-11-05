@@ -18,6 +18,10 @@ type Req2 = Request & { user?: AuthUser };
 
 const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
 
+/** Параметры запроса только строками: повторённый параметр (массив) отбрасывается как недопустимый. */
+const single = (q: Record<string, unknown>): Record<string, string | undefined> =>
+  Object.fromEntries(Object.entries(q).map(([k, v]) => [k, str(v)]));
+
 /** Учётные данные клиента: HTTP Basic (RFC 6749 §2.3.1) или параметры тела запроса. */
 function tokenRequest(req: Request): TokenRequest & { token?: string } {
   const body = (req.body ?? {}) as Record<string, unknown>;
@@ -28,8 +32,14 @@ function tokenRequest(req: Request): TokenRequest & { token?: string } {
     const decoded = Buffer.from(auth.slice(6), 'base64').toString('utf8');
     const i = decoded.indexOf(':');
     if (i > 0) {
-      clientId = decodeURIComponent(decoded.slice(0, i));
-      clientSecret = decodeURIComponent(decoded.slice(i + 1));
+      try {
+        clientId = decodeURIComponent(decoded.slice(0, i));
+        clientSecret = decodeURIComponent(decoded.slice(i + 1));
+      } catch {
+        // некорректное %-кодирование — клиент не аутентифицируется
+        clientId = undefined;
+        clientSecret = undefined;
+      }
     }
   }
   return {
@@ -96,9 +106,13 @@ export class OidcController {
   }
 
   @Get('oidc/authorize')
-  async authorize(@Query() q: Record<string, string>, @Req() req: Req2, @Res() res: Response): Promise<void> {
+  async authorize(
+    @Query() q: Record<string, unknown>,
+    @Req() req: Req2,
+    @Res() res: Response,
+  ): Promise<void> {
     try {
-      res.redirect(302, (await this.oidc.authorize(q, req.user ?? null)).redirect);
+      res.redirect(302, (await this.oidc.authorize(single(q), req.user ?? null)).redirect);
     } catch (err) {
       if (err instanceof AuthorizeFatalError) {
         res.redirect(302, this.errorPage(err));
@@ -109,13 +123,9 @@ export class OidcController {
   }
 
   @Get('oidc/authorize/resume')
-  async resume(
-    @Query('request') id: string | undefined,
-    @Req() req: Req2,
-    @Res() res: Response,
-  ): Promise<void> {
+  async resume(@Query('request') id: unknown, @Req() req: Req2, @Res() res: Response): Promise<void> {
     try {
-      res.redirect(302, (await this.oidc.resume(id ?? '', req.user ?? null)).redirect);
+      res.redirect(302, (await this.oidc.resume(str(id) ?? '', req.user ?? null)).redirect);
     } catch (err) {
       if (err instanceof AuthorizeFatalError) {
         res.redirect(302, this.errorPage(err));
@@ -170,12 +180,15 @@ export class OidcController {
     }
   }
 
-  /** RP-Initiated Logout: завершает сессию в браузере и возвращает в приложение. */
+  /** RP-Initiated Logout: с действительным id_token_hint — выход сразу, иначе — подтверждение в интерфейсе. */
   @Get('oidc/logout')
-  async logout(@Query() q: Record<string, string>, @Req() req: Request, @Res() res: Response): Promise<void> {
-    const token = readCookie(req, SESSION_COOKIE);
-    if (token) await this.sessions.deleteByTokenHash(hashSessionToken(token));
-    res.clearCookie(SESSION_COOKIE, { path: '/' });
-    res.redirect(302, await this.oidc.logoutRedirect(q));
+  async logout(@Query() q: Record<string, unknown>, @Req() req: Req2, @Res() res: Response): Promise<void> {
+    const out = await this.oidc.logoutRedirect(single(q), req.user ?? null);
+    if (out.endSession) {
+      const token = readCookie(req, SESSION_COOKIE);
+      if (token) await this.sessions.deleteByTokenHash(hashSessionToken(token));
+      res.clearCookie(SESSION_COOKIE, { path: '/' });
+    }
+    res.redirect(302, out.redirect);
   }
 }

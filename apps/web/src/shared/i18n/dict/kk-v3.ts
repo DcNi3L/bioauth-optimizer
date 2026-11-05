@@ -26,6 +26,21 @@ export const kkV3: DictV3 = {
     skip: 'Мазмұнға өту',
     tagline: 'Биометриялық аутентификация сервері',
   },
+  errors: {
+    title: 'Қате',
+    unknown: 'Белгісіз қате',
+  },
+  drift: {
+    title: 'Жалған бас тарту үлесінің дрейфі анықталды',
+    text: 'Саясат v{v}, модель {m}: FRR {from} → {to}, {n} әрекетте (z = {z}), терезе {date} дейін.',
+  },
+  logout: {
+    title: 'BioAuth-тан шығасыз ба?',
+    textApp: '«{app}» қосымшасы BioAuth сеансыңызды аяқтауды сұрайды.',
+    text: 'Қосымша BioAuth сеансыңызды аяқтауды сұрайды.',
+    confirm: 'Шығу',
+    cancel: 'Қалу',
+  },
   pwa: {
     offlineTitle: 'Байланыс жоқ',
     offlineText:

@@ -3,6 +3,7 @@
 import type { DriftAlertDto } from '@bioauth/contracts';
 
 import { AcknowledgeDriftButton } from '@/features/admin/acknowledge-drift';
+import { useT } from '@/shared/i18n';
 import { formatDateTime, formatNumber, formatPercent } from '@/shared/lib';
 import { Notice } from '@/shared/ui';
 
@@ -14,18 +15,23 @@ export function DriftBanner({
   alerts: DriftAlertDto[];
   canAcknowledge: boolean;
 }) {
+  const t = useT();
   if (alerts.length === 0) return null;
   return (
-    <Notice tone="caution" title="Обнаружен дрейф доли ложных отказов">
+    <Notice tone="caution" title={t('drift.title')}>
       <ul className="flex flex-col gap-1">
         {alerts.map((a) => (
           <li key={a.id} className="flex flex-wrap items-center gap-x-3">
-            <span>
-              Политика v{a.policyVersion}, модель <span className="num">{a.modelVersion}</span>: FRR{' '}
-              <span className="num">{formatPercent(a.baselineFrr, 2)}</span> →{' '}
-              <span className="num">{formatPercent(a.recentFrr, 2)}</span> на {a.samples} попытках (z ={' '}
-              <span className="num">{formatNumber(a.zScore, 2)}</span>), окно до {formatDateTime(a.windowEnd)}
-              .
+            <span className="num">
+              {t('drift.text', {
+                v: a.policyVersion,
+                m: a.modelVersion,
+                from: formatPercent(a.baselineFrr, 2),
+                to: formatPercent(a.recentFrr, 2),
+                n: a.samples,
+                z: formatNumber(a.zScore, 2),
+                date: formatDateTime(a.windowEnd),
+              })}
             </span>
             {canAcknowledge && <AcknowledgeDriftButton id={a.id} />}
           </li>

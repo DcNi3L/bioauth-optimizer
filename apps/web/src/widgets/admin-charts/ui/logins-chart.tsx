@@ -25,7 +25,9 @@ export function LoginsChart({ days }: { days: AdminStatsDto['logins']['byDay'] }
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
       xAxis: {
         type: 'category',
-        data: days.map((d) => new Date(d.day).toLocaleDateString(f.tag, { day: 'numeric', month: 'short' })),
+        data: days.map((d) =>
+          new Date(`${d.day}T00:00:00`).toLocaleDateString(f.tag, { day: 'numeric', month: 'short' }),
+        ),
         axisLabel: { color: SERIES_COLORS.graphite, fontSize: 11 },
         axisLine: { lineStyle: { color: SERIES_COLORS.rule } },
         axisTick: { show: false },

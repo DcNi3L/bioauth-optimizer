@@ -9,7 +9,16 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: ['/', '/algorithm/', '/login', '/enroll', '/oauth/demo'],
-        disallow: ['/admin', '/profile', '/oauth/consent', '/oauth/error', '/offline', '/api/', '/oidc/'],
+        disallow: [
+          '/admin',
+          '/profile',
+          '/oauth/consent',
+          '/oauth/error',
+          '/oauth/logout',
+          '/offline',
+          '/api/',
+          '/oidc/',
+        ],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

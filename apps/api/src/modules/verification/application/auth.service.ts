@@ -104,7 +104,7 @@ export class AuthService {
       throw new TooManyAttemptsError(REASON_MESSAGES.LOCKED, user.lockedUntil);
     }
     // Для неизвестного логина создаётся «пустая» сессия того же вида: ответ не выдаёт, есть ли пользователь.
-    const userId = user?.role === 'subject' ? user.id : null;
+    const userId = user?.role === 'subject' && !user.disabled ? user.id : null;
     const commands = randomCommands(this.faceStep(policy)?.commands ?? 0);
     const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
     const id = await this.sessions.create({

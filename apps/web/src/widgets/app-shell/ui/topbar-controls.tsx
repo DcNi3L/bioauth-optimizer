@@ -92,7 +92,8 @@ export function ThemeMenu() {
 export function ProfileMenu() {
   const t = useT();
   const router = useRouter();
-  const me = useViewer().data;
+  const viewer = useViewer();
+  const me = viewer.isError ? null : viewer.data;
   const logout = useLogout();
   if (me === undefined) return <span className="bg-rule size-9 animate-pulse rounded-full" aria-hidden />;
   if (me === null) {

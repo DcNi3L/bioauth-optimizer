@@ -142,7 +142,8 @@ describeDb('API v3 e2e: учётные записи, админ-панель, Op
       .agent()
       .post('/api/v1/identity/login')
       .send({ login: 'anna', password: 'researcher-pass-1' })
-      .expect(200);
+      .expect(403);
+    // Отключение фиксируется в истории входов как отказ (после верного пароля).
 
     const detail = await admin.get(`/api/v1/admin/users/${user.id}`).expect(200);
     expect(detail.body.history.length).toBeGreaterThan(0);
@@ -404,14 +405,96 @@ describeDb('API v3 e2e: учётные записи, админ-панель, Op
           `/oidc/logout?client_id=bioauth-demo&post_logout_redirect_uri=${encodeURIComponent(DEMO_REDIRECT)}&state=bye`,
         )
         .expect(302);
-      expect(out.headers.location).toBe(`${DEMO_REDIRECT}?state=bye`);
+      // Без id_token_hint сессия молча не завершается: пользователь подтверждает выход в интерфейсе.
+      expect(out.headers.location).toMatch(new RegExp(`^${ORIGIN}/oauth/logout\\?client_id=bioauth-demo`));
+      await subject.get('/api/v1/identity/me').expect(200);
+      const info = await ctx.agent().get('/api/v1/oauth/logout?client_id=bioauth-demo').expect(200);
+      expect(info.body.clientName).toEqual(expect.any(String));
+      const confirmed = await subject
+        .post('/api/v1/oauth/logout')
+        .set('origin', ORIGIN)
+        .send({ clientId: 'bioauth-demo', postLogoutRedirectUri: DEMO_REDIRECT, state: 'bye' })
+        .expect(200);
+      expect(confirmed.body.redirectTo).toBe(`${DEMO_REDIRECT}?state=bye`);
       await subject.get('/api/v1/identity/me').expect(401);
+      // Чужой адрес возврата не используется — только страница входа.
+      const foreign = await ctx
+        .agent()
+        .post('/api/v1/oauth/logout')
+        .send({ clientId: 'bioauth-demo', postLogoutRedirectUri: 'https://evil.example/' })
+        .expect(200);
+      expect(foreign.body.redirectTo).toBe(`${ORIGIN}/login`);
       const history = await admin.get('/api/v1/admin/login-events?limit=50').expect(200);
       expect(
         history.body.some(
           (e: { method: string; clientId: string }) => e.method === 'oidc' && e.clientId === 'bioauth-demo',
         ),
       ).toBe(true);
+    });
+
+    it('отключённый пользователь теряет доступ приложений: refresh и userinfo отклоняются', async () => {
+      const { challenge, verifier } = pkce();
+      const q = new URLSearchParams({
+        response_type: 'code',
+        client_id: 'bioauth-demo',
+        redirect_uri: DEMO_REDIRECT,
+        scope: 'openid offline_access',
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+      }).toString();
+      // Пользователь проходит поток, получает refresh-токен, затем администратор его отключает.
+      const user = ctx.agent();
+      await registerSubject(user, 'to-disable', false);
+      const r = await user.get(`/oidc/authorize?${q}`).expect(302);
+      const id = new URL(r.headers.location!).searchParams.get('request')!;
+      const dec = await user
+        .post(`/api/v1/oauth/requests/${id}/decision`)
+        .send({ approve: true })
+        .expect(200);
+      const code = new URL(dec.body.redirectTo as string).searchParams.get('code')!;
+      const tok = await ctx
+        .agent()
+        .post('/oidc/token')
+        .type('form')
+        .send({
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: DEMO_REDIRECT,
+          client_id: 'bioauth-demo',
+          code_verifier: verifier,
+        })
+        .expect(200);
+      const uid = (await user.get('/api/v1/identity/me').expect(200)).body.id as string;
+      await admin.patch(`/api/v1/admin/users/${uid}`).send({ disabled: true }).expect(200);
+      await ctx
+        .agent()
+        .post('/oidc/token')
+        .type('form')
+        .send({
+          grant_type: 'refresh_token',
+          refresh_token: tok.body.refresh_token as string,
+          client_id: 'bioauth-demo',
+        })
+        .expect(400);
+      await ctx
+        .agent()
+        .get('/oidc/userinfo')
+        .set('authorization', `Bearer ${tok.body.access_token as string}`)
+        .expect(401);
+    });
+
+    it('повторённые параметры и некорректный Basic не роняют сервер', async () => {
+      const dup = await subject
+        .get('/oidc/authorize?client_id=bioauth-demo&client_id=x&response_type=code')
+        .expect(302);
+      expect(dup.headers.location).toContain('/oauth/error');
+      await ctx
+        .agent()
+        .post('/oidc/token')
+        .set('authorization', `Basic ${Buffer.from('svc-backend:%E0%A4%A').toString('base64')}`)
+        .type('form')
+        .send({ grant_type: 'client_credentials' })
+        .expect(401);
     });
   });
 });

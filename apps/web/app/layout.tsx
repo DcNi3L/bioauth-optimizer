@@ -3,6 +3,7 @@ import '@fontsource-variable/literata';
 import '@/app/styles/globals.css';
 
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import type { ReactNode } from 'react';
 
 import { QueryProvider, ServiceWorker } from '@/app';
@@ -92,15 +93,15 @@ const JSON_LD = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <head>
-        {/* Тема до первой отрисовки — без вспышки светлого фона. */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      <body>
+        {/* Тема до первой отрисовки — без вспышки светлого фона (Next вставляет скрипт в начало документа). */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {THEME_INIT_SCRIPT}
+        </Script>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD).replace(/</g, '\\u003c') }}
         />
-      </head>
-      <body>
         <QueryProvider>
           <AppShell>{children}</AppShell>
           <ServiceWorker />

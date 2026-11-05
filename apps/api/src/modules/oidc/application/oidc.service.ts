@@ -297,6 +297,7 @@ export class OidcService {
         }),
       };
     }
+    const client = await this.activeClient(p.clientId);
     await this.repo.saveConsent(user.id, p.clientId, p.scope);
     await this.audit.record({
       actorId: user.id,
@@ -304,7 +305,8 @@ export class OidcService {
       target: p.clientId,
       details: { scopes: p.scope },
     });
-    return this.issueCode(id, p, user);
+    // Те же проверки, что и при обычном продолжении: сотрудник без MFA, max_age и т. п. кода не получат.
+    return this.continue(id, p, client, user, false);
   }
 
   // ── /token ──
@@ -358,7 +360,7 @@ export class OidcService {
       throw new OAuthError('invalid_grant', 'code_verifier без code_challenge');
     }
     const user = await this.users.findById(code.userId);
-    if (!user) throw new OAuthError('invalid_grant', 'пользователь удалён');
+    if (!user || user.disabled) throw new OAuthError('invalid_grant', 'учётная запись удалена или отключена');
     await this.events.record({
       userId: user.id,
       success: true,
@@ -387,7 +389,10 @@ export class OidcService {
     if (requested.some((s) => !rt.scope.includes(s)))
       throw new OAuthError('invalid_scope', 'scope шире выданного');
     const user = await this.users.findById(rt.userId);
-    if (!user) throw new OAuthError('invalid_grant', 'пользователь удалён');
+    if (!user || user.disabled) {
+      await this.repo.revokeFamily(rt.family);
+      throw new OAuthError('invalid_grant', 'учётная запись удалена или отключена');
+    }
     return this.userTokens(client, user.id, requested, rt.authTime, rt.amr, null, rt.family);
   }
 
@@ -544,6 +549,9 @@ export class OidcService {
     const scope = typeof p.scope === 'string' ? p.scope.split(' ') : [];
     if (!scope.includes('openid') || p.sub === p.client_id)
       throw new OAuthError('insufficient_scope', 'нужен scope openid', 403);
+    const user = await this.users.findById(String(p.sub));
+    if (!user || user.disabled)
+      throw new OAuthError('invalid_token', 'учётная запись удалена или отключена', 401);
     return { sub: p.sub, ...(await this.claims(String(p.sub), scope)) };
   }
 
@@ -589,19 +597,54 @@ export class OidcService {
     if (rt?.clientId === client.clientId) await this.repo.revokeFamily(rt.family);
   }
 
-  /** Адрес после выхода: зарегистрированный post_logout_redirect_uri клиента или страница входа. */
-  async logoutRedirect(q: Record<string, string | undefined>): Promise<string> {
+  /**
+   * RP-Initiated Logout. Без действительного id_token_hint, выданного текущему пользователю, сессия молча
+   * не завершается (иначе любой сайт мог бы разлогинить пользователя картинкой): пользователь подтверждает
+   * выход на странице интерфейса. Возвращает адрес перехода и признак, можно ли завершить сессию сразу.
+   */
+  async logoutRedirect(
+    q: Record<string, string | undefined>,
+    user: AuthUser | null,
+  ): Promise<{ redirect: string; endSession: boolean }> {
     await this.keys.signingKey();
+    // Срок id_token_hint не проверяется (OIDC RP-Initiated Logout §2): важны подпись, издатель и получатель.
     const hint = q.id_token_hint ? verifyJwt(q.id_token_hint, (kid) => this.keys.publicKey(kid), 0) : null;
-    const clientId = q.client_id ?? (typeof hint?.payload.aud === 'string' ? hint.payload.aud : undefined);
+    const hintAud = typeof hint?.payload.aud === 'string' ? hint.payload.aud : undefined;
+    const clientId = q.client_id ?? hintAud;
+    const target = await this.postLogoutTarget(clientId, q.post_logout_redirect_uri, q.state);
+    const trusted =
+      !!hint &&
+      hint.payload.iss === this.issuer &&
+      hintAud === clientId &&
+      (!user || hint.payload.sub === user.id);
+    if (!user || trusted) return { redirect: target, endSession: true };
+    const confirm = new URL('/oauth/logout', this.webOrigin);
+    for (const k of ['client_id', 'post_logout_redirect_uri', 'state'] as const) {
+      const v = k === 'client_id' ? clientId : q[k];
+      if (v) confirm.searchParams.set(k, v);
+    }
+    return { redirect: confirm.toString(), endSession: false };
+  }
+
+  /** Зарегистрированный post_logout_redirect_uri клиента (со state) или страница входа. */
+  async postLogoutTarget(
+    clientId: string | undefined,
+    target: string | undefined,
+    state: string | undefined,
+  ) {
     const client = clientId ? await this.repo.client(clientId) : null;
-    const target = q.post_logout_redirect_uri;
     if (target && client?.postLogoutRedirectUris.includes(target)) {
       const u = new URL(target);
-      if (q.state) u.searchParams.set('state', q.state);
+      if (state) u.searchParams.set('state', state);
       return u.toString();
     }
     return `${this.webOrigin}/login`;
+  }
+
+  /** Сведения для страницы подтверждения выхода. */
+  async logoutClientName(clientId: string | undefined): Promise<string | null> {
+    const client = clientId ? await this.repo.client(clientId) : null;
+    return client?.name ?? null;
   }
 
   // ── подключённые приложения пользователя ──
