@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react';
 
+import { useT } from '@/shared/i18n';
 import { parseNumber } from '@/shared/lib';
 import { ApiErrorNotice, Button, Checkbox, NumberField, TextField } from '@/shared/ui';
 
@@ -9,6 +10,7 @@ import { useStartBatch } from '../api/batch';
 
 /** Загрузка архива набора изображений: «<субъект>/<файл>.jpg», общая корневая папка допускается. */
 export function BatchForm() {
+  const t = useT();
   const start = useStartBatch();
   const fileId = useId();
   const [file, setFile] = useState<File | null>(null);
@@ -33,11 +35,8 @@ export function BatchForm() {
         htmlFor={fileId}
         className="border-graphite/50 bg-paper hover:border-ink flex cursor-pointer flex-col gap-1 rounded-md border border-dashed px-4 py-5 text-sm"
       >
-        <span className="font-medium">{file ? file.name : 'Выберите zip-архив с изображениями лиц'}</span>
-        <span className="text-graphite">
-          Папка на каждого субъекта: <span className="num">alice/1.jpg, alice/2.jpg, bob/1.jpg…</span> JPEG,
-          PNG или BMP; до 5000 файлов.
-        </span>
+        <span className="font-medium">{file ? file.name : t('algo.batch.pickZip')}</span>
+        <span className="text-graphite">{t('algo.batch.layout')}</span>
         <input
           id={fileId}
           type="file"
@@ -47,27 +46,27 @@ export function BatchForm() {
         />
       </label>
       <TextField
-        label="Название набора оценок"
-        placeholder="по имени архива"
+        label={t('algo.batch.nameLabel')}
+        placeholder={t('algo.batch.namePlaceholder')}
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
-          label="Seed выборки"
+          label={t('algo.batch.seed')}
           value={seed}
           onChange={(e) => setSeed(e.target.value)}
-          hint="Тот же seed — те же пары и тот же CSV"
+          hint={t('algo.batch.seedHint')}
         />
         <NumberField
-          label="Impostor-пар не больше"
+          label={t('algo.batch.maxImpostor')}
           value={maxImpostor}
           onChange={(e) => setMaxImpostor(e.target.value)}
-          hint="Если всех пар больше — случайная выборка"
+          hint={t('algo.batch.maxHint')}
         />
       </div>
       <Checkbox
-        label="Добавить оценки в калибровку (источник «пакет»)"
+        label={t('algo.batch.include')}
         checked={include}
         onChange={(e) => setInclude(e.target.checked)}
       />
@@ -84,7 +83,7 @@ export function BatchForm() {
             )
           }
         >
-          Запустить обработку
+          {t('algo.batch.start')}
         </Button>
       </div>
     </div>

@@ -8,6 +8,7 @@ import type {
 } from '@bioauth/contracts';
 import { useEffect, useMemo, useState } from 'react';
 
+import { useT } from '@/shared/i18n';
 import { parseNumber } from '@/shared/lib';
 import { ApiErrorNotice, Button, NumberField, Segmented, SelectField } from '@/shared/ui';
 
@@ -23,6 +24,7 @@ export function CalibrateForm({
   costs: CostsDto;
   onResult: (r: CalibrateResponseDto) => void;
 }) {
+  const t = useT();
   const calibrate = useCalibrate();
   const [modality, setModality] = useState<CalibrationModality>('face');
   const versions = useMemo(() => data.filter((d) => d.modality === modality), [data, modality]);
@@ -48,22 +50,25 @@ export function CalibrateForm({
   return (
     <div className="flex flex-col gap-4">
       <Segmented<CalibrationModality>
-        label="Что калибровать"
+        label={t('algo.calibration.what')}
         value={modality}
         onChange={setModality}
         options={[
-          { value: 'face', label: 'Порог сходства τ_face' },
-          { value: 'pad', label: 'Порог «живости» τ_pad' },
+          { value: 'face', label: t('algo.calibration.tauFace') },
+          { value: 'pad', label: t('algo.calibration.tauPad') },
         ]}
       />
       <SelectField
-        label="Версия модели"
+        label={t('algo.calibration.modelVersion')}
         value={modelVersion}
         onChange={(e) => setModelVersion(e.target.value)}
         hint={
           current
-            ? `${current.positives} ${modality === 'face' ? 'genuine' : 'подлинных'} и ${current.negatives} ${modality === 'face' ? 'impostor' : 'атак'}`
-            : 'нет накопленных оценок'
+            ? t(modality === 'face' ? 'algo.calibration.countsFace' : 'algo.calibration.countsPad', {
+                pos: current.positives,
+                neg: current.negatives,
+              })
+            : t('algo.calibration.noScores')
         }
       >
         {versions.length === 0 && <option value="">—</option>}
@@ -74,13 +79,13 @@ export function CalibrateForm({
         ))}
       </SelectField>
       <div className="grid gap-4 sm:grid-cols-3">
-        <NumberField label="Ложный допуск, cFA" value={cFA} onChange={(e) => setCFA(e.target.value)} />
-        <NumberField label="Ложный отказ, cFR" value={cFR} onChange={(e) => setCFR(e.target.value)} />
+        <NumberField label={t('algo.calibration.cFA')} value={cFA} onChange={(e) => setCFA(e.target.value)} />
+        <NumberField label={t('algo.calibration.cFR')} value={cFR} onChange={(e) => setCFR(e.target.value)} />
         <NumberField
-          label="Подтвердить FAR не выше"
+          label={t('algo.calibration.targetFar')}
           value={targetFar}
           onChange={(e) => setTargetFar(e.target.value)}
-          hint="Правило трёх: нужно ≥ 3/FAR сравнений"
+          hint={t('algo.calibration.targetFarHint')}
         />
       </div>
       <ApiErrorNotice error={calibrate.error} />
@@ -95,7 +100,7 @@ export function CalibrateForm({
             )
           }
         >
-          Рассчитать оптимальный порог
+          {t('algo.calibration.calculate')}
         </Button>
       </div>
     </div>

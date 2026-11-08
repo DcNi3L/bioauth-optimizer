@@ -1,5 +1,7 @@
 import type { AuthPolicyDto, PolicyStep } from '@bioauth/contracts';
 
+import type { TFn } from '@/shared/i18n';
+
 export const STATUS_LABELS: Record<AuthPolicyDto['status'], string> = {
   proposed: 'предложена',
   active: 'активна',
@@ -16,7 +18,8 @@ export const STATUS_TONE: Record<AuthPolicyDto['status'], string> = {
 
 const n = (x: number) => x.toLocaleString('ru-RU', { maximumFractionDigits: 4 });
 
-export function describeStep(s: PolicyStep): string {
+export function describeStep(t: TFn, s: PolicyStep): string {
   if (s.factor === 'passkey') return 'passkey';
-  return `лицо: τ_face ${n(s.tauFace)}, τ_pad ${n(s.tauPad)}, команд ${s.commands}${s.calibrated ? '' : ' (не откалибровано)'}`;
+  const base = t('algo.policies.stepFace', { face: n(s.tauFace), pad: n(s.tauPad), n: s.commands });
+  return s.calibrated ? base : `${base} ${t('algo.policies.stepUncalibrated')}`;
 }

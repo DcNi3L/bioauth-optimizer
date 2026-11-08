@@ -4,11 +4,13 @@ import type { ThresholdOptimizeResponse } from '@bioauth/contracts';
 import { useMemo } from 'react';
 
 import { SERIES_COLORS } from '@/shared/config';
+import { useT } from '@/shared/i18n';
 import { formatPercent, formatSci } from '@/shared/lib';
 import { EChart } from '@/shared/ui';
 
 /** ROC-кривая: TAR против FAR (логарифмическая шкала FAR) с рабочими точками. */
 export function RocChart({ result }: { result: ThresholdOptimizeResponse }) {
+  const t = useT();
   const option = useMemo(() => {
     const data = result.curves.roc.filter((p) => p.far > 1e-300).map((p) => [p.far, p.tar]);
     const point = (name: string, far: number, frr: number, color: string) => ({
@@ -60,5 +62,5 @@ export function RocChart({ result }: { result: ThresholdOptimizeResponse }) {
       ],
     };
   }, [result]);
-  return <EChart option={option} height={300} ariaLabel="ROC-кривая" />;
+  return <EChart option={option} height={300} ariaLabel={t('algo.chrome.rocAria')} />;
 }

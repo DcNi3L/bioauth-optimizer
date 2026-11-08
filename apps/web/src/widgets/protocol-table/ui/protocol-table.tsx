@@ -2,6 +2,7 @@
 
 import type { ProtocolReportDto } from '@bioauth/contracts';
 
+import { useT } from '@/shared/i18n';
 import { downloadCsv, formatNumber, formatPercent } from '@/shared/lib';
 import { Button } from '@/shared/ui';
 
@@ -18,6 +19,7 @@ const csvCi = (r: { rate: number | null; interval: [number, number] | null }) =>
  * в скобках — 95%-интервалы Уилсона.
  */
 export function ProtocolTable({ report }: { report: ProtocolReportDto }) {
+  const t = useT();
   const rows = report.rows;
   const exportCsv = () =>
     downloadCsv(
@@ -66,24 +68,29 @@ export function ProtocolTable({ report }: { report: ProtocolReportDto }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[52rem] text-sm">
+        <table className="min-w-208 w-full text-sm">
           <thead className="text-graphite text-left text-xs">
             <tr className="border-rule border-b">
-              <th className="py-2 pr-3 font-normal">Политика</th>
-              <th className="py-2 pr-3 text-right font-normal">τ_face / τ_pad</th>
-              <th className="py-2 pr-3 text-right font-normal">FAR [95% ДИ]</th>
-              <th className="py-2 pr-3 text-right font-normal">FAR ≤ (95%)</th>
-              <th className="py-2 pr-3 text-right font-normal">FRR [95% ДИ]</th>
+              <th className="py-2 pr-3 font-normal">{t('algo.protocol.policyCol')}</th>
+              <th className="py-2 pr-3 text-right font-normal">{t('algo.protocol.tauCol')}</th>
+              <th className="py-2 pr-3 text-right font-normal">{t('algo.protocol.farCi')}</th>
+              <th className="py-2 pr-3 text-right font-normal">{t('algo.protocol.farBound')}</th>
+              <th className="py-2 pr-3 text-right font-normal">{t('algo.protocol.frrCi')}</th>
               <th className="py-2 pr-3 text-right font-normal">E</th>
-              <th className="py-2 pr-3 text-right font-normal">BPCER [95% ДИ]</th>
-              <th className="py-2 text-right font-normal">APCER max</th>
+              <th className="py-2 pr-3 text-right font-normal">{t('algo.protocol.bpcerCi')}</th>
+              <th className="py-2 text-right font-normal">{t('algo.protocol.apcerMax')}</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
               <tr key={r.policyVersion} className="border-rule border-b last:border-b-0">
                 <td className="py-2 pr-3">
-                  v{r.policyVersion} {i === 0 ? '(до)' : i === rows.length - 1 ? '(после)' : ''}
+                  v{r.policyVersion}{' '}
+                  {i === 0
+                    ? t('algo.protocol.before')
+                    : i === rows.length - 1
+                      ? t('algo.protocol.after')
+                      : ''}
                 </td>
                 <td className="num py-2 pr-3 text-right">
                   {formatNumber(r.tauFace, 4)} / {formatNumber(r.tauPad, 3)}
@@ -100,14 +107,18 @@ export function ProtocolTable({ report }: { report: ProtocolReportDto }) {
         </table>
       </div>
       <p className="text-graphite text-xs">
-        Выборка: {report.sampleSizes.genuine} genuine и {report.sampleSizes.impostor} impostor-оценок модели{' '}
-        <span className="num">{report.modelVersion ?? '—'}</span>; PAD —{' '}
-        <span className="num">{report.padVersion ?? 'нет данных'}</span>. E = cFA·FAR + cFR·FRR при cFA ={' '}
-        {formatNumber(report.costs.cFA)}, cFR = {formatNumber(report.costs.cFR)}.
+        {t('algo.protocol.footnote', {
+          genuine: report.sampleSizes.genuine,
+          impostor: report.sampleSizes.impostor,
+          model: report.modelVersion ?? '—',
+          pad: report.padVersion ?? t('algo.protocol.noPad'),
+          cFA: formatNumber(report.costs.cFA),
+          cFR: formatNumber(report.costs.cFR),
+        })}
       </p>
       <div>
         <Button variant="secondary" onClick={exportCsv}>
-          Скачать CSV
+          {t('algo.protocol.downloadCsv')}
         </Button>
       </div>
     </div>

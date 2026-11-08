@@ -4,6 +4,8 @@ import type { AttackType } from '@bioauth/contracts';
 import { useState } from 'react';
 
 import { FaceViewport } from '@/entities/face';
+import type { TKey } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib';
 import { type CapturedFrame, grabFrame, sleep, useCamera } from '@/shared/lib/camera';
 import { ApiErrorNotice, Button, Notice, Segmented, SelectField } from '@/shared/ui';
@@ -12,12 +14,12 @@ import { useRecordPadSample } from '../api/record';
 
 const FRAMES = 4;
 
-export const ATTACK_LABELS: Record<AttackType, string> = {
-  print: 'Печатное фото',
-  screen: 'Фото на экране',
-  video: 'Видео на экране',
-  mask: 'Маска',
-  other: 'Другое',
+const ATTACK_KEY: Record<AttackType, TKey> = {
+  print: 'algo.pad.print',
+  screen: 'algo.pad.screen',
+  video: 'algo.pad.video',
+  mask: 'algo.pad.mask',
+  other: 'algo.pad.other',
 };
 
 type Kind = 'bonafide' | 'attack';
@@ -27,6 +29,7 @@ type Kind = 'bonafide' | 'attack';
  * указанного вида — и снимает 4 кадра. Результат идёт в отчёт APCER/BPCER и в калибровку τ_pad.
  */
 export function PadTestCapture() {
+  const t = useT();
   const { videoRef, state, start } = useCamera();
   const record = useRecordPadSample();
   const [kind, setKind] = useState<Kind>('bonafide');
@@ -65,28 +68,28 @@ export function PadTestCapture() {
         state={state}
         prompt={
           kind === 'bonafide'
-            ? 'Предъявляется живой участник'
-            : `Атака: ${ATTACK_LABELS[attackType].toLowerCase()}`
+            ? t('algo.pad.livePrompt')
+            : t('algo.pad.attackPrompt', { kind: t(ATTACK_KEY[attackType]) })
         }
       />
       <Segmented<Kind>
-        label="Что предъявляется"
+        label={t('algo.pad.whatShown')}
         value={kind}
         onChange={setKind}
         options={[
-          { value: 'bonafide', label: 'Подлинное' },
-          { value: 'attack', label: 'Атака' },
+          { value: 'bonafide', label: t('algo.pad.bonafide') },
+          { value: 'attack', label: t('algo.pad.attack') },
         ]}
       />
       {kind === 'attack' && (
         <SelectField
-          label="Вид атаки (PAI)"
+          label={t('algo.pad.attackType')}
           value={attackType}
           onChange={(e) => setAttackType(e.target.value as AttackType)}
         >
-          {Object.entries(ATTACK_LABELS).map(([v, l]) => (
+          {Object.entries(ATTACK_KEY).map(([v, key]) => (
             <option key={v} value={v}>
-              {l}
+              {t(key)}
             </option>
           ))}
         </SelectField>
@@ -94,11 +97,11 @@ export function PadTestCapture() {
       <div className="flex flex-wrap gap-2">
         {state !== 'ready' ? (
           <Button onClick={() => void start()} busy={state === 'starting'}>
-            Включить камеру
+            {t('algo.pad.cameraOn')}
           </Button>
         ) : (
           <Button onClick={() => void capture()} busy={busy}>
-            Записать предъявление
+            {t('algo.pad.record')}
           </Button>
         )}
       </div>
@@ -106,10 +109,12 @@ export function PadTestCapture() {
       {r && (
         <Notice
           tone={r.detectedAsLive === (kind === 'bonafide') ? 'success' : 'caution'}
-          title={`Записано предъявлений: ${count}`}
+          title={t('algo.pad.recordedTitle', { n: count })}
         >
-          p_live = <span className="num">{formatNumber(r.pLive, 3)}</span> — система сочла предъявление{' '}
-          {r.detectedAsLive ? 'живым' : 'атакой'} при текущем пороге τ_pad.
+          p_live = <span className="num">{formatNumber(r.pLive, 3)}</span> —{' '}
+          {t('algo.pad.judged', {
+            how: r.detectedAsLive ? t('algo.pad.judgedLive') : t('algo.pad.judgedAttack'),
+          })}
         </Notice>
       )}
     </div>

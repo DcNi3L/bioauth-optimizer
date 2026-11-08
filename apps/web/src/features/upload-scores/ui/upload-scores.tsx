@@ -4,6 +4,7 @@ import type { ScoreDatasetDto } from '@bioauth/contracts';
 import { useId } from 'react';
 
 import { DatasetCard } from '@/entities/score-dataset';
+import { useT } from '@/shared/i18n';
 import { ApiErrorNotice } from '@/shared/ui';
 
 import { useUploadScores } from '../api/use-upload-scores';
@@ -16,6 +17,7 @@ export function UploadScores({
   dataset: ScoreDatasetDto | null;
   onUploaded: (d: ScoreDatasetDto) => void;
 }) {
+  const t = useT();
   const upload = useUploadScores();
   const id = useId();
   return (
@@ -24,11 +26,10 @@ export function UploadScores({
         htmlFor={id}
         className="border-graphite/50 bg-paper hover:border-ink flex cursor-pointer flex-col gap-1 rounded-md border border-dashed px-4 py-5 text-sm"
       >
-        <span className="font-medium">{upload.isPending ? 'Загружаю…' : 'Выберите CSV-файл с оценками'}</span>
-        <span className="text-graphite">
-          Колонки <span className="num">score</span> и <span className="num">label</span> (genuine или
-          impostor). Разделитель «,» или «;», до 1 000 000 строк.
+        <span className="font-medium">
+          {upload.isPending ? t('algo.chrome.uploadPending') : t('algo.chrome.uploadPick')}
         </span>
+        <span className="text-graphite">{t('algo.chrome.uploadHint')}</span>
         <input
           id={id}
           type="file"

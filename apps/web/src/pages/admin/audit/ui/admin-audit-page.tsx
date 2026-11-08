@@ -2,25 +2,27 @@
 
 import { useAuditEvents, useAuditVerification } from '@/entities/audit';
 import { useViewer } from '@/entities/viewer';
+import { useT } from '@/shared/i18n';
 import { formatDateTime } from '@/shared/lib';
 import { ApiErrorNotice, Button, Notice, Panel } from '@/shared/ui';
 
 /** Журнал аудита: только добавление, цепочка SHA-256 — изменение любой записи обнаруживается проверкой. */
 export function AdminAuditPage() {
+  const t = useT();
   const viewer = useViewer().data;
   const allowed = viewer?.role === 'admin' || viewer?.role === 'auditor';
   const events = useAuditEvents();
   const verify = useAuditVerification();
-  if (!allowed) return <Notice tone="info">Журнал аудита доступен администратору и аудитору.</Notice>;
+  if (!allowed) return <Notice tone="info">{t('algo.audit.roleNotice')}</Notice>;
   const items = events.data?.pages.flat() ?? [];
   const v = verify.data;
   return (
     <Panel
-      title="Журнал аудита"
-      description="Кто, когда и что изменил: политики, согласия, шаблоны, ключи."
+      title={t('algo.audit.title')}
+      description={t('algo.audit.desc')}
       actions={
         <Button variant="secondary" busy={verify.isFetching} onClick={() => void verify.refetch()}>
-          Проверить целостность
+          {t('algo.audit.verify')}
         </Button>
       }
     >
@@ -28,22 +30,22 @@ export function AdminAuditPage() {
         <ApiErrorNotice error={events.error ?? verify.error} />
         {v &&
           (v.ok ? (
-            <Notice tone="success">Цепочка цела: проверено записей — {v.events}.</Notice>
+            <Notice tone="success">{t('algo.audit.ok', { n: v.events })}</Notice>
           ) : (
-            <Notice tone="error" title="Цепочка нарушена">
-              Первая несовпадающая запись — №{v.brokenAt}. Журнал изменяли в обход приложения.
+            <Notice tone="error" title={t('algo.audit.brokenTitle')}>
+              {t('algo.audit.broken', { n: v.brokenAt ?? 0 })}
             </Notice>
           ))}
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[48rem] text-sm">
+          <table className="min-w-3xl w-full text-sm">
             <thead className="text-graphite text-left text-xs">
               <tr className="border-rule border-b">
-                <th className="py-2 pr-3 font-normal">№</th>
-                <th className="py-2 pr-3 font-normal">Время</th>
-                <th className="py-2 pr-3 font-normal">Действие</th>
-                <th className="py-2 pr-3 font-normal">Объект</th>
-                <th className="py-2 pr-3 font-normal">Подробности</th>
-                <th className="py-2 font-normal">Хэш</th>
+                <th className="py-2 pr-3 font-normal">{t('algo.audit.colSeq')}</th>
+                <th className="py-2 pr-3 font-normal">{t('algo.audit.colTime')}</th>
+                <th className="py-2 pr-3 font-normal">{t('algo.audit.colAction')}</th>
+                <th className="py-2 pr-3 font-normal">{t('algo.audit.colTarget')}</th>
+                <th className="py-2 pr-3 font-normal">{t('algo.audit.colDetails')}</th>
+                <th className="py-2 font-normal">{t('algo.audit.colHash')}</th>
               </tr>
             </thead>
             <tbody>
@@ -71,7 +73,7 @@ export function AdminAuditPage() {
               busy={events.isFetchingNextPage}
               onClick={() => void events.fetchNextPage()}
             >
-              Более ранние записи
+              {t('algo.audit.older')}
             </Button>
           </div>
         )}

@@ -3,6 +3,7 @@
 import type { CostsDto, FaceStep } from '@bioauth/contracts';
 import { useState } from 'react';
 
+import { useT } from '@/shared/i18n';
 import { parseNumber } from '@/shared/lib';
 import { ApiErrorNotice, Button, Checkbox, Notice, NumberField, TextField } from '@/shared/ui';
 
@@ -18,6 +19,7 @@ export function ProposePolicyForm({
   costs: CostsDto;
   passkey: boolean;
 }) {
+  const t = useT();
   const propose = useProposePolicy();
   const [tauFace, setTauFace] = useState(String(face.tauFace));
   const [tauPad, setTauPad] = useState(String(face.tauPad));
@@ -37,29 +39,38 @@ export function ProposePolicyForm({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-3">
-        <NumberField label="τ_face (сходство)" value={tauFace} onChange={(e) => setTauFace(e.target.value)} />
-        <NumberField label="τ_pad («живость»)" value={tauPad} onChange={(e) => setTauPad(e.target.value)} />
-        <NumberField label="Число команд" value={commands} onChange={(e) => setCommands(e.target.value)} />
+        <NumberField
+          label={t('algo.policies.tauFace')}
+          value={tauFace}
+          onChange={(e) => setTauFace(e.target.value)}
+        />
+        <NumberField
+          label={t('algo.policies.tauPad')}
+          value={tauPad}
+          onChange={(e) => setTauPad(e.target.value)}
+        />
+        <NumberField
+          label={t('algo.policies.commands')}
+          value={commands}
+          onChange={(e) => setCommands(e.target.value)}
+        />
         <NumberField label="cFA" value={cFA} onChange={(e) => setCFA(e.target.value)} />
         <NumberField label="cFR" value={cFR} onChange={(e) => setCFR(e.target.value)} />
       </div>
-      {v.commands !== null && v.commands < 3 && (
-        <Notice tone="caution">
-          Правила биометрической проверки АРРФР требуют не менее трёх случайных команд — меньше допустимо
-          только для испытаний.
-        </Notice>
-      )}
+      {v.commands !== null && v.commands < 3 && <Notice tone="caution">{t('algo.policies.arrfr')}</Notice>}
       <Checkbox
-        label="Второй шаг — passkey"
+        label={t('algo.policies.passkeyStep')}
         checked={withPasskey}
         onChange={(e) => setWithPasskey(e.target.checked)}
       />
-      <TextField label="Обоснование" value={rationale} onChange={(e) => setRationale(e.target.value)} />
+      <TextField
+        label={t('algo.policies.rationale')}
+        value={rationale}
+        onChange={(e) => setRationale(e.target.value)}
+      />
       <ApiErrorNotice error={propose.error} />
       {propose.isSuccess && (
-        <Notice tone="success">
-          Предложена версия {propose.data.version}. Её должен утвердить администратор.
-        </Notice>
+        <Notice tone="success">{t('algo.policies.proposed', { version: propose.data.version })}</Notice>
       )}
       <div>
         <Button
@@ -82,7 +93,7 @@ export function ProposePolicyForm({
             })
           }
         >
-          Предложить политику
+          {t('algo.policies.propose')}
         </Button>
       </div>
     </div>

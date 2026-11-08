@@ -3,6 +3,7 @@
 import { type ThresholdOptimizeRequest, thresholdOptimizeRequestSchema } from '@bioauth/contracts';
 import { useCallback, useState } from 'react';
 
+import { useT } from '@/shared/i18n';
 import { numberToInput, parseNumber } from '@/shared/lib';
 
 export type ThresholdMode = 'gaussian' | 'empirical';
@@ -49,6 +50,7 @@ const FIELD_BY_PATH: Record<string, keyof ThresholdFormValues> = {
 export type FieldErrors = Partial<Record<keyof ThresholdFormValues | 'dataset', string>>;
 
 export function useThresholdForm() {
+  const t = useT();
   const [values, setValues] = useState<ThresholdFormValues>(INITIAL);
   const [errors, setErrors] = useState<FieldErrors>({});
 
@@ -80,7 +82,7 @@ export function useThresholdForm() {
       const num = (s: string) => parseNumber(s) ?? Number.NaN;
       const opt = (s: string) => parseNumber(s) ?? undefined;
       if (values.mode === 'empirical' && !datasetId) {
-        setErrors({ dataset: 'Сначала загрузите CSV с оценками' });
+        setErrors({ dataset: t('algo.chrome.needCsv') });
         return null;
       }
       const from = opt(values.curveFrom);
@@ -106,12 +108,13 @@ export function useThresholdForm() {
       const next: FieldErrors = {};
       for (const issue of parsed.error.issues) {
         const key = FIELD_BY_PATH[issue.path.join('.')];
-        if (key && !next[key]) next[key] = issue.code === 'invalid_type' ? 'Введите число' : issue.message;
+        if (key && !next[key])
+          next[key] = issue.code === 'invalid_type' ? t('algo.chrome.enterNumber') : issue.message;
       }
       setErrors(next);
       return null;
     },
-    [values],
+    [t, values],
   );
 
   return { values, errors, set, fill, build };

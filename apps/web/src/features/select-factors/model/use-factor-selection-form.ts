@@ -8,6 +8,7 @@ import {
 import { useCallback, useState } from 'react';
 
 import { draftFromDto, draftToDto, emptyDraft, type FactorDraft } from '@/entities/factor';
+import { useT } from '@/shared/i18n';
 import { numberToInput, parseNumber } from '@/shared/lib';
 
 export type SolverMode = 'auto' | 'exhaustive' | 'ilp';
@@ -42,6 +43,7 @@ export interface SweepBase {
 }
 
 export function useFactorSelectionForm() {
+  const t = useT();
   const [factors, setFactors] = useState<FactorDraft[]>([emptyDraft(0)]);
   const [settings, setSettings] = useState<SelectionSettings>(INITIAL_SETTINGS);
   const [errors, setErrors] = useState<SelectionErrors>({});
@@ -100,11 +102,11 @@ export function useFactorSelectionForm() {
     const next: SelectionErrors = {};
     for (const issue of parsed.error.issues) {
       const path = issue.path.join('.');
-      next[path] ??= issue.code === 'invalid_type' ? 'Введите число' : issue.message;
+      next[path] ??= issue.code === 'invalid_type' ? t('algo.chrome.enterNumber') : issue.message;
     }
     setErrors(next);
     return null;
-  }, [factors, settings]);
+  }, [factors, settings, t]);
 
   /** Основа для анализа бюджета: те же факторы и ограничения, кроме бюджета. */
   const buildSweepBase = useCallback((): SweepBase | null => {

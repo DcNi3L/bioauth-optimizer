@@ -7,8 +7,16 @@ import { type TKey, useT } from '@/shared/i18n';
 import { formatDateTime, formatMs, formatNumber, formatPercent } from '@/shared/lib';
 import { ApiErrorNotice, Button, Metric, SelectField } from '@/shared/ui';
 
-const OUTCOME_LABELS = { accept: 'допуск', reject: 'отказ', error: 'ошибка', cancel: 'отмена' } as const;
-const FACTOR_LABELS = { face: 'лицо', passkey: 'passkey' } as const;
+const OUTCOME_KEY = {
+  accept: 'algo.attempts.accept',
+  reject: 'algo.attempts.reject',
+  error: 'algo.attempts.error',
+  cancel: 'algo.attempts.cancel',
+} as const satisfies Record<string, TKey>;
+const FACTOR_KEY = { face: 'algo.attempts.face', passkey: 'algo.attempts.passkey' } as const satisfies Record<
+  string,
+  TKey
+>;
 
 /** Журнал попыток (UC-9): фильтры, сводка по факторам за выборку, постраничная подгрузка по курсору. */
 export function AttemptsTable() {
@@ -22,23 +30,23 @@ export function AttemptsTable() {
     <div className="flex flex-col gap-5">
       <div className="grid gap-4 sm:grid-cols-2 lg:max-w-xl">
         <SelectField
-          label="Фактор"
+          label={t('algo.attempts.factor')}
           value={filter.factor}
           onChange={(e) => setFilter({ ...filter, factor: e.target.value as AttemptFilter['factor'] })}
         >
-          <option value="">все</option>
-          <option value="face">лицо</option>
-          <option value="passkey">passkey</option>
+          <option value="">{t('algo.attempts.all')}</option>
+          <option value="face">{t('algo.attempts.face')}</option>
+          <option value="passkey">{t('algo.attempts.passkey')}</option>
         </SelectField>
         <SelectField
-          label="Исход"
+          label={t('algo.attempts.outcome')}
           value={filter.outcome}
           onChange={(e) => setFilter({ ...filter, outcome: e.target.value as AttemptFilter['outcome'] })}
         >
-          <option value="">все</option>
-          {Object.entries(OUTCOME_LABELS).map(([v, l]) => (
+          <option value="">{t('algo.attempts.all')}</option>
+          {Object.entries(OUTCOME_KEY).map(([v, key]) => (
             <option key={v} value={v}>
-              {l}
+              {t(key)}
             </option>
           ))}
         </SelectField>
@@ -47,15 +55,15 @@ export function AttemptsTable() {
         <div className="grid gap-3 md:grid-cols-2">
           {stats.map((s) => (
             <div key={s.factor} className="border-rule rounded-md border p-4">
-              <p className="font-medium">{FACTOR_LABELS[s.factor]}</p>
+              <p className="font-medium">{t(FACTOR_KEY[s.factor])}</p>
               <div className="mt-2 grid grid-cols-3 gap-3">
-                <Metric label="Попыток" value={s.total} />
+                <Metric label={t('algo.attempts.attempts')} value={s.total} />
                 <Metric
-                  label="Доля отказов"
+                  label={t('algo.attempts.rejectShare')}
                   value={formatPercent(s.total ? s.rejected / s.total : null, 1)}
                   tone="frr"
                 />
-                <Metric label="p95 времени" value={s.p95Ms === null ? '—' : formatMs(s.p95Ms)} />
+                <Metric label={t('algo.attempts.p95')} value={s.p95Ms === null ? '—' : formatMs(s.p95Ms)} />
               </div>
               {Object.keys(s.byReason).length > 0 && (
                 <p className="text-graphite mt-2 text-xs">
@@ -70,18 +78,18 @@ export function AttemptsTable() {
       )}
       <ApiErrorNotice error={q.error} />
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[48rem] text-sm">
+        <table className="min-w-3xl w-full text-sm">
           <thead className="text-graphite text-left text-xs">
             <tr className="border-rule border-b">
-              <th className="py-2 pr-3 font-normal">Время</th>
-              <th className="py-2 pr-3 font-normal">Логин</th>
-              <th className="py-2 pr-3 font-normal">Фактор</th>
-              <th className="py-2 pr-3 font-normal">Исход</th>
-              <th className="py-2 pr-3 font-normal">Причина</th>
-              <th className="py-2 pr-3 text-right font-normal">Сходство</th>
-              <th className="py-2 pr-3 text-right font-normal">p_live</th>
-              <th className="py-2 pr-3 text-right font-normal">Время, мс</th>
-              <th className="py-2 text-right font-normal">Политика</th>
+              <th className="py-2 pr-3 font-normal">{t('algo.attempts.colTime')}</th>
+              <th className="py-2 pr-3 font-normal">{t('algo.attempts.colLogin')}</th>
+              <th className="py-2 pr-3 font-normal">{t('algo.attempts.colFactor')}</th>
+              <th className="py-2 pr-3 font-normal">{t('algo.attempts.colOutcome')}</th>
+              <th className="py-2 pr-3 font-normal">{t('algo.attempts.colReason')}</th>
+              <th className="py-2 pr-3 text-right font-normal">{t('algo.attempts.colScore')}</th>
+              <th className="py-2 pr-3 text-right font-normal">{t('algo.attempts.colLive')}</th>
+              <th className="py-2 pr-3 text-right font-normal">{t('algo.attempts.colMs')}</th>
+              <th className="py-2 text-right font-normal">{t('algo.attempts.colPolicy')}</th>
             </tr>
           </thead>
           <tbody>
@@ -89,11 +97,11 @@ export function AttemptsTable() {
               <tr key={a.id} className="border-rule border-b last:border-b-0">
                 <td className="num whitespace-nowrap py-2 pr-3">{formatDateTime(a.at)}</td>
                 <td className="num py-2 pr-3">{a.login ?? '—'}</td>
-                <td className="py-2 pr-3">{FACTOR_LABELS[a.factor]}</td>
+                <td className="py-2 pr-3">{t(FACTOR_KEY[a.factor])}</td>
                 <td
                   className={`py-2 pr-3 ${a.outcome === 'accept' ? 'text-optimum' : a.outcome === 'reject' ? 'text-far' : ''}`}
                 >
-                  {OUTCOME_LABELS[a.outcome]}
+                  {t(OUTCOME_KEY[a.outcome])}
                 </td>
                 <td className="py-2 pr-3">{a.reason ? reasonTitle(a.reason) : ''}</td>
                 <td className="num py-2 pr-3 text-right">{formatNumber(a.score, 3)}</td>
@@ -108,12 +116,12 @@ export function AttemptsTable() {
         </table>
       </div>
       {q.isSuccess && items.length === 0 && (
-        <p className="text-graphite text-sm">Попыток с такими условиями нет.</p>
+        <p className="text-graphite text-sm">{t('algo.attempts.empty')}</p>
       )}
       {q.hasNextPage && (
         <div>
           <Button variant="secondary" busy={q.isFetchingNextPage} onClick={() => void q.fetchNextPage()}>
-            Показать ещё
+            {t('algo.history.loadMore')}
           </Button>
         </div>
       )}

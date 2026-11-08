@@ -3,6 +3,8 @@
 import { X } from 'lucide-react';
 import { type ReactNode, useEffect, useRef } from 'react';
 
+import { useT } from '../i18n';
+
 /**
  * Модальное окно на нативном <dialog>: фокус, Esc и инертность фона даёт браузер.
  * На телефоне — лист снизу во всю ширину, на компьютере — по центру.
@@ -15,7 +17,7 @@ export function Dialog({
   children,
   footer,
   size = 'md',
-  closeLabel = 'Закрыть',
+  closeLabel,
 }: {
   open: boolean;
   onClose: () => void;
@@ -26,6 +28,7 @@ export function Dialog({
   size?: 'sm' | 'md' | 'lg';
   closeLabel?: string;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -57,7 +60,7 @@ export function Dialog({
             <button
               type="button"
               onClick={onClose}
-              aria-label={closeLabel}
+              aria-label={closeLabel ?? t('common.close')}
               className="text-graphite hover:text-ink hover:bg-hover -mr-1 rounded-md p-1.5"
             >
               <X className="size-5" />

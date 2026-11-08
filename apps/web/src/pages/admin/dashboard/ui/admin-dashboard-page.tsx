@@ -132,7 +132,7 @@ export function AdminDashboardPage() {
               </Badge>
               <ol className="list-inside list-decimal text-sm">
                 {active.steps.map((st, i) => (
-                  <li key={i}>{describeStep(st)}</li>
+                  <li key={i}>{describeStep(t, st)}</li>
                 ))}
               </ol>
               {pending.length > 0 && (

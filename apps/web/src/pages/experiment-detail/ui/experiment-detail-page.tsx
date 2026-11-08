@@ -54,7 +54,7 @@ export function ExperimentDetailPage({ id }: { id: string }) {
             <p className="text-graphite mt-1 text-sm">
               {formatDateTime(e.createdAt)}; {t('algo.history.methodLabel')}:{' '}
               {e.solver ? solverLabel(e.solver) : '—'}; {t('algo.history.coreLabel')} {e.coreVersion};{' '}
-              {e.durationMs} мс
+              {t('algo.chrome.ms', { n: e.durationMs })}
             </p>
           </div>
           {e.status === 'INFEASIBLE' && (
