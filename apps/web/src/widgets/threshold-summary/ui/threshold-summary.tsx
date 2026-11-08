@@ -1,3 +1,5 @@
+'use client';
+
 import type { ThresholdOptimizeResponse } from '@bioauth/contracts';
 
 import { useT } from '@/shared/i18n';

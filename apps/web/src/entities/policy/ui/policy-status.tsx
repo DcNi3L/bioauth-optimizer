@@ -1,3 +1,5 @@
+'use client';
+
 import type { AuthPolicyDto } from '@bioauth/contracts';
 
 import type { TKey } from '@/shared/i18n';

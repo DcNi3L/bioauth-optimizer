@@ -1,3 +1,5 @@
+'use client';
+
 import { useT } from '@/shared/i18n';
 import { Panel } from '@/shared/ui';
 import { ExperimentsTable } from '@/widgets/experiments-table';
