@@ -1,21 +1,8 @@
 import type { FactorSelectionResponse } from '@bioauth/contracts';
 
+import { useT } from '@/shared/i18n';
 import { formatMs, formatNumber, formatPercent, formatSci } from '@/shared/lib';
 import { Metric } from '@/shared/ui';
-
-const CONSTRAINT_LABELS: Record<string, string> = {
-  latencyMaxMs: 'задержка',
-  budget: 'бюджет',
-  farMax: 'FAR набора',
-  minPadFactors: 'наличие PAD',
-};
-
-const REJECT_LABELS: Record<string, string> = {
-  latency: 'по задержке',
-  budget: 'по бюджету',
-  pad: 'без PAD',
-  far: 'по FAR',
-};
 
 type Result = Pick<FactorSelectionResponse, 'optimum' | 'stats' | 'solver'>;
 
@@ -27,12 +14,28 @@ export function FactorSelectionSummary({
   result: Result;
   factorNames: Record<string, string>;
 }) {
+  const t = useT();
   const { optimum, stats, solver } = result;
   if (!optimum) return null;
+
+  const CONSTRAINT_LABELS: Record<string, string> = {
+    latencyMaxMs: t('algo.factors.constraintLatency'),
+    budget: t('algo.factors.constraintBudget'),
+    farMax: t('algo.factors.constraintFar'),
+    minPadFactors: t('algo.factors.constraintPad'),
+  };
+
+  const REJECT_LABELS: Record<string, string> = {
+    latency: t('algo.factors.rejectByLatency'),
+    budget: t('algo.factors.rejectByBudget'),
+    pad: t('algo.factors.rejectByPad'),
+    far: t('algo.factors.rejectByFar'),
+  };
+
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <p className="text-graphite text-sm">Оптимальный набор, правило «И»</p>
+        <p className="text-graphite text-sm">{t('algo.factors.summaryRule')}</p>
         <p className="text-optimum mt-1 font-serif text-3xl">{optimum.codes.join(' + ')}</p>
         <p className="text-graphite mt-1 text-sm">
           {optimum.codes.map((c) => factorNames[c] ?? c).join(', ')}
@@ -40,31 +43,34 @@ export function FactorSelectionSummary({
       </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <Metric label="E = cFA·FAR + cFR·FRR" value={formatNumber(optimum.objective, 6)} tone="optimum" />
-        <Metric label="FAR набора" value={formatSci(optimum.far, 2)} tone="far" />
-        <Metric label="FRR набора" value={formatPercent(optimum.frr, 3)} tone="frr" />
-        <Metric label="Задержка" value={formatMs(optimum.latencyMs)} />
-        <Metric label="Стоимость" value={formatNumber(optimum.cost, 3)} />
+        <Metric label="FAR" value={formatSci(optimum.far, 2)} tone="far" />
+        <Metric label="FRR" value={formatPercent(optimum.frr, 3)} tone="frr" />
+        <Metric label={t('algo.factors.colLatency')} value={formatMs(optimum.latencyMs)} />
+        <Metric label={t('algo.factors.colCost')} value={formatNumber(optimum.cost, 3)} />
       </div>
       <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
         <div>
-          <dt className="text-graphite">Активные ограничения</dt>
+          <dt className="text-graphite">{t('algo.factors.summaryActiveConstraints')}</dt>
           <dd>
             {optimum.activeConstraints.length === 0
-              ? 'нет — оптимум внутри допустимой области'
+              ? t('algo.factors.summaryNoConstraints')
               : optimum.activeConstraints.map((c) => CONSTRAINT_LABELS[c] ?? c).join(', ')}
           </dd>
         </div>
         <div>
-          <dt className="text-graphite">Допустимых наборов</dt>
+          <dt className="text-graphite">{t('algo.factors.summaryFeasible')}</dt>
           <dd className="num">
             {stats.feasibleCount === null
-              ? `полный подсчёт не выполнялся (всего ${stats.subsetsTotal.toLocaleString('ru-RU')})`
-              : `${stats.feasibleCount.toLocaleString('ru-RU')} из ${stats.subsetsTotal.toLocaleString('ru-RU')}`}
+              ? t('algo.factors.summaryFeasiblePartial', { total: stats.subsetsTotal.toLocaleString() })
+              : t('algo.factors.summaryFeasibleFull', {
+                  feasible: stats.feasibleCount.toLocaleString(),
+                  total: stats.subsetsTotal.toLocaleString(),
+                })}
           </dd>
         </div>
         {stats.rejectedBy && (
           <div className="sm:col-span-2">
-            <dt className="text-graphite">Отсечено ограничениями (набор может нарушать несколько)</dt>
+            <dt className="text-graphite">{t('algo.factors.summaryRejected')}</dt>
             <dd className="num">
               {Object.entries(stats.rejectedBy)
                 .map(([k, v]) => `${REJECT_LABELS[k] ?? k}: ${v}`)
@@ -73,14 +79,17 @@ export function FactorSelectionSummary({
           </div>
         )}
         <div className="sm:col-span-2">
-          <dt className="text-graphite">Метод</dt>
+          <dt className="text-graphite">{t('algo.factors.summaryMethod')}</dt>
           <dd>
             {solver.used === 'exhaustive'
-              ? 'Полный перебор всех подмножеств с точной нелинейной целевой функцией.'
-              : `Линеаризованное ЦЛП (HiGHS) с сертификатом: ${solver.certificate?.iterations ?? 0} итерац., нижняя оценка ${formatNumber(
-                  solver.certificate?.lowerBound ?? null,
-                  6,
-                )} ≥ лучшего E — оптимальность ${solver.certificate?.proven ? 'доказана' : 'не доказана (лимит итераций)'}.`}
+              ? t('algo.factors.summaryExhaustive')
+              : t('algo.factors.summaryIlp', {
+                  iter: solver.certificate?.iterations ?? 0,
+                  lb: formatNumber(solver.certificate?.lowerBound ?? null, 6),
+                  proven: solver.certificate?.proven
+                    ? t('algo.factors.summaryProven')
+                    : t('algo.factors.summaryNotProven'),
+                })}
           </dd>
         </div>
       </dl>

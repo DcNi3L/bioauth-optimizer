@@ -4,6 +4,7 @@ import type { SubsetSolutionDto } from '@bioauth/contracts';
 import { forwardRef, useMemo } from 'react';
 
 import { SERIES_COLORS } from '@/shared/config';
+import { useT } from '@/shared/i18n';
 import { formatMs, formatNumber, formatPercent, formatSci } from '@/shared/lib';
 import { EChart, type EChartHandle } from '@/shared/ui';
 
@@ -12,6 +13,9 @@ const MAX_BARS = 15;
 /** Рейтинг допустимых наборов по критерию E (как рис. 2б СРО1); оптимум выделен. */
 export const FactorRankingChart = forwardRef<EChartHandle, { ranking: readonly SubsetSolutionDto[] }>(
   function FactorRankingChart({ ranking }, ref) {
+    const t = useT();
+    const xAxisCriterion = t('algo.factors.xAxisCriterion');
+    const ariaRanking = t('algo.factors.ariaRanking');
     const shown = ranking.slice(0, MAX_BARS);
     const option = useMemo(() => {
       const rows = [...shown].reverse();
@@ -25,12 +29,12 @@ export const FactorRankingChart = forwardRef<EChartHandle, { ranking: readonly S
             return `<b>${s.codes.join(' + ')}</b><br/>E = ${formatNumber(s.objective, 6)}<br/>FAR ${formatSci(s.far, 2)}, FRR ${formatPercent(
               s.frr,
               3,
-            )}<br/>${formatMs(s.latencyMs)}, стоимость ${formatNumber(s.cost, 3)}`;
+            )}<br/>${formatMs(s.latencyMs)}, ${formatNumber(s.cost, 3)}`;
           },
         },
         xAxis: {
           type: 'value',
-          name: 'Критерий E',
+          name: xAxisCriterion,
           nameLocation: 'middle',
           nameGap: 26,
           axisLabel: { color: SERIES_COLORS.graphite, formatter: (v: number) => formatNumber(v, 3) },
@@ -65,13 +69,13 @@ export const FactorRankingChart = forwardRef<EChartHandle, { ranking: readonly S
           },
         ],
       };
-    }, [shown]);
+    }, [shown, xAxisCriterion]);
     return (
       <EChart
         ref={ref}
         option={option}
         height={Math.max(160, shown.length * 34 + 60)}
-        ariaLabel="Рейтинг допустимых наборов факторов"
+        ariaLabel={ariaRanking}
       />
     );
   },

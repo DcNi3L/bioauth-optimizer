@@ -4,56 +4,62 @@ import type { ExperimentType } from '@bioauth/contracts';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { EXPERIMENT_TYPE_LABELS, SOLVER_LABELS, useExperimentList } from '@/entities/experiment';
+import { useExperimentList } from '@/entities/experiment';
+import { type TKey, useT } from '@/shared/i18n';
 import { formatDateTime } from '@/shared/lib';
 import { ApiErrorNotice, Button, Segmented } from '@/shared/ui';
 
-const FILTERS = [
-  { value: 'ALL', label: 'Все' },
-  { value: 'THRESHOLD', label: 'Порог' },
-  { value: 'FACTOR_SELECTION', label: 'Состав факторов' },
-  { value: 'BUDGET_SWEEP', label: 'Анализ бюджета' },
-] as const;
+const SOLVER_KEY_MAP: Partial<Record<string, TKey>> = {
+  'gaussian-analytic': 'algo.history.solverGaussian',
+  'empirical-sweep': 'algo.history.solverEmpirical',
+  exhaustive: 'algo.history.solverExhaustive',
+  ilp: 'algo.history.solverIlp',
+};
 
 export function ExperimentsTable() {
+  const t = useT();
+
+  const FILTERS = [
+    { value: 'ALL', label: t('algo.history.filterAll') },
+    { value: 'THRESHOLD', label: t('algo.history.filterThreshold') },
+    { value: 'FACTOR_SELECTION', label: t('algo.history.filterFactors') },
+    { value: 'BUDGET_SWEEP', label: t('algo.history.filterBudget') },
+  ] as const;
+
+  const TYPE_LABELS: Record<ExperimentType, TKey> = {
+    THRESHOLD: 'algo.history.typeThreshold',
+    FACTOR_SELECTION: 'algo.history.typeFactors',
+    BUDGET_SWEEP: 'algo.history.typeBudget',
+  };
+
   const [type, setType] = useState<ExperimentType | 'ALL'>('ALL');
   const list = useExperimentList(type);
   const items = list.data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
     <div className="flex flex-col gap-4">
-      <Segmented label="Тип эксперимента" value={type} options={FILTERS} onChange={setType} />
+      <Segmented label={t('algo.history.filterLabel')} value={type} options={FILTERS} onChange={setType} />
       <ApiErrorNotice error={list.error} />
       {list.isSuccess && items.length === 0 && (
-        <p className="text-graphite text-sm">
-          Экспериментов пока нет. Выполните расчёт на странице{' '}
-          <Link className="text-frr underline" href="/algorithm/threshold">
-            «Порог»
-          </Link>{' '}
-          или{' '}
-          <Link className="text-frr underline" href="/factors">
-            «Состав факторов»
-          </Link>{' '}
-          — он сохранится здесь.
-        </p>
+        <p className="text-graphite text-sm">{t('algo.history.empty')}</p>
       )}
       {items.length > 0 && (
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Когда</th>
-                <th>Задача</th>
-                <th>Результат</th>
-                <th>Метод</th>
-                <th className="r">Время, мс</th>
+                <th>{t('algo.history.colWhen')}</th>
+                <th>{t('algo.history.colTask')}</th>
+                <th>{t('algo.history.colResult')}</th>
+                <th>{t('algo.history.colMethod')}</th>
+                <th className="r">{t('algo.history.colDuration')}</th>
               </tr>
             </thead>
             <tbody>
               {items.map((e) => (
                 <tr key={e.id} className="hover:bg-paper">
                   <td className="num text-graphite whitespace-nowrap">{formatDateTime(e.createdAt)}</td>
-                  <td className="whitespace-nowrap">{EXPERIMENT_TYPE_LABELS[e.type]}</td>
+                  <td className="whitespace-nowrap">{t(TYPE_LABELS[e.type])}</td>
                   <td>
                     <Link
                       href={`/algorithm/history/${e.id}`}
@@ -62,7 +68,13 @@ export function ExperimentsTable() {
                       {e.headline}
                     </Link>
                   </td>
-                  <td className="text-graphite">{e.solver ? (SOLVER_LABELS[e.solver] ?? e.solver) : '—'}</td>
+                  <td className="text-graphite">
+                    {e.solver
+                      ? SOLVER_KEY_MAP[e.solver] !== undefined
+                        ? t(SOLVER_KEY_MAP[e.solver]!)
+                        : e.solver
+                      : '—'}
+                  </td>
                   <td className="num r">{e.durationMs}</td>
                 </tr>
               ))}
@@ -77,7 +89,7 @@ export function ExperimentsTable() {
             busy={list.isFetchingNextPage}
             onClick={() => void list.fetchNextPage()}
           >
-            Показать ещё
+            {t('algo.history.loadMore')}
           </Button>
         </div>
       )}

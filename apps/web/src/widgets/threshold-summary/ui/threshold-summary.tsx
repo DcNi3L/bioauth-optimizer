@@ -1,5 +1,6 @@
 import type { ThresholdOptimizeResponse } from '@bioauth/contracts';
 
+import { useT } from '@/shared/i18n';
 import { formatNumber, formatPercent } from '@/shared/lib';
 import { Metric, Notice } from '@/shared/ui';
 
@@ -34,45 +35,41 @@ function OperatingPointColumn({
 
 /** Сравнение точки равных ошибок и оптимального порога (формула 1 СРО1). */
 export function ThresholdSummary({ result }: { result: Result }) {
+  const t = useT();
   const { eer, optimal, lossReduction, verification, warnings } = result;
   const degenerate = optimal.degenerate;
   return (
     <div className="flex flex-col gap-5">
       <div className="grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
-        <OperatingPointColumn title="Точка равных ошибок (EER)" point={eer} />
+        <OperatingPointColumn title={t('algo.threshold.eerTitle')} point={eer} />
         <div className="bg-rule hidden h-full w-px sm:block" aria-hidden />
-        <OperatingPointColumn title="Минимум ожидаемых потерь" point={optimal} emphasis />
+        <OperatingPointColumn title={t('algo.threshold.optimalTitle')} point={optimal} emphasis />
       </div>
 
       {lossReduction !== null && !degenerate && (
         <p className="max-w-prose text-[15px]">
-          Переход от EER к оптимальному порогу снижает ожидаемые потери на{' '}
-          <strong className="num text-optimum font-semibold">{formatPercent(lossReduction, 1)}</strong>: с{' '}
-          <span className="num">{formatNumber(eer.cost, 4)}</span> до{' '}
-          <span className="num">{formatNumber(optimal.cost, 4)}</span>.
+          {t('algo.threshold.lossReduction', {
+            pct: formatPercent(lossReduction, 1),
+            from: formatNumber(eer.cost, 4),
+            to: formatNumber(optimal.cost, 4),
+          })}
         </p>
       )}
 
       {optimal.interval && (
         <p className="text-graphite text-sm">
-          На выборке решения одинаковы для любого порога из интервала (
-          <span className="num">
-            {optimal.interval[0] === null ? '−∞' : formatNumber(optimal.interval[0], 6)}
-          </span>
-          ;{' '}
-          <span className="num">
-            {optimal.interval[1] === null ? '+∞' : formatNumber(optimal.interval[1], 6)}
-          </span>
-          ]; рекомендован его центр.
+          {t('algo.threshold.interval', {
+            lo: optimal.interval[0] === null ? '−∞' : formatNumber(optimal.interval[0], 6),
+            hi: optimal.interval[1] === null ? '+∞' : formatNumber(optimal.interval[1], 6),
+          })}
           {result.sampleSizes &&
-            ` Выборки: ${result.sampleSizes.genuine.toLocaleString('ru-RU')} законных, ${result.sampleSizes.impostor.toLocaleString('ru-RU')} злоумышленников.`}
+            ` ${t('algo.threshold.intervalSamples', {
+              genuine: result.sampleSizes.genuine.toLocaleString(),
+              impostor: result.sampleSizes.impostor.toLocaleString(),
+            })}`}
         </p>
       )}
-      {optimal.constrainedByFarMax && (
-        <Notice tone="info">
-          Оптимум упирается в ограничение FAR ≤ FAR_max: порог поднят до границы допустимой области.
-        </Notice>
-      )}
+      {optimal.constrainedByFarMax && <Notice tone="info">{t('algo.threshold.farMaxNote')}</Notice>}
       {warnings.map((w) => (
         <Notice key={w} tone="caution">
           {w}
@@ -80,9 +77,9 @@ export function ThresholdSummary({ result }: { result: Result }) {
       ))}
       <p className="text-graphite text-xs">
         {verification.status === 'ok' &&
-          `Аналитическое решение подтверждено численно: расхождение ${formatNumber(verification.absDiff ?? 0, 2)}.`}
-        {verification.status === 'exact' && 'Точный перебор всех порогов по выборке.'}
-        {verification.status === 'skipped' && 'Оптимум вырожден — численная проверка не требуется.'}
+          t('algo.threshold.verifyOk', { diff: formatNumber(verification.absDiff ?? 0, 2) })}
+        {verification.status === 'exact' && t('algo.threshold.verifyExact')}
+        {verification.status === 'skipped' && t('algo.threshold.verifySkipped')}
       </p>
     </div>
   );

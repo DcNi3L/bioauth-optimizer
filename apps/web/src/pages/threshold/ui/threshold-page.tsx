@@ -7,6 +7,7 @@ import { ExportButtons } from '@/features/export-result';
 import { LoadExampleButton } from '@/features/load-article-example';
 import { ThresholdForm, useOptimizeThreshold, useThresholdForm } from '@/features/optimize-threshold';
 import { UploadScores } from '@/features/upload-scores';
+import { useT } from '@/shared/i18n';
 import { ApiErrorNotice, Button, type EChartHandle, Panel } from '@/shared/ui';
 import { RocChart } from '@/widgets/roc-chart';
 import { ThresholdErrorChart } from '@/widgets/threshold-error-chart';
@@ -20,6 +21,7 @@ function curvesCsv(r: ThresholdOptimizeResponse) {
 }
 
 export function ThresholdPage() {
+  const t = useT();
   const form = useThresholdForm();
   const optimize = useOptimizeThreshold();
   const [dataset, setDataset] = useState<ScoreDatasetDto | null>(null);
@@ -35,10 +37,8 @@ export function ThresholdPage() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-xl">Оптимальный порог</h2>
-          <p className="text-graphite mt-1 max-w-prose text-sm">
-            Минимум байесовской стоимости E(τ) = cFA·FAR(τ) + cFR·FRR(τ) — формула (1) статьи СРО1.
-          </p>
+          <h2 className="text-xl">{t('algo.threshold.title')}</h2>
+          <p className="text-graphite mt-1 max-w-prose text-sm">{t('algo.threshold.subtitle')}</p>
         </div>
         <Panel>
           <form
@@ -56,7 +56,7 @@ export function ThresholdPage() {
             />
             <div className="border-rule flex flex-wrap gap-3 border-t pt-4">
               <Button type="submit" busy={optimize.isPending}>
-                Рассчитать
+                {t('algo.calculate')}
               </Button>
               <LoadExampleButton onLoad={(ex) => form.fill(ex.threshold)} />
             </div>
@@ -67,17 +67,16 @@ export function ThresholdPage() {
 
       <div className="flex flex-col gap-6" aria-live="polite">
         {!result ? (
-          <div className="border-rule text-graphite rounded-lg border border-dashed px-6 py-16 text-center text-sm lg:mt-[4.5rem]">
-            Задайте распределения оценок и стоимости ошибок или нажмите «Пример из статьи СРО1». Здесь
-            появятся оптимальный порог, сравнение с точкой равных ошибок и графики.
+          <div className="border-rule text-graphite lg:mt-18 rounded-lg border border-dashed px-6 py-16 text-center text-sm">
+            {t('algo.threshold.placeholder')}
           </div>
         ) : (
           <>
-            <Panel title="Результат">
+            <Panel title={t('algo.result')}>
               <ThresholdSummary result={result} />
             </Panel>
             <Panel
-              title="Ошибки и стоимость в зависимости от порога"
+              title={t('algo.threshold.errorChartTitle')}
               actions={
                 <ExportButtons
                   spec={{
@@ -91,7 +90,7 @@ export function ThresholdPage() {
             >
               <ThresholdErrorChart ref={chartRef} result={result} />
             </Panel>
-            <Panel title="ROC-кривая">
+            <Panel title={t('algo.threshold.rocTitle')}>
               <RocChart result={result} />
             </Panel>
           </>

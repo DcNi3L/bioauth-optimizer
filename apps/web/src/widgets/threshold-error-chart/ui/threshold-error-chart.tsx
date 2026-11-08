@@ -4,6 +4,7 @@ import type { ThresholdOptimizeResponse } from '@bioauth/contracts';
 import { forwardRef, useMemo } from 'react';
 
 import { SERIES_COLORS } from '@/shared/config';
+import { useT } from '@/shared/i18n';
 import { formatNumber, formatSci } from '@/shared/lib';
 import { EChart, type EChartHandle } from '@/shared/ui';
 
@@ -12,6 +13,10 @@ const positive = (v: number) => (v > 1e-300 ? v : null);
 /** FAR(τ), FRR(τ) и E(τ) на логарифмической шкале с отметками EER и τ* (как рис. 2а СРО1). */
 export const ThresholdErrorChart = forwardRef<EChartHandle, { result: ThresholdOptimizeResponse }>(
   function ThresholdErrorChart({ result }, ref) {
+    const t = useT();
+    const xAxisLabel = t('algo.threshold.xAxis');
+    const yAxisLabel = t('algo.threshold.yAxis');
+    const ariaLabel = t('algo.threshold.ariaErrors');
     const option = useMemo(() => {
       const pts = result.curves.errors;
       const line = (key: 'far' | 'frr' | 'cost') => pts.map((p) => [p.tau, positive(p[key])]);
@@ -64,7 +69,7 @@ export const ThresholdErrorChart = forwardRef<EChartHandle, { result: ThresholdO
         },
         xAxis: {
           type: 'value',
-          name: 'Порог τ',
+          name: xAxisLabel,
           nameLocation: 'middle',
           nameGap: 30,
           min: pts[0]?.tau,
@@ -75,7 +80,7 @@ export const ThresholdErrorChart = forwardRef<EChartHandle, { result: ThresholdO
         yAxis: {
           type: 'log',
           logBase: 10,
-          name: 'Вероятность / стоимость',
+          name: yAxisLabel,
           nameLocation: 'middle',
           nameGap: 50,
           axisLabel: { ...axisLabel, formatter: (v: number) => formatSci(v, 1) },
@@ -110,15 +115,8 @@ export const ThresholdErrorChart = forwardRef<EChartHandle, { result: ThresholdO
           },
         ],
       };
-    }, [result]);
+    }, [result, xAxisLabel, yAxisLabel]);
 
-    return (
-      <EChart
-        ref={ref}
-        option={option}
-        height={400}
-        ariaLabel="График ошибок FAR, FRR и стоимости E в зависимости от порога"
-      />
-    );
+    return <EChart ref={ref} option={option} height={400} ariaLabel={ariaLabel} />;
   },
 );

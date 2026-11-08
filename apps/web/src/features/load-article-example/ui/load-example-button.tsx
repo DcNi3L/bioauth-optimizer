@@ -2,12 +2,14 @@
 
 import type { Sro1ExamplesDto } from '@bioauth/contracts';
 
+import { useT } from '@/shared/i18n';
 import { Button } from '@/shared/ui';
 
 import { useSro1Example } from '../api/use-sro1-example';
 
 /** Заполняет форму данными модельного примера раздела 4 статьи СРО1. */
 export function LoadExampleButton({ onLoad }: { onLoad: (example: Sro1ExamplesDto) => void }) {
+  const t = useT();
   const example = useSro1Example();
   return (
     <Button
@@ -16,7 +18,7 @@ export function LoadExampleButton({ onLoad }: { onLoad: (example: Sro1ExamplesDt
       disabled={!example.data}
       onClick={() => example.data && onLoad(example.data)}
     >
-      Пример из статьи СРО1
+      {t('algo.articleExample')}
     </Button>
   );
 }

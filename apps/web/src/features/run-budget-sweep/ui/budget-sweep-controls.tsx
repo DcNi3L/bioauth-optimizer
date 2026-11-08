@@ -3,6 +3,7 @@
 import type { BudgetSweepRequest } from '@bioauth/contracts';
 import { useState } from 'react';
 
+import { useT } from '@/shared/i18n';
 import { parseNumber } from '@/shared/lib';
 import { Button, NumberField } from '@/shared/ui';
 
@@ -16,6 +17,7 @@ export function BudgetSweepControls({
   onRun: (req: BudgetSweepRequest) => void;
   busy: boolean;
 }) {
+  const t = useT();
   const [from, setFrom] = useState('0,5');
   const [to, setTo] = useState('3');
   const [step, setStep] = useState('0,1');
@@ -23,41 +25,49 @@ export function BudgetSweepControls({
 
   const run = () => {
     const f = parseNumber(from);
-    const t = parseNumber(to);
+    const tVal = parseNumber(to);
     const s = parseNumber(step);
-    if (f === null || t === null || s === null || [f, t, s].some(Number.isNaN)) {
-      setError('Заполните диапазон числами');
+    if (f === null || tVal === null || s === null || [f, tVal, s].some(Number.isNaN)) {
+      setError(t('algo.factors.sweepErrNumbers'));
       return;
     }
-    if (t < f) {
-      setError('Конец диапазона должен быть не меньше начала');
+    if (tVal < f) {
+      setError(t('algo.factors.sweepErrEndGtStart'));
       return;
     }
     if (s <= 0) {
-      setError('Шаг должен быть больше нуля');
+      setError(t('algo.factors.sweepErrStepPositive'));
       return;
     }
-    if (Math.floor((t - f) / s + 1e-9) + 1 > 500) {
-      setError('Слишком много точек: не более 500');
+    if (Math.floor((tVal - f) / s + 1e-9) + 1 > 500) {
+      setError(t('algo.factors.sweepErrTooMany'));
       return;
     }
     const base = buildBase();
     if (!base) {
-      setError('Исправьте ошибки в факторах и ограничениях выше');
+      setError(t('algo.factors.sweepErrBase'));
       return;
     }
     setError(null);
-    onRun({ ...base, sweep: { from: f, to: t, step: s } });
+    onRun({ ...base, sweep: { from: f, to: tVal, step: s } });
   };
 
   return (
     <div className="flex flex-col gap-3">
       <div className="grid gap-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
-        <NumberField label="Бюджет от" value={from} onChange={(e) => setFrom(e.target.value)} />
-        <NumberField label="до" value={to} onChange={(e) => setTo(e.target.value)} />
-        <NumberField label="шаг" value={step} onChange={(e) => setStep(e.target.value)} />
+        <NumberField
+          label={t('algo.factors.sweepFrom')}
+          value={from}
+          onChange={(e) => setFrom(e.target.value)}
+        />
+        <NumberField label={t('algo.factors.sweepTo')} value={to} onChange={(e) => setTo(e.target.value)} />
+        <NumberField
+          label={t('algo.factors.sweepStep')}
+          value={step}
+          onChange={(e) => setStep(e.target.value)}
+        />
         <Button onClick={run} busy={busy}>
-          Построить
+          {t('algo.factors.sweepRun')}
         </Button>
       </div>
       {error && <p className="text-far text-xs">{error}</p>}

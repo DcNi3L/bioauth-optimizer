@@ -2,14 +2,10 @@
 
 import type { ReactNode } from 'react';
 
+import { useT } from '@/shared/i18n';
 import { NumberField, Segmented } from '@/shared/ui';
 
 import type { FieldErrors, ThresholdFormValues, ThresholdMode } from '../model/use-threshold-form';
-
-const MODES = [
-  { value: 'gaussian', label: 'Нормальные распределения' },
-  { value: 'empirical', label: 'Свои оценки (CSV)' },
-] as const;
 
 interface Props {
   values: ThresholdFormValues;
@@ -20,6 +16,13 @@ interface Props {
 }
 
 export function ThresholdForm({ values, errors, set, datasetSlot }: Props) {
+  const t = useT();
+
+  const MODES = [
+    { value: 'gaussian', label: t('algo.threshold.sourceGaussian') },
+    { value: 'empirical', label: t('algo.threshold.sourceEmpirical') },
+  ] as const;
+
   const bind = (key: Exclude<keyof ThresholdFormValues, 'mode'>) => ({
     value: values[key],
     error: errors[key],
@@ -29,7 +32,7 @@ export function ThresholdForm({ values, errors, set, datasetSlot }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <Segmented
-        label="Источник оценок"
+        label={t('algo.threshold.source')}
         value={values.mode}
         options={MODES}
         onChange={(m: ThresholdMode) => set('mode', m)}
@@ -38,19 +41,16 @@ export function ThresholdForm({ values, errors, set, datasetSlot }: Props) {
       {values.mode === 'gaussian' ? (
         <div className="grid gap-5 sm:grid-cols-2">
           <fieldset className="border-frr flex min-w-0 flex-col gap-3 border-l-2 pl-4">
-            <legend className="text-frr mb-2 text-sm font-medium">Законные пользователи</legend>
-            <NumberField label="Среднее оценки μ_G" {...bind('genuineMean')} />
-            <NumberField label="Отклонение σ_G" {...bind('genuineStd')} />
+            <legend className="text-frr mb-2 text-sm font-medium">{t('algo.threshold.genuine')}</legend>
+            <NumberField label={t('algo.threshold.meanG')} {...bind('genuineMean')} />
+            <NumberField label={t('algo.threshold.stdG')} {...bind('genuineStd')} />
           </fieldset>
           <fieldset className="border-far flex min-w-0 flex-col gap-3 border-l-2 pl-4">
-            <legend className="text-far mb-2 text-sm font-medium">Злоумышленники</legend>
-            <NumberField label="Среднее оценки μ_I" {...bind('impostorMean')} />
-            <NumberField label="Отклонение σ_I" {...bind('impostorStd')} />
+            <legend className="text-far mb-2 text-sm font-medium">{t('algo.threshold.impostors')}</legend>
+            <NumberField label={t('algo.threshold.meanI')} {...bind('impostorMean')} />
+            <NumberField label={t('algo.threshold.stdI')} {...bind('impostorStd')} />
           </fieldset>
-          <p className="text-graphite text-xs sm:col-span-2">
-            Оценки сходства каждой группы считаются нормально распределёнными: s ~ N(μ, σ), σ — стандартное
-            отклонение.
-          </p>
+          <p className="text-graphite text-xs sm:col-span-2">{t('algo.threshold.gaussianNote')}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -60,22 +60,38 @@ export function ThresholdForm({ values, errors, set, datasetSlot }: Props) {
       )}
 
       <fieldset className="grid min-w-0 gap-4 sm:grid-cols-3">
-        <legend className="mb-2 text-sm font-medium">Стоимость ошибок и ограничение</legend>
-        <NumberField label="Ложный допуск, cFA" hint="Цена пропуска злоумышленника" {...bind('cFA')} />
-        <NumberField label="Ложный отказ, cFR" hint="Цена отказа законному" {...bind('cFR')} />
+        <legend className="mb-2 text-sm font-medium">{t('algo.threshold.costsLegend')}</legend>
         <NumberField
-          label="FAR не выше"
-          placeholder="без ограничения"
-          hint="Например, 1e-4"
+          label={t('algo.threshold.cFALabel')}
+          hint={t('algo.threshold.cFAHint')}
+          {...bind('cFA')}
+        />
+        <NumberField
+          label={t('algo.threshold.cFRLabel')}
+          hint={t('algo.threshold.cFRHint')}
+          {...bind('cFR')}
+        />
+        <NumberField
+          label={t('algo.threshold.farMaxLabel')}
+          placeholder={t('algo.threshold.farMaxPlaceholder')}
+          hint={t('algo.threshold.farMaxHint')}
           {...bind('farMax')}
         />
       </fieldset>
 
       <details className="text-sm">
-        <summary className="text-graphite cursor-pointer">Диапазон графика</summary>
+        <summary className="text-graphite cursor-pointer">{t('algo.threshold.curveRange')}</summary>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <NumberField label="τ от" placeholder="авто" {...bind('curveFrom')} />
-          <NumberField label="τ до" placeholder="авто" {...bind('curveTo')} />
+          <NumberField
+            label={t('algo.threshold.curveFrom')}
+            placeholder={t('algo.threshold.curveAuto')}
+            {...bind('curveFrom')}
+          />
+          <NumberField
+            label={t('algo.threshold.curveTo')}
+            placeholder={t('algo.threshold.curveAuto')}
+            {...bind('curveTo')}
+          />
         </div>
       </details>
     </div>
