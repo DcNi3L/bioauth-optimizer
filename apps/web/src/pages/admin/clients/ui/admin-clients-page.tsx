@@ -112,7 +112,7 @@ export function AdminClientsPage() {
   const [creating, setCreating] = useState(false);
   const canEdit = me?.role === 'admin' && me.mfaComplete;
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg">{t('nav.clients')}</h2>

@@ -36,7 +36,7 @@ export function AdminAuditPage() {
               {t('algo.audit.broken', { n: v.brokenAt ?? 0 })}
             </Notice>
           ))}
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="min-w-3xl w-full text-sm">
             <thead className="text-graphite text-left text-xs">
               <tr className="border-rule border-b">

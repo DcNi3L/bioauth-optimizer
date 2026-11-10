@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { PoseSample } from '@/entities/face';
 
-import { type CaptureDeps, guidedCapture, type GuideState } from '../guided-capture';
+import { CaptureAborted, type CaptureDeps, guidedCapture, type GuideState } from '../guided-capture';
 
 const neutral: PoseSample = {
   face: true,
@@ -88,6 +88,21 @@ describe('управляемая съёмка', () => {
       expect.arrayContaining(['TILT_RIGHT', 'CHIN_DOWN', 'MOVE_AWAY']),
     );
     expect(states.some((s) => s.hint === 'timeout')).toBe(false);
+  });
+
+  it('остановка пользователем прерывает съёмку на ближайшем кадре', async () => {
+    const { d, states } = deps(() => ({}));
+    const abort = new AbortController();
+    const run = guidedCapture(['TURN_LEFT', 'CHIN_UP'], {
+      ...d,
+      signal: abort.signal,
+      onUpdate: (s) => {
+        d.onUpdate(s);
+        if (s.phase === 'command') abort.abort();
+      },
+    });
+    await expect(run).rejects.toBeInstanceOf(CaptureAborted);
+    expect(states.some((s) => s.phase === 'checking')).toBe(false);
   });
 
   it('при четырёх командах укладывается в 16 кадров на запрос', async () => {

@@ -52,7 +52,7 @@ export function AttemptsTable() {
         </SelectField>
       </div>
       {stats.length > 0 && (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
           {stats.map((s) => (
             <div key={s.factor} className="border-rule rounded-md border p-4">
               <p className="font-medium">{t(FACTOR_KEY[s.factor])}</p>
@@ -77,7 +77,7 @@ export function AttemptsTable() {
         </div>
       )}
       <ApiErrorNotice error={q.error} />
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="min-w-3xl w-full text-sm">
           <thead className="text-graphite text-left text-xs">
             <tr className="border-rule border-b">

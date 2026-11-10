@@ -1,7 +1,7 @@
 'use client';
 
 import type { AuthSessionDto, AuthStepResultDto, LivenessCommand } from '@bioauth/contracts';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { FaceViewport, type ViewportGuide, type ViewportStep } from '@/entities/face';
 import { useRefreshViewer } from '@/entities/viewer';
@@ -11,7 +11,7 @@ import { grabPair, sleep, useCamera } from '@/shared/lib/camera';
 import { ApiErrorNotice, Button, Notice, TextField } from '@/shared/ui';
 
 import { passkeyStep, posePreview, startSession, submitFace } from '../api/auth';
-import { guidedCapture, type GuideState } from '../model/guided-capture';
+import { CaptureAborted, guidedCapture, type GuideState } from '../model/guided-capture';
 
 type Phase = 'login' | 'face' | 'passkey' | 'done' | 'failed';
 
@@ -61,7 +61,9 @@ function present(
             ? t('face.guide.timeout')
             : g.hint === 'more'
               ? `${t(`face.command.${g.command}`)} · ${t('face.guide.more')}`
-              : t(`face.command.${g.command}`);
+              : g.total > 1
+                ? `${t('face.guide.step', { n: g.stepIndex + 1, total: g.total })} · ${t(`face.command.${g.command}`)}`
+                : t(`face.command.${g.command}`);
     const tone = g.hint === 'done' ? 'ok' : g.hint === 'NO_FACE' || g.hint === 'timeout' ? 'warn' : 'neutral';
     return { text, guide: { ...base, command: g.command, progress: g.progress, tone } };
   }
@@ -84,6 +86,7 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
   const [capturing, setCapturing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   function nextPhase(s: AuthSessionDto, r: AuthStepResultDto | null) {
     if (r?.outcome === 'accepted') {
@@ -128,6 +131,9 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
     setCapturing(true);
     setError(null);
     setResult(null);
+    const abort = new AbortController();
+    abortRef.current = abort;
+    let doneStep = -1;
     try {
       const body = await guidedCapture(commands, {
         grab: () => {
@@ -137,14 +143,23 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
         pose: (f) => posePreview(session.sessionId, f),
         sleep,
         now: () => performance.now(),
-        onUpdate: setGuide,
+        onUpdate: (g) => {
+          // Короткая вибрация на телефоне, когда движение засчитано: можно не смотреть на экран.
+          if (g.hint === 'done' && g.stepIndex !== doneStep) {
+            doneStep = g.stepIndex;
+            if (typeof navigator.vibrate === 'function') navigator.vibrate(40);
+          }
+          setGuide(g);
+        },
+        signal: abort.signal,
       });
       const r = await submitFace(session.sessionId, body);
       setResult(r);
       nextPhase(session, r);
     } catch (err) {
-      setError(err);
+      if (!(err instanceof CaptureAborted)) setError(err);
     } finally {
+      abortRef.current = null;
       setGuide(null);
       setCapturing(false);
       setBusy(false);
@@ -167,6 +182,7 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
   }
 
   function reset() {
+    abortRef.current?.abort();
     stop();
     setPhase('login');
     setSession(null);
@@ -254,9 +270,15 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
                 {t('face.camera.enable')}
               </Button>
             )}
-            <Button variant="secondary" onClick={reset} disabled={busy}>
-              {t('common.cancel')}
-            </Button>
+            {capturing ? (
+              <Button variant="secondary" onClick={() => abortRef.current?.abort()}>
+                {t('auth.stopCheck')}
+              </Button>
+            ) : (
+              <Button variant="secondary" onClick={reset} disabled={busy}>
+                {t('common.cancel')}
+              </Button>
+            )}
           </div>
         </div>
       )}

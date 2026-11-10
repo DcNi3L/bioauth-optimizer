@@ -294,6 +294,11 @@ export const OPERATIONS: Readonly<Record<string, OperationDoc>> = {
       'Профиль, роль, состояние согласия, наличие шаблона лица и passkey, признак завершённого ' +
       'двухфакторного входа. Интерфейс вызывает этот метод при загрузке.',
   },
+  'get /identity/viewer': {
+    description:
+      'То же, что `GET /identity/me`, но для посетителя без сессии возвращает `{"user": null}` со статусом `200`, ' +
+      'а не `401`. Удобно для интерфейса при загрузке страницы.',
+  },
   'delete /identity/me/avatar': { summary: 'Удалить аватар' },
   'post /auth/sessions': {
     description: [

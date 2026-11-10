@@ -1,24 +1,17 @@
 'use client';
 
-import { type MeDto, meSchema } from '@bioauth/contracts';
+import { type MeDto, viewerSchema } from '@bioauth/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { ApiError, apiGet, apiSend } from '@/shared/api';
+import { apiGet, apiSend } from '@/shared/api';
 
 export const viewerKeys = { me: ['viewer', 'me'] as const };
 
-/** Текущий пользователь; null — вход не выполнен (401). */
+/** Текущий пользователь; null — вход не выполнен. */
 export function useViewer() {
   return useQuery({
     queryKey: viewerKeys.me,
-    queryFn: async (): Promise<MeDto | null> => {
-      try {
-        return await apiGet('/identity/me', meSchema);
-      } catch (err) {
-        if (err instanceof ApiError && err.status === 401) return null;
-        throw err;
-      }
-    },
+    queryFn: async (): Promise<MeDto | null> => (await apiGet('/identity/viewer', viewerSchema)).user,
     staleTime: 30_000,
   });
 }

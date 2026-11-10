@@ -4,6 +4,8 @@ import {
   passwordLoginRequestSchema,
   type RegisterSubjectRequest,
   registerSubjectRequestSchema,
+  type ViewerDto,
+  viewerSchema,
   type z,
 } from '@bioauth/contracts';
 import { Body, Controller, Get, HttpCode, Inject, Post, Req, Res } from '@nestjs/common';
@@ -15,6 +17,7 @@ import {
   type AuthUser,
   clearSessionCookie,
   CurrentUser,
+  OptionalUser,
   Public,
   readCookie,
   SESSION_COOKIE,
@@ -85,5 +88,14 @@ export class IdentityController {
   @ApiZodOk(meSchema)
   me(@CurrentUser() user: AuthUser): Promise<MeDto> {
     return this.meQuery.me(user);
+  }
+
+  @Public()
+  @Get('viewer')
+  @ApiOperation({ summary: 'Текущий пользователь или null, если вход не выполнен' })
+  @ApiZodOk(viewerSchema)
+  async viewer(@OptionalUser() user: AuthUser | null): Promise<ViewerDto> {
+    // Для интерфейса: «не вошёл» — обычное состояние, а не ошибка 401 в консоли браузера.
+    return { user: user ? await this.meQuery.me(user) : null };
   }
 }

@@ -12,7 +12,7 @@ export function AdminBatchPage() {
   if (viewer?.role !== 'admin' && viewer?.role !== 'researcher')
     return <Notice tone="info">{t('algo.batch.roleNotice')}</Notice>;
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <Panel title={t('algo.batch.archiveTitle')} description={t('algo.batch.archiveDesc')}>
         <div className="px-5 py-4">
           <BatchForm />

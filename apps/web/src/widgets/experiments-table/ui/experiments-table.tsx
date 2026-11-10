@@ -44,7 +44,7 @@ export function ExperimentsTable() {
         <p className="text-graphite text-sm">{t('algo.history.empty')}</p>
       )}
       {items.length > 0 && (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="data-table">
             <thead>
               <tr>

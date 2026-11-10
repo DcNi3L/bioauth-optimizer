@@ -94,6 +94,7 @@ export const kk: Dict = {
     continue: 'Жалғастыру',
     signIn: 'Кіру',
     startCheck: 'Тексеруді бастау',
+    stopCheck: 'Тоқтату',
     retryCheck: 'Қайта тексеру',
     uncalibrated: 'v{v} саясатының шектері әлі калибрленбеген: әдепкі мәндер қолданылады.',
     retryTitle: 'Қайталаңыз',

@@ -11,7 +11,7 @@ export function MeasuredFactors({ data }: { data: MeasuredFactorsDto }) {
   const t = useT();
   return (
     <div className="flex flex-col gap-3">
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="min-w-160 w-full text-sm">
           <thead className="text-graphite text-left text-xs">
             <tr className="border-rule border-b">

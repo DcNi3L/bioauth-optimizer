@@ -235,6 +235,10 @@ release-zip: ## Архив исходников для сдачи (git archive H
 	@git archive --format=zip --prefix=bioauth-optimizer/ -o $(RELEASE_ZIP) HEAD
 	@printf "Создан $(CYAN)%s$(RESET) (%s)\n" "$(RELEASE_ZIP)" "$$(du -h $(RELEASE_ZIP) | cut -f1)"
 
+.PHONY: kazpatent-listing
+kazpatent-listing: ## Листинг исходного текста ядра для депонирования (docs/deliverables/kazpatent/)
+	@node scripts/kazpatent-listing.mjs
+
 .PHONY: clean
 clean: ## Удалить артефакты сборки (dist, .next, .turbo, coverage)
 	@find . -path ./node_modules -prune -o \( -name dist -o -name .next -o -name .turbo -o -name coverage \) -type d -prune -print \

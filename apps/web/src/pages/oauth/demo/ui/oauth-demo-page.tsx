@@ -143,7 +143,7 @@ export function OauthDemoPage() {
       {error && <Notice tone="error">{error}</Notice>}
       {busy === 'exchange' && <Notice tone="info">{t('oauth.demo.exchanging')}</Notice>}
       {!tokens ? (
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <Panel>
             <div className="flex flex-col items-center gap-5 py-6 text-center">
               <span className="bg-paper text-frr rounded-2xl p-4">
@@ -218,7 +218,7 @@ export function OauthDemoPage() {
               </div>
             </div>
           </Panel>
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
             <Panel title={t('oauth.demo.idToken')}>
               <Json value={id} />
             </Panel>

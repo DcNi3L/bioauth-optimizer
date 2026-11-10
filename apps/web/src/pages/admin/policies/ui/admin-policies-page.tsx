@@ -16,7 +16,7 @@ export function AdminPoliciesPage() {
   const face = active?.steps.find((s) => s.factor === 'face');
   const canPropose = viewer?.role === 'admin' || viewer?.role === 'researcher';
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
       <Panel title={t('algo.policies.title')} description={t('algo.policies.desc')}>
         <div className="px-5 py-4">
           <ApiErrorNotice error={policies.error} />

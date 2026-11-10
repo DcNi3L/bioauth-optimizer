@@ -22,6 +22,12 @@ export interface CaptureDeps {
   sleep(ms: number): Promise<void>;
   now(): number;
   onUpdate(state: GuideState): void;
+  /** Остановка съёмки пользователем: ближайший кадр прерывает её ошибкой CaptureAborted. */
+  signal?: AbortSignal;
+}
+
+export class CaptureAborted extends Error {
+  override name = 'CaptureAborted';
 }
 
 export type GuidePhase = 'align' | 'baseline' | 'command' | 'return' | 'checking';
@@ -74,6 +80,7 @@ export async function guidedCapture(
   const emit = (s: Omit<GuideState, 'total'>) => deps.onUpdate({ ...s, total });
 
   const sample = async () => {
+    if (deps.signal?.aborted) throw new CaptureAborted('съёмка остановлена');
     const { full, small } = deps.grab();
     const pose = await deps.pose(small);
     return { frame: full, pose };

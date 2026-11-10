@@ -45,6 +45,10 @@ export const meSchema = z.object({
 });
 export type MeDto = z.infer<typeof meSchema>;
 
+/** Ответ для интерфейса: пользователь или null, если вход не выполнен (без ошибки 401). */
+export const viewerSchema = z.object({ user: meSchema.nullable() });
+export type ViewerDto = z.infer<typeof viewerSchema>;
+
 export const consentTextSchema = z.object({ version: z.string(), title: z.string(), text: z.string() });
 export type ConsentTextDto = z.infer<typeof consentTextSchema>;
 

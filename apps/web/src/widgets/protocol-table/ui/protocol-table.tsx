@@ -67,7 +67,7 @@ export function ProtocolTable({ report }: { report: ProtocolReportDto }) {
     );
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="min-w-208 w-full text-sm">
           <thead className="text-graphite text-left text-xs">
             <tr className="border-rule border-b">

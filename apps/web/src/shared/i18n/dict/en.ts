@@ -94,6 +94,7 @@ export const en: Dict = {
     continue: 'Continue',
     signIn: 'Sign in',
     startCheck: 'Start check',
+    stopCheck: 'Stop',
     retryCheck: 'Check again',
     uncalibrated: 'Thresholds of policy v{v} are not calibrated yet: defaults are used.',
     retryTitle: 'Try again',

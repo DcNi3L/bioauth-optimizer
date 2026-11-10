@@ -94,6 +94,7 @@ export const ru = {
     continue: 'Продолжить',
     signIn: 'Войти',
     startCheck: 'Начать проверку',
+    stopCheck: 'Остановить',
     retryCheck: 'Повторить проверку',
     uncalibrated: 'Пороги политики v{v} ещё не откалиброваны: используются значения по умолчанию.',
     retryTitle: 'Повторите',

@@ -217,6 +217,12 @@ describeDb('API v3 e2e: учётные записи, админ-панель, Op
     // Спецификация не обещает лишнего: закрытый метод действительно закрыт, открытый — открыт.
     await ctx.agent().get('/api/v1/admin/users').expect(401);
     await ctx.agent().get('/api/v1/examples/sro1').expect(200);
+    // Посетитель без сессии: /identity/me — 401, /identity/viewer — 200 и null.
+    await ctx.agent().get('/api/v1/identity/me').expect(401);
+    expect((await ctx.agent().get('/api/v1/identity/viewer').expect(200)).body).toEqual({ user: null });
+    expect((await admin.get('/api/v1/identity/viewer').expect(200)).body).toMatchObject({
+      user: { role: 'admin' },
+    });
 
     // Пример из спецификации — рабочее тело запроса.
     const example = at('post', '/api/v1/threshold/optimize').requestBody!.content['application/json']!

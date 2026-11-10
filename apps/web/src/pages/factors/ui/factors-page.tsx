@@ -95,7 +95,7 @@ export function FactorsPage() {
         </div>
       </Panel>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
         <Panel title={t('algo.factors.costsTitle')}>
           <form
             className="flex flex-col gap-5"

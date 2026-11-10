@@ -2,13 +2,6 @@ import type { AuthPolicyDto, PolicyStep } from '@bioauth/contracts';
 
 import type { TFn } from '@/shared/i18n';
 
-export const STATUS_LABELS: Record<AuthPolicyDto['status'], string> = {
-  proposed: 'предложена',
-  active: 'активна',
-  retired: 'выведена',
-  rejected: 'отклонена',
-};
-
 export const STATUS_TONE: Record<AuthPolicyDto['status'], string> = {
   proposed: 'bg-caution-bg text-caution',
   active: 'bg-optimum-bg text-optimum',

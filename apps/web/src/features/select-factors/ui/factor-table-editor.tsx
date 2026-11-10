@@ -26,8 +26,8 @@ export function FactorTableEditor({ form }: { form: FactorSelectionFormState }) 
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="overflow-x-auto">
-        <table className="data-table">
+      <div className="relative overflow-x-auto">
+        <table className="data-table min-w-[640px]">
           <thead>
             <tr>
               {COLUMNS.map((c) => (

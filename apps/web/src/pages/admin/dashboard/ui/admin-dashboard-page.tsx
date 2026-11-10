@@ -61,7 +61,7 @@ export function AdminDashboardPage() {
         )}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Panel title={t('admin.dash.loginsChart')}>
           {s ? <LoginsChart days={s.logins.byDay} /> : <Skeleton className="h-64 w-full" />}
         </Panel>
@@ -76,7 +76,7 @@ export function AdminDashboardPage() {
         </Panel>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-3">
         <Panel title={t('admin.dash.reasons')}>
           {s &&
             (s.logins.topReasons.length ? (

@@ -31,7 +31,7 @@ export function CalibrationData({ data }: { data: CalibrationDataDto[] }) {
   const t = useT();
   if (data.length === 0) return <p className="text-graphite text-sm">{t('algo.measurements.scoresEmpty')}</p>;
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto">
       <table className="min-w-160 w-full text-sm">
         <thead className="text-graphite text-left text-xs">
           <tr className="border-rule border-b">

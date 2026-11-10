@@ -30,7 +30,7 @@ export function AdminCalibrationPage() {
   if (!canWrite) return <Notice tone="info">{t('algo.calibration.roleNotice')}</Notice>;
   const experimentId = result?.threshold.experimentId ?? null;
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <div className="flex flex-col gap-6">
         <Panel title={t('algo.calibration.title')} description={t('algo.calibration.desc')}>
           <div className="px-5 py-4">
