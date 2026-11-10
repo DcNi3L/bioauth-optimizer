@@ -14,6 +14,7 @@ import { AppModule } from './app.module';
 export { AppModule };
 import { APP_CONFIG, type AppConfig } from './shared/config/env';
 import { requestContextMiddleware } from './shared/http/request-context';
+import { enrichOpenApi } from './shared/swagger/openapi-enrich';
 
 /** Версия из package.json — та же, что у релиза. */
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -96,27 +97,13 @@ export function configureApp(nest: INestApplication): INestApplication {
   );
   app.enableShutdownHooks();
 
-  const document = SwaggerModule.createDocument(
+  const document = enrichOpenApi(
     app,
-    new DocumentBuilder()
-      .setTitle('BioAuth API')
-      .setDescription(
-        [
-          'Сервер биометрической аутентификации BioAuth: оптимизация порога (формула 1 СРО1) и состава факторов',
-          '(формулы 2–3 СРО1), регистрация и вход по лицу с passkey, калибровка, учётные записи и админ-панель.',
-          '',
-          '**Аутентификация.** Сессия — httpOnly cookie `bioauth_session` после входа (`POST /api/v1/identity/login`',
-          'или вход по лицу); запросы с cookie принимаются только с адреса интерфейса.',
-          '',
-          '**OpenID Connect.** Конечные точки сервера авторизации (без префикса `/api/v1`, ответы об ошибках — RFC 6749):',
-          '`/.well-known/openid-configuration`, `/oidc/authorize`, `/oidc/token`, `/oidc/userinfo`, `/oidc/jwks`,',
-          '`/oidc/introspect`, `/oidc/revoke`, `/oidc/logout`. Публичный адрес издателя — адрес интерфейса.',
-          '',
-          '**Ошибки** REST API — RFC 7807 `application/problem+json`. Спецификация: `/api/openapi.json`.',
-        ].join('\n'),
-      )
-      .setVersion(API_VERSION)
-      .build(),
+    SwaggerModule.createDocument(
+      app,
+      new DocumentBuilder().setTitle('BioAuth API').setVersion(API_VERSION).build(),
+    ),
+    config.RP_ORIGIN,
   );
   // Документация API — Scalar. Сборка интерфейса Scalar раздаётся самим сервером, без CDN:
   // справочник открывается и без интернета (защита на ноутбуке в режиме make up-offline).
@@ -138,6 +125,29 @@ export function configureApp(nest: INestApplication): INestApplication {
     showToolbar: 'never',
     showDeveloperTools: 'never',
     defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
+    // Разделы сгруппированы (x-tagGroups) и свёрнуты: длинная спецификация читается как оглавление.
+    defaultOpenAllTags: false,
+    hideModels: false,
+    hideDownloadButton: false,
+    searchHotKey: 'k',
+    operationTitleSource: 'summary',
+    orderRequiredPropertiesFirst: true,
+    // Выбранный способ входа и значения полей сохраняются между открытиями страницы.
+    persistAuth: true,
+    authentication: {
+      preferredSecurityScheme: 'cookieAuth',
+      securitySchemes: {
+        oidc: {
+          flows: {
+            authorizationCode: {
+              'x-scalar-client-id': 'bioauth-demo',
+              'x-scalar-redirect-uri': `${config.RP_ORIGIN}/oauth/demo`,
+              selectedScopes: ['openid', 'profile'],
+            },
+          },
+        },
+      },
+    },
     metaData: { title: 'BioAuth API', description: 'REST API и OpenID Connect BioAuth' },
     // ИИ-ассистент Scalar обращается к облаку — отключён.
     agent: { disabled: true },

@@ -166,6 +166,94 @@ describeDb('API v3 e2e: учётные записи, админ-панель, Op
     await ctx.agent().get('/api/docs-json').expect(200);
   });
 
+  it('спецификация: доступ по метаданным охранника, ошибки RFC 7807, разделы и OpenID Connect', async () => {
+    interface Op {
+      tags?: string[];
+      summary?: string;
+      security?: Record<string, unknown>[];
+      responses: Record<string, unknown>;
+      'x-access'?: { public: boolean; roles: string[] | null; mfa: boolean; perMinute: number | null };
+      requestBody?: { content: Record<string, { example?: unknown }> };
+    }
+    const spec = (await ctx.agent().get('/api/openapi.json').expect(200)).body as {
+      paths: Record<string, Record<string, Op>>;
+      tags: { name: string; description: string }[];
+      'x-tagGroups': { name: string; tags: string[] }[];
+      components: { securitySchemes: Record<string, unknown>; responses: Record<string, unknown> };
+      servers: { url: string }[];
+    };
+    const ops = Object.entries(spec.paths).flatMap(([path, ms]) =>
+      Object.entries(ms).map(([method, op]) => ({ path, method, op })),
+    );
+    expect(ops.length).toBeGreaterThan(90);
+    // У каждой операции есть заголовок и известный раздел, а раздел входит ровно в одну группу.
+    const tags = new Set(spec.tags.map((t) => t.name));
+    const grouped = spec['x-tagGroups'].flatMap((g) => g.tags);
+    expect(new Set(grouped).size).toBe(grouped.length);
+    expect([...tags].sort()).toEqual([...grouped].sort());
+    for (const { path, method, op } of ops) {
+      expect([`${method} ${path}`, op.summary]).toEqual([`${method} ${path}`, expect.stringMatching(/\S/)]);
+      for (const t of op.tags ?? []) expect(tags).toContain(t);
+    }
+    expect(spec.tags.every((t) => t.description.length > 20)).toBe(true);
+
+    // Требования доступа REST API взяты из тех же декораторов, что проверяет охранник.
+    const rest = ops.filter((o) => o.path.startsWith('/api/v1/'));
+    for (const { op } of rest) {
+      expect(op['x-access']).toBeDefined();
+      expect(op.security).toEqual(op['x-access']!.public ? [] : [{ cookieAuth: [] }]);
+      const closed = op['x-access']!.public ? [] : ['401', '403'];
+      expect(Object.keys(op.responses)).toEqual(expect.arrayContaining(closed));
+    }
+    const at = (method: string, path: string) => spec.paths[path]![method]!;
+    expect(at('post', '/api/v1/admin/users')['x-access']).toMatchObject({
+      public: false,
+      roles: ['admin'],
+      mfa: true,
+    });
+    expect(at('post', '/api/v1/threshold/optimize')['x-access']).toMatchObject({ public: true });
+    expect(at('post', '/api/v1/identity/login')['x-access']).toMatchObject({ public: true, perMinute: 10 });
+    expect(Object.keys(at('post', '/api/v1/identity/login').responses)).toContain('429');
+    // Спецификация не обещает лишнего: закрытый метод действительно закрыт, открытый — открыт.
+    await ctx.agent().get('/api/v1/admin/users').expect(401);
+    await ctx.agent().get('/api/v1/examples/sro1').expect(200);
+
+    // Пример из спецификации — рабочее тело запроса.
+    const example = at('post', '/api/v1/threshold/optimize').requestBody!.content['application/json']!
+      .example;
+    const solved = await ctx
+      .agent()
+      .post('/api/v1/threshold/optimize')
+      .send(example as object)
+      .expect(200);
+    expect(solved.body.optimal.tau).toBeCloseTo(0.5818, 3);
+
+    // Все конечные точки из обнаружения OIDC описаны в спецификации.
+    expect(Object.keys(spec.components.securitySchemes).sort()).toEqual([
+      'bearer',
+      'clientBasic',
+      'cookieAuth',
+      'oidc',
+    ]);
+    const d = (await ctx.agent().get('/.well-known/openid-configuration').expect(200)).body as Record<
+      string,
+      unknown
+    >;
+    for (const key of [
+      'authorization_endpoint',
+      'token_endpoint',
+      'userinfo_endpoint',
+      'jwks_uri',
+      'revocation_endpoint',
+      'introspection_endpoint',
+      'end_session_endpoint',
+    ]) {
+      expect(Object.keys(spec.paths)).toContain(new URL(d[key] as string).pathname);
+    }
+    expect(spec.paths['/.well-known/openid-configuration']).toBeDefined();
+    expect(spec.servers[0]).toEqual(expect.objectContaining({ url: '/' }));
+  });
+
   describe('OpenID Connect', () => {
     let jwks: { keys: Record<string, unknown>[] };
     let secret: string;
