@@ -1,8 +1,8 @@
 import { randomInt } from 'node:crypto';
 
-import type { LivenessCommand } from '@bioauth/contracts';
+import { LIVENESS_COMMANDS, type LivenessCommand } from '@bioauth/contracts';
 
-export const ALL_COMMANDS: readonly LivenessCommand[] = ['TURN_LEFT', 'TURN_RIGHT', 'CHIN_UP', 'MOVE_CLOSER'];
+export const ALL_COMMANDS: readonly LivenessCommand[] = LIVENESS_COMMANDS;
 
 /** Случайный набор различных команд (криптографический ГСЧ): последовательность непредсказуема для записи видео. */
 export function randomCommands(count: number, rnd: (max: number) => number = randomInt): LivenessCommand[] {

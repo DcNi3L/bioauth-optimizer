@@ -57,7 +57,8 @@
         "yawDeg": -6.818605164998984,
         "pitchDeg": 5.00589479882022,
         "yawRatio": -0.0658,
-        "pitchRatio": 1.4665
+        "pitchRatio": 1.4665,
+        "rollDeg": 0.8
       },
       "issues": []
     },
@@ -81,7 +82,8 @@
         "yawDeg": -5.182118430287528,
         "pitchDeg": 4.340384341209755,
         "yawRatio": -0.0499,
-        "pitchRatio": 1.4843
+        "pitchRatio": 1.4843,
+        "rollDeg": 0.8
       },
       "issues": []
     },
@@ -105,7 +107,8 @@
         "yawDeg": -8.18375948380918,
         "pitchDeg": -4.385389239064629,
         "yawRatio": -0.0791,
-        "pitchRatio": 1.7169
+        "pitchRatio": 1.7169,
+        "rollDeg": 0.8
       },
       "issues": []
     }

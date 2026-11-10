@@ -19,14 +19,17 @@ const TONE: Record<GuideTone, string> = {
   warn: '#fbbf24',
 };
 
-function Chevrons({ dir, x, y }: { dir: 'left' | 'right' | 'up'; x: number; y: number }) {
-  const d =
-    dir === 'left'
-      ? 'M10 -12 L0 0 L10 12'
-      : dir === 'right'
-        ? 'M-10 -12 L0 0 L-10 12'
-        : 'M-12 10 L0 0 L12 10';
-  const step = dir === 'up' ? { dx: 0, dy: -16 } : { dx: dir === 'left' ? -16 : 16, dy: 0 };
+type ChevronDir = 'left' | 'right' | 'up' | 'down';
+
+const CHEVRON: Record<ChevronDir, { d: string; dx: number; dy: number }> = {
+  left: { d: 'M10 -12 L0 0 L10 12', dx: -16, dy: 0 },
+  right: { d: 'M-10 -12 L0 0 L-10 12', dx: 16, dy: 0 },
+  up: { d: 'M-12 10 L0 0 L12 10', dx: 0, dy: -16 },
+  down: { d: 'M-12 -10 L0 0 L12 -10', dx: 0, dy: 16 },
+};
+
+function Chevrons({ dir, x, y }: { dir: ChevronDir; x: number; y: number }) {
+  const { d, ...step } = CHEVRON[dir];
   return (
     <g>
       {[0, 1, 2].map((i) => (
@@ -114,15 +117,72 @@ function CommandGuide({ command }: { command: LivenessCommand }) {
           />
         </g>
       );
-    case 'MOVE_CLOSER':
+    case 'CHIN_DOWN':
       return (
-        <g className="guide-expand">
-          {[
-            'M112 52 L112 30 L134 30',
-            'M288 52 L288 30 L266 30',
-            'M112 228 L112 250 L134 250',
-            'M288 228 L288 250 L266 250',
-          ].map((d) => (
+        <g>
+          <Chevrons dir="down" x={200} y={252} />
+          <path
+            d="M150 44 C170 30 230 30 250 44"
+            fill="none"
+            stroke="#fbfcfa"
+            strokeWidth="3"
+            strokeDasharray="7 6"
+            className="guide-dash"
+          />
+        </g>
+      );
+    case 'TILT_LEFT':
+    case 'TILT_RIGHT': {
+      // Предпросмотр зеркальный: наклон к левому плечу человека — наклон влево на экране.
+      const left = command === 'TILT_LEFT';
+      const flip = left ? undefined : 'translate(400 0) scale(-1 1)';
+      return (
+        <g transform={flip}>
+          <path
+            d={HEAD_PATH}
+            fill="none"
+            stroke="#fbfcfa"
+            strokeWidth="2"
+            strokeDasharray="4 6"
+            className="guide-tilt"
+          />
+          <path
+            d="M236 26 C196 14 150 24 120 56"
+            fill="none"
+            stroke="#fbfcfa"
+            strokeWidth="3"
+            strokeDasharray="7 6"
+            className="guide-dash"
+          />
+          <path
+            d="M116 40 L119 58 L137 56"
+            fill="none"
+            stroke="#fbfcfa"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      );
+    }
+    case 'MOVE_CLOSER':
+    case 'MOVE_AWAY':
+      return (
+        <g className={command === 'MOVE_CLOSER' ? 'guide-expand' : 'guide-shrink'}>
+          {(command === 'MOVE_CLOSER'
+            ? [
+                'M112 52 L112 30 L134 30',
+                'M288 52 L288 30 L266 30',
+                'M112 228 L112 250 L134 250',
+                'M288 228 L288 250 L266 250',
+              ]
+            : [
+                'M118 30 L140 30 L140 52',
+                'M282 30 L260 30 L260 52',
+                'M118 250 L140 250 L140 228',
+                'M282 250 L260 250 L260 228',
+              ]
+          ).map((d) => (
             <path key={d} d={d} fill="none" stroke="#fbfcfa" strokeWidth="4" strokeLinecap="round" />
           ))}
         </g>

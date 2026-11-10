@@ -20,7 +20,22 @@ export const faceIssueSchema = z.enum([
 ]);
 export type FaceIssue = z.infer<typeof faceIssueSchema>;
 
-export const livenessCommandSchema = z.enum(['TURN_LEFT', 'TURN_RIGHT', 'CHIN_UP', 'MOVE_CLOSER']);
+/**
+ * Активные команды проверки «живости». Все проверяются по 5 ключевым точкам лица относительно нейтральных
+ * кадров того же человека: поворот (смещение носа), подбородок (отношение глаза–нос / нос–рот),
+ * наклон к плечу (угол линии глаз), приближение и отдаление (межзрачковое расстояние).
+ */
+export const LIVENESS_COMMANDS = [
+  'TURN_LEFT',
+  'TURN_RIGHT',
+  'CHIN_UP',
+  'CHIN_DOWN',
+  'TILT_LEFT',
+  'TILT_RIGHT',
+  'MOVE_CLOSER',
+  'MOVE_AWAY',
+] as const;
+export const livenessCommandSchema = z.enum(LIVENESS_COMMANDS);
 export type LivenessCommand = z.infer<typeof livenessCommandSchema>;
 
 export const stepFailureSchema = z.enum(['NO_FACE', 'NOT_PERFORMED', 'TIMING']);
@@ -53,6 +68,8 @@ export const frameAnalysisSchema = z.object({
       pitchDeg: z.number(),
       yawRatio: z.number(),
       pitchRatio: z.number(),
+      /** Наклон линии глаз, °: > 0 — голова наклонена к левому плечу человека. */
+      rollDeg: z.number(),
     })
     .nullable(),
   issues: z.array(faceIssueSchema),

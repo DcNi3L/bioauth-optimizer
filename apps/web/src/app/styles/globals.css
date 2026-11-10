@@ -140,8 +140,21 @@
   .guide-chevron-up {
     animation-name: guide-up;
   }
+  .guide-chevron-down {
+    animation-name: guide-down;
+  }
   .guide-dash {
     animation: guide-dash 1s linear infinite;
+  }
+  .guide-shrink {
+    transform-box: view-box;
+    transform-origin: 200px 140px;
+    animation: guide-shrink 1.4s ease-in-out infinite;
+  }
+  .guide-tilt {
+    transform-box: view-box;
+    transform-origin: 200px 238px;
+    animation: guide-tilt 1.6s ease-in-out infinite;
   }
   .guide-expand {
     transform-box: view-box;
@@ -186,6 +199,42 @@
   100% {
     opacity: 0;
     translate: 0 -10px;
+  }
+}
+@keyframes guide-down {
+  0% {
+    opacity: 0;
+    translate: 0 -8px;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+@keyframes guide-shrink {
+  0%,
+  100% {
+    scale: 1.06;
+    opacity: 0.6;
+  }
+  50% {
+    scale: 0.9;
+    opacity: 1;
+  }
+}
+@keyframes guide-tilt {
+  0%,
+  100% {
+    rotate: 0deg;
+    opacity: 0.25;
+  }
+  55%,
+  80% {
+    rotate: -16deg;
+    opacity: 0.7;
   }
 }
 @keyframes guide-fade {

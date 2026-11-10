@@ -101,6 +101,7 @@ class FaceService:
                     pitch_deg=p.pitch_deg,
                     yaw_ratio=p.yaw_ratio,
                     pitch_ratio=p.pitch_ratio if p.pitch_ratio != float('inf') else 99.0,
+                    roll_deg=p.roll_deg,
                 )
         issues = assess(
             QualityInput(len(faces), face.score if face else None, p, sharp, bright),

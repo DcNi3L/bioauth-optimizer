@@ -32,6 +32,8 @@ class Pose:
     yaw_deg: float
     pitch_deg: float
     """> 0 — подбородок поднят."""
+    roll_deg: float = 0.0
+    """Наклон головы к плечу по линии глаз: > 0 — к левому плечу человека (кадр не зеркальный)."""
 
 
 def as_landmarks(points: npt.ArrayLike) -> Landmarks:
@@ -43,12 +45,21 @@ def as_landmarks(points: npt.ArrayLike) -> Landmarks:
 
 def pose(points: npt.ArrayLike) -> Pose:
     lm = as_landmarks(points)
+    iod = float(np.linalg.norm(lm[0] - lm[1]))
+    if iod <= 1e-6:
+        raise ValueError('глаза совпадают: вырожденные ключевые точки')
+    # Наклон к плечу: угол линии глаз. Глаз, который на кадре правее, — левый глаз человека; если он
+    # ниже (y больше), голова наклонена к левому плечу.
+    first, second = (lm[0], lm[1]) if lm[0][0] <= lm[1][0] else (lm[1], lm[0])
+    roll = math.atan2(float(second[1] - first[1]), float(second[0] - first[0]))
+    # Поворот и подбородок считаются в системе координат лица: без этого наклон к плечу сдвигает нос
+    # по горизонтали кадра и засчитывался бы как поворот головы.
+    c, sn = math.cos(-roll), math.sin(-roll)
+    origin = (lm[0] + lm[1]) / 2
+    lm = (lm - origin) @ np.array([[c, sn], [-sn, c]]) + origin
     eye_r, eye_l, nose, mouth_r, mouth_l = lm
     eye_mid = (eye_r + eye_l) / 2
     mouth_mid = (mouth_r + mouth_l) / 2
-    iod = float(np.linalg.norm(eye_r - eye_l))
-    if iod <= 1e-6:
-        raise ValueError('глаза совпадают: вырожденные ключевые точки')
     yaw_ratio = float((nose[0] - eye_mid[0]) / iod)
     eye_nose = float(nose[1] - eye_mid[1])
     nose_mouth = float(mouth_mid[1] - nose[1])
@@ -60,4 +71,4 @@ def pose(points: npt.ArrayLike) -> Pose:
         if not math.isfinite(pitch_ratio)
         else max(-90.0, min(90.0, (PITCH_NEUTRAL_RATIO - pitch_ratio) / PITCH_NEUTRAL_RATIO * 60.0))
     )
-    return Pose(iod, yaw_ratio, pitch_ratio, yaw_deg, pitch_deg)
+    return Pose(iod, yaw_ratio, pitch_ratio, yaw_deg, pitch_deg, math.degrees(roll))

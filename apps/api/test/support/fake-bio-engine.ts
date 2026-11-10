@@ -125,6 +125,7 @@ export async function startFakeBioEngine(): Promise<FakeBioEngine> {
                     pitchDeg: 0,
                     yawRatio: f.tag === 'TURN_LEFT' ? 0.2 : 0,
                     pitchRatio: 1.6,
+                    rollDeg: f.tag === 'TILT_LEFT' ? 14 : 0,
                   }
                 : null,
               issues: ok ? [] : ['NO_FACE'],

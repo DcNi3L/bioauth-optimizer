@@ -23,6 +23,12 @@ def shifted_nose(dx: float = 0, dy: float = 0) -> np.ndarray:
     return lm
 
 
+def rolled(deg: float) -> np.ndarray:
+    a = math.radians(deg)
+    rot = np.array([[math.cos(a), math.sin(a)], [-math.sin(a), math.cos(a)]])
+    return (FRONTAL - 140) @ rot + 140
+
+
 class TestGeometry:
     def test_frontal_face_has_zero_yaw(self) -> None:
         p = pose(FRONTAL)
@@ -47,6 +53,24 @@ class TestGeometry:
             assert b.yaw_ratio == pytest.approx(a.yaw_ratio, abs=1e-9)
             assert b.pitch_ratio == pytest.approx(a.pitch_ratio, rel=1e-9)
             assert b.interocular_px == pytest.approx(a.interocular_px * k, rel=1e-9)
+
+    def test_roll_sign_and_derotation(self) -> None:
+        """Наклон к плечу меняет roll, но не yaw/pitch: поворот и подбородок считаются в системе лица."""
+        base = pose(FRONTAL)
+        assert base.roll_deg == pytest.approx(0)
+        for deg in (-25.0, -10.0, 12.0, 30.0):
+            a = math.radians(deg)
+            rot = np.array([[math.cos(a), math.sin(a)], [-math.sin(a), math.cos(a)]])
+            p = pose((FRONTAL - 140) @ rot + 140)
+            assert p.roll_deg == pytest.approx(deg, abs=1e-6)
+            assert p.yaw_ratio == pytest.approx(base.yaw_ratio, abs=1e-9)
+            assert p.pitch_ratio == pytest.approx(base.pitch_ratio, rel=1e-9)
+        # Глаз человека слева (на кадре правее) ниже — наклон к левому плечу, знак положительный.
+        tilted = FRONTAL.copy()
+        tilted[1] += (0, 15)
+        assert pose(tilted).roll_deg > 0
+        # Порядок глаз на знак не влияет.
+        assert pose(tilted[[1, 0, 2, 3, 4]]).roll_deg == pytest.approx(pose(tilted).roll_deg)
 
     def test_degenerate_landmarks_rejected(self) -> None:
         with pytest.raises(ValueError, match='глаза'):
@@ -124,6 +148,10 @@ class TestLiveness:
             (Command.TURN_RIGHT, shifted_nose(dx=-14), FRONTAL),
             (Command.CHIN_UP, shifted_nose(dy=-12), FRONTAL),
             (Command.MOVE_CLOSER, (FRONTAL - 140) * 1.4 + 140, FRONTAL),
+            (Command.CHIN_DOWN, shifted_nose(dy=8), FRONTAL),
+            (Command.MOVE_AWAY, (FRONTAL - 140) * 0.75 + 140, FRONTAL),
+            (Command.TILT_LEFT, rolled(14), FRONTAL),
+            (Command.TILT_RIGHT, rolled(-14), FRONTAL),
         ],
     )
     def test_command_passes_only_when_performed(
@@ -136,6 +164,19 @@ class TestLiveness:
 
     def test_wrong_direction_fails(self) -> None:
         assert not self.step(Command.TURN_LEFT, [shifted_nose(dx=-20)] * 3).passed
+
+    def test_tilt_is_not_a_turn(self) -> None:
+        """Наклон к плечу не засчитывается как поворот, и наоборот: противоположная команда не проходит."""
+        assert not self.step(Command.TURN_LEFT, [rolled(20)] * 3).passed
+        assert not self.step(Command.TURN_RIGHT, [rolled(-20)] * 3).passed
+        assert not self.step(Command.TILT_LEFT, [shifted_nose(dx=20)] * 3).passed
+        assert not self.step(Command.TILT_LEFT, [rolled(-14)] * 3).passed
+        assert not self.step(Command.CHIN_DOWN, [shifted_nose(dy=-12)] * 3).passed
+        assert not self.step(Command.MOVE_AWAY, [(FRONTAL - 140) * 1.4 + 140] * 3).passed
+
+    def test_best_measure_direction(self) -> None:
+        r = self.step(Command.MOVE_AWAY, [(FRONTAL - 140) * k + 140 for k in (0.95, 0.7, 0.9)])
+        assert r.passed and r.measure == pytest.approx(0.7)
 
     def test_no_face_in_step(self) -> None:
         r = self.step(Command.TURN_LEFT, [None, None, None])

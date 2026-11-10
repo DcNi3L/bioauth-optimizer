@@ -11,6 +11,7 @@ export interface PoseBaseline {
   readonly yawRatio: number;
   readonly pitchRatio: number;
   readonly interocularPx: number;
+  readonly rollDeg: number;
 }
 
 const median = (xs: number[]) => {
@@ -30,6 +31,7 @@ export function baselineOf(samples: readonly PoseSample[]): PoseBaseline | null 
     yawRatio: median(ok.map((s) => s.yawRatio)),
     pitchRatio: median(ok.map((s) => s.pitchRatio)),
     interocularPx: median(ok.map((s) => s.interocularPx)),
+    rollDeg: median(ok.map((s) => s.rollDeg ?? 0)),
   };
 }
 
@@ -47,8 +49,16 @@ export function commandProgress(cmd: LivenessCommand, base: PoseBaseline, pose: 
       return (base.yawRatio - pose.yawRatio) / LIVENESS_GUIDE.yawDelta;
     case 'CHIN_UP':
       return (1 - pose.pitchRatio / base.pitchRatio) / (1 - LIVENESS_GUIDE.pitchFactor);
+    case 'CHIN_DOWN':
+      return (pose.pitchRatio / base.pitchRatio - 1) / (LIVENESS_GUIDE.pitchDownFactor - 1);
+    case 'TILT_LEFT':
+      return ((pose.rollDeg ?? 0) - base.rollDeg) / LIVENESS_GUIDE.rollDeltaDeg;
+    case 'TILT_RIGHT':
+      return (base.rollDeg - (pose.rollDeg ?? 0)) / LIVENESS_GUIDE.rollDeltaDeg;
     case 'MOVE_CLOSER':
       return (pose.interocularPx / base.interocularPx - 1) / (LIVENESS_GUIDE.closerFactor - 1);
+    case 'MOVE_AWAY':
+      return (1 - pose.interocularPx / base.interocularPx) / (1 - LIVENESS_GUIDE.awayFactor);
   }
 }
 
@@ -68,5 +78,6 @@ export function alignment(pose: PoseSample): AlignHint {
   const cy = y + h / 2;
   if (Math.abs(cx - 0.5) > 0.14 || cy < 0.3 || cy > 0.62) return 'center';
   if (pose.yawRatio !== null && Math.abs(pose.yawRatio) > 0.12) return 'straight';
+  if (pose.rollDeg !== null && Math.abs(pose.rollDeg) > 8) return 'straight';
   return 'ok';
 }

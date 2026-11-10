@@ -9,12 +9,13 @@ const EMPTY: PosePreviewDto = {
   box: null,
   yawRatio: null,
   pitchRatio: null,
+  rollDeg: null,
   interocularPx: null,
 };
 
 /**
  * Живые подсказки позы: один кадр низкого разрешения → наличие лица, замечания качества и геометрия
- * (смещение носа, отношение pitch, межзрачковое расстояние). Решение о входе здесь не принимается и
+ * (смещение носа, отношение pitch, наклон к плечу, межзрачковое расстояние). Решение о входе здесь не принимается и
  * ничего не сохраняется — интерфейс лишь показывает, насколько выполнена команда.
  */
 @Injectable()
@@ -38,6 +39,7 @@ export class PosePreviewService {
       box: [x / req.width, y / req.height, w / req.width, h / req.height],
       yawRatio: q?.yawRatio ?? null,
       pitchRatio: q?.pitchRatio ?? null,
+      rollDeg: q?.rollDeg ?? null,
       interocularPx: q?.interocularPx ?? null,
     };
   }

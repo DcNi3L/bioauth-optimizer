@@ -128,6 +128,51 @@ def test_move_closer_and_identity_switch(
     assert out['minPairwiseSimilarity'] < 0.6
 
 
+def shrink(img: np.ndarray, k: float) -> np.ndarray:
+    """Отдаление: кадр уменьшается, поля заливаются серым (отражение краёв дало бы второе лицо)."""
+    h, w = img.shape[:2]
+    m = cv2.getRotationMatrix2D((w / 2, h * 0.45), 0, k)
+    return cv2.warpAffine(img, m, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=(120, 120, 120))
+
+
+def rotate(img: np.ndarray, deg: float) -> np.ndarray:
+    """Поворот кадра вокруг лица: deg > 0 — против часовой стрелки на изображении."""
+    h, w = img.shape[:2]
+    m = cv2.getRotationMatrix2D((w / 2, h * 0.45), deg, 1.0)
+    return cv2.warpAffine(img, m, (w, h), borderMode=cv2.BORDER_REFLECT)
+
+
+def test_tilt_and_move_away(real_client: TestClient, astronaut: np.ndarray) -> None:
+    """Наклон к плечу и отдаление на настоящих моделях. Поворот кадра по часовой стрелке опускает глаз,
+    который на кадре правее (левый глаз человека), — это наклон к левому плечу."""
+    body = {
+        'baseline': frames(astronaut, jitter(astronaut, 1)),
+        'steps': [
+            {'command': 'TILT_LEFT', 'frames': frames(*[rotate(astronaut, -d) for d in (6, 12, 18)])},
+            {'command': 'TILT_RIGHT', 'frames': frames(*[rotate(astronaut, d) for d in (6, 12, 18)])},
+            {'command': 'MOVE_AWAY', 'frames': frames(shrink(astronaut, 0.9), shrink(astronaut, 0.75))},
+        ],
+    }
+    out = real_client.post('/v1/face/liveness', json=body, headers=HEADERS).json()
+    assert [c['passed'] for c in out['commands']] == [True, True, True], out['commands']
+    assert out['commands'][0]['measure'] >= 12 and out['commands'][1]['measure'] >= 12
+    assert out['commands'][2]['measure'] <= 0.8
+    assert out['identityConsistent'] is True
+
+    # Наклон не засчитывается как поворот головы, а неподвижное лицо — как наклон.
+    wrong = {
+        'baseline': frames(astronaut),
+        'steps': [
+            {'command': 'TURN_LEFT', 'frames': frames(*[rotate(astronaut, -d) for d in (10, 18)])},
+            {'command': 'TURN_RIGHT', 'frames': frames(*[rotate(astronaut, -d) for d in (10, 18)])},
+            {'command': 'TILT_LEFT', 'frames': frames(*[jitter(astronaut, k) for k in range(3)])},
+            {'command': 'CHIN_DOWN', 'frames': frames(*[jitter(astronaut, k) for k in range(3)])},
+        ],
+    }
+    out = real_client.post('/v1/face/liveness', json=wrong, headers=HEADERS).json()
+    assert [c['passed'] for c in out['commands']] == [False, False, False, False], out['commands']
+
+
 def test_latency_budget(real_client: TestClient, astronaut: np.ndarray) -> None:
     """NFR-B1: проверка по 10 кадрам (сравнение + живость) укладывается в бюджет. Порог в тесте с запасом
     на медленные машины CI; фактическое время печатается."""

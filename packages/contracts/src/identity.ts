@@ -160,6 +160,8 @@ export const posePreviewSchema = z.object({
   box: z.tuple([z.number(), z.number(), z.number(), z.number()]).nullable(),
   yawRatio: z.number().nullable(),
   pitchRatio: z.number().nullable(),
+  /** Наклон головы к плечу, °: > 0 — к левому плечу человека. */
+  rollDeg: z.number().nullable(),
   interocularPx: z.number().nullable(),
 });
 export type PosePreviewDto = z.infer<typeof posePreviewSchema>;
@@ -168,7 +170,14 @@ export type PosePreviewDto = z.infer<typeof posePreviewSchema>;
  * Пороги активных команд для подсказок в интерфейсе — те же, что проверяет bio-engine
  * (services/bio-engine/app/config.py, LivenessThresholds). Окончательное решение принимает сервер.
  */
-export const LIVENESS_GUIDE = { yawDelta: 0.1, pitchFactor: 0.88, closerFactor: 1.18 } as const;
+export const LIVENESS_GUIDE = {
+  yawDelta: 0.1,
+  pitchFactor: 0.88,
+  pitchDownFactor: 1.14,
+  closerFactor: 1.18,
+  awayFactor: 0.85,
+  rollDeltaDeg: 10,
+} as const;
 
 export const authRejectReasonSchema = z.enum([
   'FACE_QUALITY',

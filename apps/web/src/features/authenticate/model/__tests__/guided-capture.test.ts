@@ -11,6 +11,7 @@ const neutral: PoseSample = {
   box: [0.33, 0.25, 0.34, 0.45],
   yawRatio: 0,
   pitchRatio: 1.6,
+  rollDeg: 0,
   interocularPx: 80,
 };
 
@@ -69,6 +70,24 @@ describe('управляемая съёмка', () => {
     });
     expect(body.steps[0]!.frames.length).toBeGreaterThanOrEqual(2);
     expect(states.some((s) => s.hint === 'timeout')).toBe(true);
+  });
+
+  it('новые команды: наклон к плечу, подбородок вниз, отдаление', async () => {
+    const { d, states } = deps((cmd) =>
+      cmd === 'TILT_RIGHT'
+        ? { rollDeg: -16 }
+        : cmd === 'CHIN_DOWN'
+          ? { pitchRatio: 1.6 * 1.25 }
+          : cmd === 'MOVE_AWAY'
+            ? { interocularPx: 60 }
+            : {},
+    );
+    const body = await guidedCapture(['TILT_RIGHT', 'CHIN_DOWN', 'MOVE_AWAY'], d);
+    expect(body.steps.map((s) => s.command)).toEqual(['TILT_RIGHT', 'CHIN_DOWN', 'MOVE_AWAY']);
+    expect(states.filter((s) => s.hint === 'done').map((s) => s.command)).toEqual(
+      expect.arrayContaining(['TILT_RIGHT', 'CHIN_DOWN', 'MOVE_AWAY']),
+    );
+    expect(states.some((s) => s.hint === 'timeout')).toBe(false);
   });
 
   it('при четырёх командах укладывается в 16 кадров на запрос', async () => {

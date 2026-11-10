@@ -21,6 +21,10 @@ class Command(StrEnum):
     TURN_RIGHT = 'TURN_RIGHT'
     CHIN_UP = 'CHIN_UP'
     MOVE_CLOSER = 'MOVE_CLOSER'
+    CHIN_DOWN = 'CHIN_DOWN'
+    TILT_LEFT = 'TILT_LEFT'
+    TILT_RIGHT = 'TILT_RIGHT'
+    MOVE_AWAY = 'MOVE_AWAY'
 
 
 class StepFailure(StrEnum):
@@ -34,6 +38,7 @@ class Baseline:
     yaw_ratio: float
     pitch_ratio: float
     interocular_px: float
+    roll_deg: float = 0.0
 
     @staticmethod
     def of(poses: Sequence[Pose]) -> Baseline:
@@ -43,6 +48,7 @@ class Baseline:
             yaw_ratio=median([p.yaw_ratio for p in poses]),
             pitch_ratio=median([p.pitch_ratio for p in poses]),
             interocular_px=median([p.interocular_px for p in poses]),
+            roll_deg=median([p.roll_deg for p in poses]),
         )
 
 
@@ -51,7 +57,7 @@ class StepResult:
     command: Command
     passed: bool
     measure: float | None
-    """Лучшее достигнутое изменение: Δ yaw_ratio, отношение pitch или отношение iod."""
+    """Лучшее достигнутое изменение: Δ yaw_ratio, отношение pitch, отношение iod или Δ наклона, °."""
     failure: StepFailure | None
 
 
@@ -61,10 +67,14 @@ def measure(command: Command, base: Baseline, p: Pose) -> float:
             return p.yaw_ratio - base.yaw_ratio
         case Command.TURN_RIGHT:
             return base.yaw_ratio - p.yaw_ratio
-        case Command.CHIN_UP:
+        case Command.CHIN_UP | Command.CHIN_DOWN:
             return p.pitch_ratio / base.pitch_ratio
-        case Command.MOVE_CLOSER:
+        case Command.MOVE_CLOSER | Command.MOVE_AWAY:
             return p.interocular_px / base.interocular_px
+        case Command.TILT_LEFT:
+            return p.roll_deg - base.roll_deg
+        case Command.TILT_RIGHT:
+            return base.roll_deg - p.roll_deg
 
 
 def _passes(command: Command, value: float, t: LivenessThresholds) -> bool:
@@ -75,10 +85,19 @@ def _passes(command: Command, value: float, t: LivenessThresholds) -> bool:
             return value <= t.pitch_ratio_factor
         case Command.MOVE_CLOSER:
             return value >= t.closer_factor
+        case Command.CHIN_DOWN:
+            return value >= t.pitch_down_factor
+        case Command.MOVE_AWAY:
+            return value <= t.away_factor
+        case Command.TILT_LEFT | Command.TILT_RIGHT:
+            return value >= t.roll_delta_deg
+
+
+_LOWER_IS_BETTER = frozenset({Command.CHIN_UP, Command.MOVE_AWAY})
 
 
 def _best(command: Command, values: list[float]) -> float:
-    return min(values) if command is Command.CHIN_UP else max(values)
+    return min(values) if command in _LOWER_IS_BETTER else max(values)
 
 
 def timing_ok(timestamps: Sequence[int | None], max_step_ms: int) -> bool:

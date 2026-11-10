@@ -50,7 +50,11 @@ def assess(q: QualityInput, t: QualityThresholds, *, check_pose: bool = True) ->
     if (
         check_pose
         and q.pose is not None
-        and (abs(q.pose.yaw_deg) > t.max_abs_yaw_deg or abs(q.pose.pitch_deg) > t.max_abs_pitch_deg)
+        and (
+            abs(q.pose.yaw_deg) > t.max_abs_yaw_deg
+            or abs(q.pose.pitch_deg) > t.max_abs_pitch_deg
+            or abs(q.pose.roll_deg) > t.max_abs_roll_deg
+        )
     ):
         issues.append(Issue.POSE)
     return issues

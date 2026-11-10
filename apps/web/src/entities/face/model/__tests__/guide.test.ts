@@ -8,6 +8,7 @@ const pose = (o: Partial<PoseSample> = {}): PoseSample => ({
   box: [0.33, 0.25, 0.34, 0.45],
   yawRatio: 0,
   pitchRatio: 1.6,
+  rollDeg: 0,
   interocularPx: 80,
   ...o,
 });
@@ -16,7 +17,7 @@ describe('подсказки позы', () => {
   const base = baselineOf([pose(), pose({ yawRatio: 0.02 }), pose({ face: false, yawRatio: null })])!;
 
   it('нейтральная поза — медиана кадров с лицом', () => {
-    expect(base).toEqual({ yawRatio: 0.01, pitchRatio: 1.6, interocularPx: 80 });
+    expect(base).toEqual({ yawRatio: 0.01, pitchRatio: 1.6, interocularPx: 80, rollDeg: 0 });
     expect(baselineOf([pose({ face: false, yawRatio: null })])).toBeNull();
   });
 
@@ -26,6 +27,13 @@ describe('подсказки позы', () => {
     expect(commandProgress('CHIN_UP', base, pose({ pitchRatio: 1.6 * 0.88 }))).toBeCloseTo(1, 6);
     expect(commandProgress('MOVE_CLOSER', base, pose({ interocularPx: 80 * 1.18 }))).toBeCloseTo(1, 6);
     expect(commandProgress('MOVE_CLOSER', base, pose({ face: false, interocularPx: null }))).toBeNull();
+    expect(commandProgress('CHIN_DOWN', base, pose({ pitchRatio: 1.6 * 1.14 }))).toBeCloseTo(1, 6);
+    expect(commandProgress('CHIN_DOWN', base, pose({ pitchRatio: 1.6 * 0.88 }))).toBeLessThan(0);
+    expect(commandProgress('MOVE_AWAY', base, pose({ interocularPx: 80 * 0.85 }))).toBeCloseTo(1, 6);
+    expect(commandProgress('MOVE_AWAY', base, pose({ interocularPx: 100 }))).toBeLessThan(0);
+    expect(commandProgress('TILT_LEFT', base, pose({ rollDeg: 10 }))).toBeCloseTo(1, 6);
+    expect(commandProgress('TILT_RIGHT', base, pose({ rollDeg: 10 }))).toBeCloseTo(-1, 6);
+    expect(commandProgress('TILT_RIGHT', base, pose({ rollDeg: -15 }))).toBeCloseTo(1.5, 6);
   });
 
   it('совмещение с контуром: размер, центр, поворот, качество', () => {
@@ -34,6 +42,7 @@ describe('подсказки позы', () => {
     expect(alignment(pose({ box: [0.1, 0.05, 0.8, 0.9] }))).toBe('farther');
     expect(alignment(pose({ box: [0.0, 0.25, 0.3, 0.45] }))).toBe('center');
     expect(alignment(pose({ yawRatio: 0.2 }))).toBe('straight');
+    expect(alignment(pose({ rollDeg: -12 }))).toBe('straight');
     expect(alignment(pose({ issues: ['TOO_DARK'] }))).toBe('TOO_DARK');
     expect(alignment(pose({ face: false, box: null }))).toBe('NO_FACE');
   });

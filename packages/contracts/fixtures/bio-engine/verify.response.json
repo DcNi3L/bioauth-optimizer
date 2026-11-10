@@ -58,7 +58,8 @@
         "yawDeg": -6.005237542033224,
         "pitchDeg": -6.8742515025823705,
         "yawRatio": -0.0579,
-        "pitchRatio": 1.7833
+        "pitchRatio": 1.7833,
+        "rollDeg": 0.8
       },
       "issues": []
     }

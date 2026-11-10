@@ -34,7 +34,11 @@ const STEP_ICON: Record<LivenessCommand, string> = {
   TURN_LEFT: '←',
   TURN_RIGHT: '→',
   CHIN_UP: '↑',
+  CHIN_DOWN: '↓',
+  TILT_LEFT: '↶',
+  TILT_RIGHT: '↷',
   MOVE_CLOSER: '⤢',
+  MOVE_AWAY: '⤡',
 };
 
 /**

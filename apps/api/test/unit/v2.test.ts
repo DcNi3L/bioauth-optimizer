@@ -79,13 +79,14 @@ describe('случайные команды', () => {
       for (const x of c) expect(ALL_COMMANDS).toContain(x);
     }
     expect(randomCommands(0)).toEqual([]);
-    expect(randomCommands(9)).toHaveLength(4);
+    expect(randomCommands(9)).toHaveLength(ALL_COMMANDS.length);
+    expect(ALL_COMMANDS).toHaveLength(8);
   });
 
   it('встречаются все перестановки (распределение не вырождено)', () => {
     const seen = new Set<string>();
-    for (let i = 0; i < 2000; i++) seen.add(randomCommands(3).join());
-    expect(seen.size).toBe(24); // 4·3·2
+    for (let i = 0; i < 20000; i++) seen.add(randomCommands(3).join());
+    expect(seen.size).toBe(336); // 8·7·6
   });
 });
 
