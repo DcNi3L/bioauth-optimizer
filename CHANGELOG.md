@@ -3,6 +3,8 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 Версия вычислительного ядра `@bioauth/optimization-core` указывается отдельно: в 2.0.0 ядро не менялось (1.0.0).
 
+## [Unreleased]
+
 ## [3.2.0] — 2026-11-10
 
 ### Добавлено
@@ -19,6 +21,8 @@
   таблица ошибок, соглашения.
 - `GET /api/v1/identity/viewer` — текущий пользователь или `{ "user": null }` без ошибки 401 (для интерфейса).
 - Материалы для заявки в Казпатент: `docs/deliverables/kazpatent/`, `make kazpatent-listing`.
+- Перевод на казахский и английский расчётных экранов («Порог», «Состав факторов», «История») и их графиков;
+  пример переменных окружения `.env.example`.
 
 ### Исправлено
 
@@ -135,7 +139,7 @@
 - Пакетная оценка изображений отпечатков (NBIS) — отложена (ADR-0013).
 - Испытание на добровольцах по протоколу §10.11 проводится отдельно.
 
-## 1.0.0 — 2026-11-04
+## [1.0.0] — 2026-11-04
 
 ### Добавлено
 
@@ -147,4 +151,11 @@
 - Интерфейс на Next.js (FSD): порог, состав факторов, история, экспорт JSON/CSV/PNG.
 - Тесты: золотые тесты статьи СРО1, эталоны SciPy, property-тесты, e2e; CI GitHub Actions; Docker Compose.
 
-[2.0.0]: https://github.com/DcNi3L/bioauth-optimizer/releases/tag/v2.0.0
+[Unreleased]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.1.2...v3.2.0
+[3.1.2]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.1.1...v3.1.2
+[3.1.1]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.1.0...v3.1.1
+[3.1.0]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.0.0...v3.1.0
+[3.0.0]: https://github.com/DcNi3L/bioauth-optimizer/compare/v2.0.0...v3.0.0
+[2.0.0]: https://github.com/DcNi3L/bioauth-optimizer/compare/v1.0.0...v2.0.0
+[1.0.0]: https://github.com/DcNi3L/bioauth-optimizer/releases/tag/v1.0.0
