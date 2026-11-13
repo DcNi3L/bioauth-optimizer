@@ -34,6 +34,10 @@ make up            # или: docker compose up --build
 (смените через `ADMIN_PASSWORD`); при первом входе он регистрирует passkey или включает приложение-аутентификатор (TOTP). Других сотрудников создаёт команда
 `STAFF_PASSWORD=… pnpm --filter @bioauth/api staff -- --login anna --role researcher`.
 
+Без камеры можно войти по политике с шагами «ритм набора», «код из приложения» или passkey, а на компьютере — по
+QR-коду с телефона (вкладка «С телефона»). Готовые образы: `docker compose -f docker-compose.yml -f
+docker/compose.ghcr.yml up`; метрики и Grafana — `docker compose --profile monitoring up` (docs/06-deployment.md).
+
 Камера и passkey работают только в безопасном контексте: на `localhost` или по HTTPS. Для демонстрации с другого
 устройства нужен HTTPS (обратный прокси с сертификатом) и `RP_ID` / `RP_ORIGIN` с этим доменом.
 

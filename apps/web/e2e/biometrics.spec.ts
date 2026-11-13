@@ -116,7 +116,7 @@ test('администратор: пароль, passkey и утверждени�
   await expect(page.getByRole('heading', { name: 'Версии политики' })).toBeVisible();
   await page.getByLabel('Число команд').fill('0');
   await expect(page.getByText(/не менее трёх случайных команд/)).toBeVisible();
-  await page.getByLabel('Второй шаг — passkey').check();
+  await page.getByLabel('Шаг 2').selectOption('passkey');
   await page.getByLabel('Обоснование').fill('e2e: вход по лицу без команд с обязательным passkey');
   await page.getByRole('button', { name: 'Предложить политику' }).click();
   const notice = page.getByText(/Предложена версия \d+/);
