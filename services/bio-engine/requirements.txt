@@ -1,6 +1,6 @@
 # Зависимости времени выполнения (версии зафиксированы).
 fastapi==0.162.2
-starlette==1.7.0
+starlette==1.10.0
 uvicorn==0.54.0
 pydantic==2.13.5
 pydantic-settings==2.16.2
