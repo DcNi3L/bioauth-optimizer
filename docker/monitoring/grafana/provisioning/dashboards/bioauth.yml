@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: bioauth
+    folder: BioAuth
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

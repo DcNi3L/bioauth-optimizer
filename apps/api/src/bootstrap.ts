@@ -80,6 +80,7 @@ export function configureApp(nest: INestApplication): INestApplication {
   app.setGlobalPrefix('api/v1', {
     exclude: [
       { path: 'health/(.*)', method: RequestMethod.GET },
+      { path: 'metrics', method: RequestMethod.GET },
       { path: '.well-known/(.*)', method: RequestMethod.ALL },
       { path: 'oidc/(.*)', method: RequestMethod.ALL },
     ],

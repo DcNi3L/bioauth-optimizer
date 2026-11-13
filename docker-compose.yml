@@ -37,6 +37,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-admin-123}
       RP_ID: ${RP_ID:-localhost}
       RP_ORIGIN: ${RP_ORIGIN:-http://localhost:3000}
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
     ports:
       - "4000:4000"
     networks: [default, internal]
@@ -76,6 +77,38 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+  # Наблюдаемость (#44): docker compose --profile monitoring up. Нужен METRICS_TOKEN (≥ 16 символов) в .env.
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: [monitoring]
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=15d"]
+    volumes:
+      - ./docker/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+    configs:
+      - source: metrics_token
+        target: /etc/prometheus/metrics-token
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on: [api]
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    profiles: [monitoring]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-change-me-grafana}
+    volumes:
+      - ./docker/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/monitoring/grafana/bioauth-dashboard.json:/var/lib/grafana/dashboards/bioauth.json:ro
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on: [prometheus]
+
+configs:
+  metrics_token:
+    content: ${METRICS_TOKEN:-}
 
 networks:
   internal:

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { AdminModule } from './modules/admin/admin.module';
@@ -28,6 +28,7 @@ import { DatabaseModule } from './shared/database/database.module';
 import { HealthController } from './shared/health/health.controller';
 import { ProblemDetailsFilter } from './shared/http/problem-details.filter';
 import { LoggingModule } from './shared/logging/logging.module';
+import { HttpMetricsInterceptor, Metrics, MetricsController } from './shared/metrics/metrics';
 
 @Module({
   imports: [
@@ -58,8 +59,10 @@ import { LoggingModule } from './shared/logging/logging.module';
     ExperimentsModule,
     ExamplesModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, MetricsController],
   providers: [
+    Metrics,
+    { provide: APP_INTERCEPTOR, useClass: HttpMetricsInterceptor },
     { provide: APP_FILTER, useClass: ProblemDetailsFilter },
     // Порядок важен: сначала ограничение частоты, затем сессия и права (закрыто по умолчанию).
     { provide: APP_GUARD, useClass: ThrottlerGuard },

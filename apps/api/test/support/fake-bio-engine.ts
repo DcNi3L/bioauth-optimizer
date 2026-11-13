@@ -51,6 +51,11 @@ export async function startFakeBioEngine(): Promise<FakeBioEngine> {
     let body = '';
     req.on('data', (c: Buffer) => (body += c.toString()));
     req.on('end', () => {
+      if (req.url === '/health/ready') {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ok' }));
+        return;
+      }
       calls.push(req.url ?? '');
       const send = (status: number, data: unknown) => {
         res.writeHead(status, {

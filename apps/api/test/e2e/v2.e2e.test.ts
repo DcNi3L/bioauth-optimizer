@@ -464,6 +464,24 @@ describeDb('API v2 e2e: биометрия и вход (PostgreSQL)', () => {
       .expect(403);
   });
 
+  it('метрики Prometheus (#44) и расширенная готовность', async () => {
+    const ready = await request(server).get('/health/ready').expect(200);
+    expect(ready.body).toMatchObject({ status: 'ok', database: 'up', bioEngine: 'up' });
+    expect(ready.body.migration).toMatch(/^\d{4}_/);
+    const m = await request(server).get('/metrics').expect(200);
+    expect(m.headers['content-type']).toMatch(/text\/plain/);
+    expect(m.text).toMatch(
+      /bioauth_http_requests_total\{method="POST",route="\/api\/v1\/auth\/sessions",status="201"\} \d+/,
+    );
+    expect(m.text).toMatch(/bioauth_http_request_duration_seconds_bucket\{le="0.1",method="GET"/);
+    expect(m.text).toMatch(/bioauth_auth_attempts\{factor="face",outcome="accept",reason=""\} [1-9]/);
+    expect(m.text).toMatch(/bioauth_login_events\{method="register",success="true"\} [1-9]/);
+    expect(m.text).toMatch(/bioauth_drift_alerts_open 0/);
+    expect(m.text).toMatch(/bioauth_api_process_cpu_seconds_total/);
+    // Конкретные идентификаторы в метки не попадают.
+    expect(m.text).not.toMatch(/route="[^"]*[0-9a-f]{8}-[0-9a-f]{4}/);
+  });
+
   it('журнал аудита: цепочка цела, изменение запрещено, подделка обнаруживается', async () => {
     const auditor = agent();
     await auditor

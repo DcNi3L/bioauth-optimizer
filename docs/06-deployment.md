@@ -66,6 +66,7 @@ flowchart LR
 | `ADMIN_LOGIN`, `ADMIN_PASSWORD`              | api             | admin, —                           | Первый администратор (создаётся при старте, если администраторов нет)                    |
 | `REQUIRE_STAFF_PASSKEY`                      | api             | true                               | Требовать passkey вторым фактором сотрудника                                             |
 | `STEP_UP_MAX_AGE_SEC`                        | api             | 300                                | Сколько секунд после проверки второго фактора разрешены опасные действия (ADR-0021)      |
+| `METRICS_TOKEN`                              | api             | —                                  | Токен `GET /metrics` (≥ 16 символов); без него в production метрики скрыты (404)         |
 | `AUTH_RATE_LIMIT_PER_MIN`                    | api             | 30                                 | Ограничение частоты запросов входа                                                       |
 | `CROSS_IMPOSTOR_LIMIT`                       | api             | 50                                 | Сколько чужих шаблонов сравнивать с пробой попытки (impostor-оценки)                     |
 | `PASSKEY_DECLARED_FAR`                       | api             | 2·10⁻⁵                             | Заявленный FAR passkey для измеренного каталога                                          |
@@ -109,3 +110,58 @@ make check           # формат, линтер, типы, тесты (e2e API
 make smoke           # up + health + e2e в браузере
 make release-zip     # архив исходников для сдачи
 ```
+
+## 6.6. Наблюдаемость: метрики, готовность, оповещения
+
+**Готовность.** `GET /health/ready` отвечает `503`, только если недоступна база. Сервис распознавания проверяется
+отдельно: без него работают политики, OIDC, вход по паролю и passkey, поэтому ответ — `200` со `status: degraded` и
+`bioEngine: down`. В ответе также последняя применённая миграция (`migration`) и версия ядра.
+
+```json
+{
+  "status": "ok",
+  "database": "up",
+  "migration": "0008_step_up.sql",
+  "bioEngine": "up",
+  "coreVersion": "1.0.0"
+}
+```
+
+**Метрики Prometheus.** `GET /metrics` (без префикса `/api/v1`), заголовок `Authorization: Bearer $METRICS_TOKEN`.
+
+| Метрика                                               | Тип       | Что показывает                                                      |
+| ----------------------------------------------------- | --------- | ------------------------------------------------------------------- |
+| `bioauth_http_requests_total{method,route,status}`    | counter   | Запросы по **шаблону** маршрута (`/api/v1/admin/users/:id`)         |
+| `bioauth_http_request_duration_seconds{method,route}` | histogram | Задержка; корзины 10 мс … 10 с                                      |
+| `bioauth_login_events{method,success}`                | gauge     | Входы в базе по способу (password, face, passkey, totp, recovery …) |
+| `bioauth_auth_attempts{factor,outcome,reason}`        | gauge     | Шаги входа; отказы PAD — `reason=~"LIVENESS_.*"`                    |
+| `bioauth_drift_alerts_open`                           | gauge     | Неподтверждённые уведомления о росте FRR                            |
+| `bioauth_sessions_active`                             | gauge     | Действующие сессии                                                  |
+| `bioauth_api_process_*`, `bioauth_api_nodejs_*`       | разные    | Память, CPU, сборка мусора, задержка цикла событий процесса Node.js |
+
+Доменные метрики — снимок из базы на момент опроса: значения совпадают на всех экземплярах API и не обнуляются при
+перезапуске, поэтому для них используйте `increase()`/`delta()`, а суммирование по экземплярам не нужно (`max by`).
+
+**Prometheus и Grafana.** Профиль compose `monitoring`:
+
+```bash
+echo "METRICS_TOKEN=$(openssl rand -hex 24)" >> .env
+docker compose --profile monitoring up -d
+# Prometheus: http://127.0.0.1:9090 · Grafana: http://127.0.0.1:3001 (admin / GRAFANA_PASSWORD)
+```
+
+Дашборд «BioAuth Optimizer» (`docker/monitoring/grafana/bioauth-dashboard.json`) подключается автоматически: запросы
+в секунду, доля 5xx, задержки p95 по маршрутам, входы по способам, исходы шагов, отказы «живости», ресурсы процесса.
+
+**Оповещения** (`docker/monitoring/alerts.yml`):
+
+| Правило                 | Условие                                                         |
+| ----------------------- | --------------------------------------------------------------- |
+| `BioAuthApiDown`        | API не отдаёт метрики 2 минуты                                  |
+| `BioAuthHigh5xx`        | более 2 % ответов 5xx за 10 минут                               |
+| `BioAuthSlowFaceStep`   | p95 шага «лицо» дольше 3 с в течение 15 минут                   |
+| `BioAuthPadRejectSpike` | за час более 30 % попыток по лицу отклонены проверкой «живости» |
+| `BioAuthFrrDrift`       | есть неподтверждённое уведомление о дрейфе FRR                  |
+| `BioAuthLoginFailures`  | более 50 неудачных входов за 15 минут                           |
+
+Пороги — отправные точки; доставку оповещений (Alertmanager, почта, Telegram) настраивают отдельно.

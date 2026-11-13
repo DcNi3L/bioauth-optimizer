@@ -10,6 +10,7 @@ import { ScryptPasswordHasher } from '../../src/modules/identity/infrastructure/
 import { ALL_COMMANDS, randomCommands } from '../../src/modules/verification/application/commands';
 import { decideFace } from '../../src/modules/verification/application/face-decision';
 import { type AppConfig, loadConfig } from '../../src/shared/config/env';
+import { MetricsController } from '../../src/shared/metrics/metrics';
 
 const STEP: FaceStep = { factor: 'face', tauFace: 0.4, tauPad: 0.5, commands: 3, calibrated: true };
 const liveness = (over: Partial<BioLivenessResponse> = {}): BioLivenessResponse => ({
@@ -231,5 +232,24 @@ describe('экспорт аудита в CSV', () => {
       { seq: 1, at: 't', actorId: null, action: 'a.b', target: null, details: {}, hash: 'h' },
     ]);
     expect(out).toBe('seq,at,actorId,action,target,details,hash\n1,t,,a.b,,{},h\n');
+  });
+});
+
+describe('доступ к /metrics', () => {
+  const metrics = { registry: { contentType: 'text/plain', metrics: () => Promise.resolve('x 1') } } as never;
+  const res = { setHeader: () => undefined } as never;
+  const ctrl = (over: Record<string, unknown>) =>
+    new MetricsController(metrics, { NODE_ENV: 'production', METRICS_TOKEN: undefined, ...over } as never);
+
+  it('с токеном — только с верным Bearer', async () => {
+    const c = ctrl({ METRICS_TOKEN: 'token-token-token-1' });
+    await expect(c.scrape('Bearer token-token-token-1', res)).resolves.toBe('x 1');
+    await expect(c.scrape('Bearer token-token-token-2', res)).rejects.toThrow(/токен/);
+    await expect(c.scrape(undefined, res)).rejects.toThrow(/токен/);
+  });
+
+  it('без токена: в production скрыты, при разработке открыты', async () => {
+    await expect(ctrl({}).scrape(undefined, res)).rejects.toThrow(/METRICS_TOKEN/);
+    await expect(ctrl({ NODE_ENV: 'development' }).scrape(undefined, res)).resolves.toBe('x 1');
   });
 });

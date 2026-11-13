@@ -1,0 +1,52 @@
+# Правила оповещений BioAuth. Пороги — отправные точки: уточните по своей нагрузке.
+groups:
+  - name: bioauth
+    rules:
+      - alert: BioAuthApiDown
+        expr: up{job="bioauth-api"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: API не отвечает на /metrics две минуты
+
+      - alert: BioAuthHigh5xx
+        expr: |
+          sum(rate(bioauth_http_requests_total{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(bioauth_http_requests_total[5m])), 1e-9) > 0.02
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: Более 2 % ответов API — ошибки сервера
+
+      - alert: BioAuthSlowFaceStep
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(bioauth_http_request_duration_seconds_bucket{route=~".*/auth/sessions/:id/face"}[10m]))) > 3
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: 95-й перцентиль шага «лицо» дольше 3 с — проверьте bio-engine
+
+      - alert: BioAuthPadRejectSpike
+        # Доля отказов «живости» за час; резкий рост — атака подделками или сбой камеры/освещения.
+        expr: |
+          sum(increase(bioauth_auth_attempts{factor="face",reason=~"LIVENESS_.*"}[1h]))
+            / clamp_min(sum(increase(bioauth_auth_attempts{factor="face"}[1h])), 1) > 0.3
+        for: 30m
+        labels: { severity: warning }
+        annotations:
+          summary: Более 30 % попыток по лицу отклонены проверкой «живости»
+
+      - alert: BioAuthFrrDrift
+        expr: bioauth_drift_alerts_open > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Есть неподтверждённое уведомление о росте FRR — откройте «Калибровка → Дрейф»
+
+      - alert: BioAuthLoginFailures
+        expr: sum(increase(bioauth_login_events{success="false"}[15m])) > 50
+        for: 5m
+        labels: { severity: info }
+        annotations:
+          summary: Больше 50 неудачных входов за 15 минут — возможен перебор
