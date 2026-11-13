@@ -1,6 +1,8 @@
 'use client';
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useEffect } from 'react';
+
+import { useMediaQuery, useStoredValue, writeStored } from '../lib/browser';
 
 export type ThemeChoice = 'light' | 'dark' | 'system';
 const KEY = 'bioauth.theme';
@@ -21,33 +23,14 @@ const ThemeContext = createContext<ThemeValue>({
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [choice, setChoiceState] = useState<ThemeChoice>('system');
-  const [systemDark, setSystemDark] = useState(false);
-  useEffect(() => {
-    try {
-      const v = window.localStorage.getItem(KEY);
-      if (v === 'light' || v === 'dark' || v === 'system') setChoiceState(v);
-    } catch {
-      // нет доступа к хранилищу — тема по системе
-    }
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    setSystemDark(mq.matches);
-    const on = (e: MediaQueryListEvent) => setSystemDark(e.matches);
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
+  const stored = useStoredValue(KEY);
+  const choice: ThemeChoice = stored === 'light' || stored === 'dark' ? stored : 'system';
+  const systemDark = useMediaQuery('(prefers-color-scheme: dark)');
   const resolved = choice === 'system' ? (systemDark ? 'dark' : 'light') : choice;
   useEffect(() => {
     document.documentElement.classList.toggle('dark', resolved === 'dark');
   }, [resolved]);
-  const setChoice = useCallback((c: ThemeChoice) => {
-    setChoiceState(c);
-    try {
-      window.localStorage.setItem(KEY, c);
-    } catch {
-      // приватный режим
-    }
-  }, []);
+  const setChoice = useCallback((c: ThemeChoice) => writeStored(KEY, c), []);
   return <ThemeContext.Provider value={{ choice, resolved, setChoice }}>{children}</ThemeContext.Provider>;
 }
 

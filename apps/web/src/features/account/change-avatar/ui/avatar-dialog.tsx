@@ -19,7 +19,7 @@ type Mode = 'choose' | 'camera' | 'preview';
 export function AvatarDialog({ me, open, onClose }: { me: MeDto; open: boolean; onClose: () => void }) {
   const t = useT();
   const refresh = useRefreshViewer();
-  const camera = useCamera();
+  const { videoRef, state: cameraState, start: startCamera, stop: stopCamera } = useCamera();
   const fileRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<Mode>('choose');
   const [preview, setPreview] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function AvatarDialog({ me, open, onClose }: { me: MeDto; open: boolean; 
     },
   });
 
-  const { stop } = camera;
+  const stop = stopCamera;
   function close() {
     stop();
     setMode('choose');
@@ -64,25 +64,25 @@ export function AvatarDialog({ me, open, onClose }: { me: MeDto; open: boolean; 
       setFileError(true);
     }
   };
-  const startCamera = async () => {
+  const openCamera = async () => {
     setMode('camera');
-    await camera.start();
+    await startCamera();
   };
   const snap = () => {
-    const v = camera.videoRef.current;
+    const v = videoRef.current;
     if (!v?.videoWidth) return;
     // В окне видео отражено как в зеркале — снимок сохраняем так же, как пользователь себя видел.
     setPreview(squareDataUrl(v, v.videoWidth, v.videoHeight, 256, true));
-    camera.stop();
+    stopCamera();
     setMode('preview');
   };
 
   const cameraError: TKey | null =
-    camera.state === 'denied'
+    cameraState === 'denied'
       ? 'face.camera.denied'
-      : camera.state === 'unavailable'
+      : cameraState === 'unavailable'
         ? 'face.camera.unavailable'
-        : camera.state === 'insecure'
+        : cameraState === 'insecure'
           ? 'face.camera.insecure'
           : null;
 
@@ -115,13 +115,13 @@ export function AvatarDialog({ me, open, onClose }: { me: MeDto; open: boolean; 
           <div className="flex w-full flex-col items-center gap-3">
             <div className="relative aspect-square w-full max-w-72 overflow-hidden rounded-full bg-black">
               <video
-                ref={camera.videoRef}
+                ref={videoRef}
                 muted
                 playsInline
                 aria-label={t('face.camera.label')}
                 className="h-full w-full -scale-x-100 object-cover"
               />
-              {camera.state === 'starting' && (
+              {cameraState === 'starting' && (
                 <p className="absolute inset-0 flex items-center justify-center text-sm text-white/80">
                   {t('face.camera.starting')}
                 </p>
@@ -130,7 +130,7 @@ export function AvatarDialog({ me, open, onClose }: { me: MeDto; open: boolean; 
             {cameraError ? (
               <Notice tone="caution">{t(cameraError)}</Notice>
             ) : (
-              <Button onClick={snap} disabled={camera.state !== 'ready'}>
+              <Button onClick={snap} disabled={cameraState !== 'ready'}>
                 <Camera className="size-4" /> {t('profile.avatar.capture')}
               </Button>
             )}
@@ -152,7 +152,7 @@ export function AvatarDialog({ me, open, onClose }: { me: MeDto; open: boolean; 
               </button>
               <button
                 type="button"
-                onClick={() => void startCamera()}
+                onClick={() => void openCamera()}
                 className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-rule px-4 py-5 text-sm transition-colors hover:border-graphite hover:bg-hover"
               >
                 <Camera className="size-6 text-optimum" aria-hidden />

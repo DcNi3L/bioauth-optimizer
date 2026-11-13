@@ -5,6 +5,7 @@ import { useViewer } from '@/entities/viewer';
 import { API_BASE } from '@/shared/config';
 import { useT } from '@/shared/i18n';
 import { formatDateTime } from '@/shared/lib';
+import { hardNavigate } from '@/shared/lib/browser';
 import { ApiErrorNotice, Button, Notice, Panel } from '@/shared/ui';
 
 /** Журнал аудита: только добавление, цепочка SHA-256 — изменение любой записи обнаруживается проверкой. */
@@ -30,7 +31,7 @@ export function AdminAuditPage() {
             <Button
               key={f}
               variant="secondary"
-              onClick={() => window.location.assign(`${API_BASE}/audit/export?format=${f}`)}
+              onClick={() => hardNavigate(`${API_BASE}/audit/export?format=${f}`)}
             >
               {t(f === 'csv' ? 'algo.audit.exportCsv' : 'algo.audit.exportJson')}
             </Button>

@@ -12,9 +12,9 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
+import { collectDefaultMetrics, Counter, Gauge, Histogram, Registry } from '@prometheus-io/client';
 import type { Request, Response } from 'express';
 import { sql } from 'kysely';
-import { collectDefaultMetrics, Counter, Gauge, Histogram, Registry } from 'prom-client';
 import type { Observable } from 'rxjs';
 
 import { Public } from '../auth/auth';

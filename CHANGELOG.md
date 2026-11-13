@@ -16,6 +16,19 @@
   20 минорных обновлений; FastAPI, Starlette, Pydantic, NumPy, pytest и ruff; новые версии GitHub Actions (checkout 7,
   setup-node 7, деплой Pages 5, docker/login 4, docker/metadata 6). Образы и CI переведены на Node.js 24 LTS
   вместо предложенного Node.js 25 (PR #53, #65): в 25 нет corepack, а нечётные версии не получают долгой поддержки.
+- **Мажорные обновления, которые Dependabot не смог сделать сам** (конфликты зависимостей):
+  - TypeScript 6 (`module`/`moduleResolution` — node16; у веба убран устаревший `baseUrl`);
+  - Vitest 5, fast-check 4 (ограничение времени — плагином `interruptAfterTimeLimit`), ECharts 6, marked 18;
+  - commitlint 21, lint-staged 17, globals 17, eslint-plugin-jest 29, eslint-plugin-simple-import-sort 14,
+    @next/eslint-plugin-next 16;
+  - eslint-plugin-react-hooks 7 с правилами React Compiler. Состояние из браузера (тема, язык, озвучка, медиазапросы,
+    фрагмент адреса) теперь читается через `useSyncExternalStore` (`shared/lib/browser`), а не через `setState` в
+    эффекте; сброс состояния при смене страницы и ключа — во время отрисовки; колбэки опроса — `useEffectEvent`;
+  - `prom-client` заменён своим преемником `@prometheus-io/client` (тот же API, старый пакет объявлен устаревшим);
+  - onnxruntime 1.31 в bio-engine.
+- **Остаются на прежних версиях** (Dependabot настроен их не предлагать): ESLint 10 — его ещё не поддерживают
+  eslint-plugin-react и jsx-a11y; TypeScript 7 — не поддерживают typescript-eslint и ts-jest; @types/node — по
+  версии Node.js 24.
 - **Не обновлено, нужен перевод API на ESM:** NestJS 12 и @nestjs/swagger 12 (PR #62 закрыт), kysely 0.29 — эти
   пакеты распространяются только как ESM. Dependabot настроен их не предлагать. Исключения глобального префикса
   записаны в синтаксисе path-to-regexp 8 — предупреждения при запуске исчезли.

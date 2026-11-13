@@ -15,9 +15,17 @@ updates:
       # NestJS 12 (и @nestjs/swagger 12, @nestjs/cli 12) — только ESM: нужен перевод API на ESM.
       - dependency-name: "@nestjs/*"
         update-types: ["version-update:semver-major"]
-      # 1.6.28 требует TypeScript 6; проект пока на TypeScript 5.9.
-      - dependency-name: "@vitest/eslint-plugin"
-        versions: [">=1.6.28"]
+      # ESLint 10 пока не поддерживают eslint-plugin-react и eslint-plugin-jsx-a11y.
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      # TypeScript 7 не поддерживают typescript-eslint (< 6.1) и ts-jest (< 7).
+      - dependency-name: typescript
+        versions: [">=7.0.0"]
+      # Типы Node.js — по версии среды выполнения (Node.js 24 LTS).
+      - dependency-name: "@types/node"
+        versions: [">=25.0.0"]
   - package-ecosystem: pip
     directory: /services/bio-engine
     schedule: { interval: weekly, day: monday }

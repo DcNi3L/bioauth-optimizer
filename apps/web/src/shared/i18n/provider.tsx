@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo } from 'react';
 
+import { useStoredValue, writeStored } from '../lib/browser';
 import { en } from './dict/en';
 import { kk } from './dict/kk';
 import { type Dict, ru } from './dict/ru';
@@ -49,33 +50,15 @@ const I18nContext = createContext<I18nValue>({
   t: (key, vars) => translate('ru', key, vars),
 });
 
-function readStored(): Locale | null {
-  try {
-    const v = window.localStorage.getItem(STORAGE_KEY);
-    return v === 'ru' || v === 'kk' || v === 'en' ? v : null;
-  } catch {
-    return null;
-  }
-}
+const asLocale = (v: string | null): Locale | null => (v === 'ru' || v === 'kk' || v === 'en' ? v : null);
 
 /** Язык интерфейса: выбор хранится в браузере; по умолчанию — русский. */
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('ru');
-  useEffect(() => {
-    const stored = readStored();
-    if (stored) setLocaleState(stored);
-  }, []);
+  const locale = asLocale(useStoredValue(STORAGE_KEY)) ?? 'ru';
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
-  const setLocale = useCallback((l: Locale) => {
-    setLocaleState(l);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, l);
-    } catch {
-      // приватный режим: язык действует до перезагрузки
-    }
-  }, []);
+  const setLocale = useCallback((l: Locale) => writeStored(STORAGE_KEY, l), []);
   const value = useMemo<I18nValue>(
     () => ({ locale, setLocale, t: (key, vars) => translate(locale, key, vars) }),
     [locale, setLocale],

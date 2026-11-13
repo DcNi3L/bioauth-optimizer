@@ -6,7 +6,7 @@ import type {
   CalibrationModality,
   CostsDto,
 } from '@bioauth/contracts';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useT } from '@/shared/i18n';
 import { parseNumber } from '@/shared/lib';
@@ -28,11 +28,14 @@ export function CalibrateForm({
   const calibrate = useCalibrate();
   const [modality, setModality] = useState<CalibrationModality>('face');
   const versions = useMemo(() => data.filter((d) => d.modality === modality), [data, modality]);
-  const [modelVersion, setModelVersion] = useState('');
+  const [picked, setModelVersion] = useState('');
+  // Выбранная версия, если она есть у текущего вида оценок; иначе — первая доступная.
+  const modelVersion = versions.some((v) => v.modelVersion === picked)
+    ? picked
+    : (versions[0]?.modelVersion ?? '');
   const [cFA, setCFA] = useState(String(costs.cFA));
   const [cFR, setCFR] = useState(String(costs.cFR));
   const [targetFar, setTargetFar] = useState('1e-3');
-  useEffect(() => setModelVersion(versions[0]?.modelVersion ?? ''), [versions]);
 
   const fa = parseNumber(cFA);
   const fr = parseNumber(cFR);

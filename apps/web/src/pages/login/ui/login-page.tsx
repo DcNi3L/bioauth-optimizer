@@ -9,6 +9,7 @@ import { useOauthRequest } from '@/entities/oauth-client';
 import { BiometricLogin, StaffLogin } from '@/features/authenticate';
 import { CrossDeviceLogin } from '@/features/cross-device';
 import { useT } from '@/shared/i18n';
+import { hardNavigate } from '@/shared/lib/browser';
 import { Notice, Panel, Segmented } from '@/shared/ui';
 
 type Mode = 'subject' | 'phone' | 'staff';
@@ -28,7 +29,7 @@ export function LoginPage() {
   const done = (staffNeedsPasskey = false) => {
     // Сотрудник без passkey не завершил двухфакторный вход: приложение его не примет — сначала passkey.
     if (oauth && !staffNeedsPasskey) {
-      window.location.assign(`/oidc/authorize/resume?request=${encodeURIComponent(oauth)}`);
+      hardNavigate(`/oidc/authorize/resume?request=${encodeURIComponent(oauth)}`);
       return;
     }
     router.push(staffNeedsPasskey ? '/profile/security' : '/profile');

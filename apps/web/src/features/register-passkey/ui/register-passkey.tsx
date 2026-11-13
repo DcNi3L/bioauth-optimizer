@@ -1,9 +1,9 @@
 'use client';
 
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
-import { useEffect, useState } from 'react';
 
 import { useT } from '@/shared/i18n';
+import { useBrowserValue } from '@/shared/lib/browser';
 import { ApiErrorNotice, Button, Notice } from '@/shared/ui';
 
 import { useRegisterPasskey } from '../api/passkey';
@@ -12,8 +12,7 @@ import { useRegisterPasskey } from '../api/passkey';
 export function RegisterPasskey({ onDone }: { onDone?: () => void }) {
   const t = useT();
   const register = useRegisterPasskey();
-  const [supported, setSupported] = useState(true);
-  useEffect(() => setSupported(browserSupportsWebAuthn()), []);
+  const supported = useBrowserValue(browserSupportsWebAuthn, true);
 
   if (!supported) {
     return <Notice tone="caution">{t('enroll.pkUnsupported')}</Notice>;

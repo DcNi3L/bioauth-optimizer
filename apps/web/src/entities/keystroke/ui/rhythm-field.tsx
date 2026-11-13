@@ -4,6 +4,7 @@ import type { KeystrokeSample } from '@bioauth/contracts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useT } from '@/shared/i18n';
+import { useMediaQuery } from '@/shared/lib/browser';
 import { Notice } from '@/shared/ui';
 
 import { RhythmRecorder } from '../model/recorder';
@@ -28,15 +29,17 @@ export function RhythmField({
   const recorder = useMemo(() => new RhythmRecorder(phrase), [phrase]);
   const [typed, setTyped] = useState(0);
   const [wrong, setWrong] = useState(false);
-  const [touch, setTouch] = useState(false);
+  const touch = useMediaQuery('(pointer: coarse)');
   const ref = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    recorder.reset();
+  // Новый ввод (resetKey) или новая фраза: счётчики сбрасываются при отрисовке, запись — в эффекте.
+  const [round, setRound] = useState({ resetKey, recorder });
+  if (round.resetKey !== resetKey || round.recorder !== recorder) {
+    setRound({ resetKey, recorder });
     setTyped(0);
     setWrong(false);
-  }, [resetKey, recorder]);
-  useEffect(() => setTouch(window.matchMedia('(pointer: coarse)').matches), []);
+  }
+  useEffect(() => recorder.reset(), [resetKey, recorder]);
 
   return (
     <div className="flex flex-col gap-3">

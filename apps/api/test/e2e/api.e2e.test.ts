@@ -26,16 +26,16 @@ describeDb('API e2e (PostgreSQL)', () => {
     process.env.DATABASE_URL = DB_URL;
     process.env.LOG_LEVEL = 'silent';
     process.env.NODE_ENV = 'test';
-    const { migrate } = await import('../../src/shared/database/migrator');
-    const { createDb } = await import('../../src/shared/database/kysely');
+    const { migrate } = await import('../../src/shared/database/migrator.js');
+    const { createDb } = await import('../../src/shared/database/kysely.js');
     const { seedPresetCatalogs } =
-      await import('../../src/modules/factor-catalogs/infrastructure/seed-presets');
+      await import('../../src/modules/factor-catalogs/infrastructure/seed-presets.js');
     await migrate(DB_URL!, join(__dirname, '..', '..', 'migrations'));
     const db = createDb(DB_URL!, 1);
     seededFirst = await seedPresetCatalogs(db);
     seededAgain = await seedPresetCatalogs(db);
     await db.destroy();
-    const { createApp } = await import('../../src/bootstrap');
+    const { createApp } = await import('../../src/bootstrap.js');
     const created = await createApp();
     await created.init();
     app = created;

@@ -15,3 +15,8 @@ onlyBuiltDependencies:
 # webpack из @nestjs/cli старше, чем требует schema-utils 4.8 — поднимаем до совместимой версии.
 overrides:
   webpack: ^5.112.2
+
+peerDependencyRules:
+  allowedVersions:
+    # tsconfck (через steiger) объявляет TypeScript ^5, но только читает tsconfig — с TypeScript 6 работает.
+    tsconfck>typescript: "6"

@@ -77,11 +77,12 @@ describeDb('API v2 e2e: биометрия и вход (PostgreSQL)', () => {
       REQUIRE_STAFF_PASSKEY: 'true',
       CROSS_IMPOSTOR_LIMIT: '50',
     });
-    const { migrate } = await import('../../src/shared/database/migrator');
+    const { migrate } = await import('../../src/shared/database/migrator.js');
     await migrate(DB_URL!, join(__dirname, '..', '..', 'migrations'));
-    const { AppModule, configureApp } = await import('../../src/bootstrap');
-    const { WEBAUTHN } = await import('../../src/modules/webauthn/application/ports');
-    const { BackgroundTasks } = await import('../../src/modules/biometrics/infrastructure/background-tasks');
+    const { AppModule, configureApp } = await import('../../src/bootstrap.js');
+    const { WEBAUTHN } = await import('../../src/modules/webauthn/application/ports.js');
+    const { BackgroundTasks } =
+      await import('../../src/modules/biometrics/infrastructure/background-tasks.js');
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(WEBAUTHN)
       .useValue(new FakeWebAuthn())
@@ -90,7 +91,7 @@ describeDb('API v2 e2e: биометрия и вход (PostgreSQL)', () => {
     await created.init();
     app = created;
     server = created.getHttpServer() as Parameters<typeof request>[0];
-    const tasks = created.get(BackgroundTasks);
+    const tasks = created.get<InstanceType<typeof BackgroundTasks>>(BackgroundTasks);
     drain = () => tasks.drain();
   });
 

@@ -1,42 +1,38 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
+import { useBrowserValue, useStoredValue, writeStored } from '../browser';
 import { INITIAL_GATE, nextGate, pickVoice, type SpeechGate, speechLang } from './speech-queue';
 
 const STORAGE_KEY = 'bioauth.voice';
 
-function readStored(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === 'on';
-  } catch {
-    return false;
-  }
-}
+const subscribeVoices = (cb: () => void) => {
+  if (!('speechSynthesis' in window)) return () => undefined;
+  window.speechSynthesis.addEventListener('voiceschanged', cb);
+  return () => window.speechSynthesis.removeEventListener('voiceschanged', cb);
+};
 
 /**
  * Озвучка подсказок (Web Speech API, синтез в браузере, ничего не отправляется на сервер). Выключена по умолчанию;
  * выбор запоминается в браузере. `hasVoice` = false — в системе нет голоса для языка интерфейса.
  */
 export function useSpeech(locale: string) {
-  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
-  const [enabled, setEnabled] = useState(false);
-  const [hasVoice, setHasVoice] = useState(true);
+  const supported = useBrowserValue(() => 'speechSynthesis' in window, false);
+  const stored = useStoredValue(STORAGE_KEY);
+  const enabled = supported && stored === 'on';
+  // Список голосов приходит асинхронно (voiceschanged); пустой список — ещё не загружен, не «нет голоса».
+  const hasVoice = useBrowserValue(
+    () => {
+      if (!('speechSynthesis' in window)) return true;
+      const voices = window.speechSynthesis.getVoices();
+      return voices.length === 0 || pickVoice(voices, locale) !== null;
+    },
+    true,
+    subscribeVoices,
+  );
   const gate = useRef<SpeechGate>(INITIAL_GATE);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => setEnabled(supported && readStored()), [supported]);
-
-  useEffect(() => {
-    if (!supported) return;
-    const check = () => {
-      const voices = window.speechSynthesis.getVoices();
-      setHasVoice(voices.length === 0 || pickVoice(voices, locale) !== null);
-    };
-    check();
-    window.speechSynthesis.addEventListener('voiceschanged', check);
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', check);
-  }, [supported, locale]);
 
   const say = useCallback(
     (text: string) => {
@@ -77,18 +73,11 @@ export function useSpeech(locale: string) {
   );
 
   const toggle = useCallback(() => {
-    setEnabled((on) => {
-      const next = !on;
-      try {
-        localStorage.setItem(STORAGE_KEY, next ? 'on' : 'off');
-      } catch {
-        /* приватный режим: выбор действует до перезагрузки */
-      }
-      if (!next) window.speechSynthesis.cancel();
-      gate.current = INITIAL_GATE;
-      return next;
-    });
-  }, []);
+    const next = !enabled;
+    writeStored(STORAGE_KEY, next ? 'on' : 'off');
+    if (!next) window.speechSynthesis.cancel();
+    gate.current = INITIAL_GATE;
+  }, [enabled]);
 
   return { supported, enabled, hasVoice, toggle, announce };
 }

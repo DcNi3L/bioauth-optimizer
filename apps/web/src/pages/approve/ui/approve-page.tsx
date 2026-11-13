@@ -1,22 +1,28 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 import { ApproveRequest } from '@/features/cross-device';
 import { useT } from '@/shared/i18n';
+import { useBrowserValue } from '@/shared/lib/browser';
 import { Notice, Panel } from '@/shared/ui';
+
+const subscribeHash = (cb: () => void) => {
+  window.addEventListener('hashchange', cb);
+  return () => window.removeEventListener('hashchange', cb);
+};
 
 /** Подтверждение входа на другом устройстве (#40). Ключ — во фрагменте адреса, на сервер он не уходит. */
 export function ApprovePage() {
   const t = useT();
   const params = useSearchParams();
   const id = params?.get('r') ?? null;
-  const [key, setKey] = useState<string | null>(null);
-  useEffect(() => {
-    const k = new URLSearchParams(window.location.hash.slice(1)).get('k');
-    setKey(k ?? '');
-  }, []);
+  // Ключ — во фрагменте адреса: он есть только в браузере (null — ещё не прочитан).
+  const key = useBrowserValue<string | null>(
+    () => new URLSearchParams(window.location.hash.slice(1)).get('k') ?? '',
+    null,
+    subscribeHash,
+  );
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
       <header className="flex flex-col gap-2">

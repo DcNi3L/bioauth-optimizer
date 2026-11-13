@@ -2,7 +2,7 @@
 
 import type { CrossDeviceStartDto } from '@bioauth/contracts';
 import QRCode from 'qrcode';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 import { useRefreshViewer } from '@/entities/viewer';
 import { useT } from '@/shared/i18n';
@@ -23,9 +23,11 @@ export function CrossDeviceLogin({ onSuccess }: { onSuccess?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const finishing = useRef(false);
-  // Колбэки — через ref: иначе эффект опроса перезапускался бы на каждой отрисовке (счётчик тикает раз в секунду).
-  const done = useRef({ refresh, onSuccess });
-  done.current = { refresh, onSuccess };
+  // Событие эффекта: эффект опроса не перезапускается от новых колбэков на каждой отрисовке (счётчик тикает раз в секунду).
+  const finish = useEffectEvent(async () => {
+    await refresh();
+    onSuccess?.();
+  });
 
   async function begin() {
     setBusy(true);
@@ -55,8 +57,7 @@ export function CrossDeviceLogin({ onSuccess }: { onSuccess?: () => void }) {
             finishing.current = true;
             setState('approved');
             await completeRequest(req.requestId, req.pollSecret);
-            await done.current.refresh();
-            done.current.onSuccess?.();
+            await finish();
           } else if (s.status === 'denied' || s.status === 'expired') {
             setState(s.status);
           }

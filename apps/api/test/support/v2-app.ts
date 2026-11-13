@@ -38,11 +38,11 @@ export async function createV2App(dbUrl: string, env: Record<string, string> = {
     CROSS_IMPOSTOR_LIMIT: '50',
     ...env,
   });
-  const { migrate } = await import('../../src/shared/database/migrator');
+  const { migrate } = await import('../../src/shared/database/migrator.js');
   await migrate(dbUrl, join(__dirname, '..', '..', 'migrations'));
-  const { AppModule, configureApp } = await import('../../src/bootstrap');
-  const { WEBAUTHN } = await import('../../src/modules/webauthn/application/ports');
-  const { BackgroundTasks } = await import('../../src/modules/biometrics/infrastructure/background-tasks');
+  const { AppModule, configureApp } = await import('../../src/bootstrap.js');
+  const { WEBAUTHN } = await import('../../src/modules/webauthn/application/ports.js');
+  const { BackgroundTasks } = await import('../../src/modules/biometrics/infrastructure/background-tasks.js');
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(WEBAUTHN)
     .useValue(new FakeWebAuthn())
@@ -50,7 +50,7 @@ export async function createV2App(dbUrl: string, env: Record<string, string> = {
   const app = configureApp(moduleRef.createNestApplication({ bufferLogs: true }));
   await app.init();
   const server = app.getHttpServer() as Parameters<typeof request>[0];
-  const tasks = app.get(BackgroundTasks);
+  const tasks = app.get<InstanceType<typeof BackgroundTasks>>(BackgroundTasks);
   return {
     app,
     server,

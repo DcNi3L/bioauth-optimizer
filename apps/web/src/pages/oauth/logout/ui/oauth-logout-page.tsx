@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { useViewer } from '@/entities/viewer';
 import { apiGet, apiSend } from '@/shared/api';
 import { useT } from '@/shared/i18n';
+import { hardNavigate } from '@/shared/lib/browser';
 import { ApiErrorNotice, Avatar, Button } from '@/shared/ui';
 
 /**
@@ -56,7 +57,7 @@ export function OauthLogoutPage() {
       <div className="grid w-full grid-cols-2 gap-3">
         <Button
           variant="secondary"
-          onClick={() => (window.history.length > 1 ? window.history.back() : window.location.assign('/'))}
+          onClick={() => (window.history.length > 1 ? window.history.back() : hardNavigate('/'))}
         >
           {t('logout.cancel')}
         </Button>

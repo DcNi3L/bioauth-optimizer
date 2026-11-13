@@ -2,9 +2,10 @@
 
 import { KeyRound, LogOut, RefreshCw, RotateCcw, UserRound } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 import { useT } from '@/shared/i18n';
+import { hardNavigate } from '@/shared/lib/browser';
 import { Avatar, Badge, Button, Notice, PageHeader, Panel } from '@/shared/ui';
 
 import {
@@ -41,7 +42,8 @@ export function OauthDemoPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const handled = useRef(false);
 
-  useEffect(() => {
+  // Возврат с сервера авторизации обрабатывается один раз — событием эффекта, а не телом эффекта.
+  const onRedirect = useEffectEvent(() => {
     const code = params?.get('code');
     const err = params?.get('error');
     if (handled.current || (!code && !err)) return;
@@ -71,7 +73,9 @@ export function OauthDemoPage() {
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setBusy(null));
-  }, [params, t]);
+  });
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- разовый разбор возврата OAuth: адрес и sessionStorage — внешняя система, ошибки показываются сразу
+  useEffect(() => onRedirect(), [params]);
 
   const signIn = async () => {
     const verifier = randomToken(48);
@@ -88,7 +92,7 @@ export function OauthDemoPage() {
       code_challenge: await challengeOf(verifier),
       code_challenge_method: 'S256',
     });
-    window.location.assign(`/oidc/authorize?${q.toString()}`);
+    hardNavigate(`/oidc/authorize?${q.toString()}`);
   };
 
   const callUserinfo = async () => {
@@ -124,7 +128,7 @@ export function OauthDemoPage() {
   const logout = () => {
     const q = new URLSearchParams({ client_id: DEMO_CLIENT, post_logout_redirect_uri: redirectUri });
     if (tokens?.id_token) q.set('id_token_hint', tokens.id_token);
-    window.location.assign(`/oidc/logout?${q.toString()}`);
+    hardNavigate(`/oidc/logout?${q.toString()}`);
   };
 
   const id = tokens?.id_token ? decodeJwt(tokens.id_token) : null;
