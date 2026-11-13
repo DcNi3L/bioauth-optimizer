@@ -280,7 +280,7 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
 
       {phase === 'face' && (
         <div className="flex flex-col gap-4">
-          <p className="text-graphite text-sm">
+          <p className="text-sm text-graphite">
             {t('auth.faceIntro', { list: commands.map((c) => t(`face.commandShort.${c}`)).join(', ') })}
           </p>
           <FaceViewport
@@ -291,7 +291,7 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
             overall={capturing ? guide?.overall : undefined}
             steps={steps}
           />
-          {!capturing && <p className="text-graphite text-xs">{t('auth.tips')}</p>}
+          {!capturing && <p className="text-xs text-graphite">{t('auth.tips')}</p>}
           <div className="flex flex-wrap gap-2">
             {state === 'ready' ? (
               <Button onClick={() => void runFace()} busy={busy}>

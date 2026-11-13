@@ -28,9 +28,8 @@ describeDb('API e2e (PostgreSQL)', () => {
     process.env.NODE_ENV = 'test';
     const { migrate } = await import('../../src/shared/database/migrator');
     const { createDb } = await import('../../src/shared/database/kysely');
-    const { seedPresetCatalogs } = await import(
-      '../../src/modules/factor-catalogs/infrastructure/seed-presets'
-    );
+    const { seedPresetCatalogs } =
+      await import('../../src/modules/factor-catalogs/infrastructure/seed-presets');
     await migrate(DB_URL!, join(__dirname, '..', '..', 'migrations'));
     const db = createDb(DB_URL!, 1);
     seededFirst = await seedPresetCatalogs(db);

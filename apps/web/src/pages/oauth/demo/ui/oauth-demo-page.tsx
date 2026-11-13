@@ -21,7 +21,7 @@ import {
 
 function Json({ value }: { value: unknown }) {
   return (
-    <pre className="bg-paper border-rule max-h-80 overflow-auto rounded-lg border p-3 font-mono text-[12px] leading-relaxed">
+    <pre className="max-h-80 overflow-auto rounded-lg border border-rule bg-paper p-3 font-mono text-[12px] leading-relaxed">
       {JSON.stringify(value, null, 2)}
     </pre>
   );
@@ -146,20 +146,20 @@ export function OauthDemoPage() {
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <Panel>
             <div className="flex flex-col items-center gap-5 py-6 text-center">
-              <span className="bg-paper text-frr rounded-2xl p-4">
+              <span className="rounded-2xl bg-paper p-4 text-frr">
                 <KeyRound className="size-10" aria-hidden />
               </span>
               <Button onClick={() => void signIn()} className="h-11 px-6">
                 {t('oauth.demo.signIn')}
               </Button>
-              <code className="text-graphite break-all text-xs">scope={DEMO_SCOPES}</code>
+              <code className="text-xs break-all text-graphite">scope={DEMO_SCOPES}</code>
             </div>
           </Panel>
           <Panel title={t('oauth.demo.flow')}>
             <ol className="flex flex-col gap-3 text-sm">
               {(['step1', 'step2', 'step3', 'step4'] as const).map((s, i) => (
                 <li key={s} className="flex gap-3">
-                  <span className="bg-ink text-sheet flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-sheet">
                     {i + 1}
                   </span>
                   <span>{t(`oauth.demo.${s}`)}</span>
@@ -191,7 +191,7 @@ export function OauthDemoPage() {
                   <Badge>{t('oauth.demo.expiresIn', { n: tokens.expires_in })}</Badge>
                 </p>
               </div>
-              <div className="border-rule flex flex-wrap gap-2 border-t pt-4 lg:border-t-0 lg:pt-0">
+              <div className="flex flex-wrap gap-2 border-t border-rule pt-4 lg:border-t-0 lg:pt-0">
                 <Button
                   variant="secondary"
                   size="sm"

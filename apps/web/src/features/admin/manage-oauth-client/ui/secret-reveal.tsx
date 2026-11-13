@@ -20,7 +20,7 @@ export function CopyButton({ value, label }: { value: string; label?: string }) 
         });
       }}
     >
-      {copied ? <Check className="text-optimum size-4" /> : <Copy className="size-4" />}
+      {copied ? <Check className="size-4 text-optimum" /> : <Copy className="size-4" />}
       {copied ? t('common.copied') : (label ?? t('common.copy'))}
     </Button>
   );
@@ -30,13 +30,13 @@ export function CopyButton({ value, label }: { value: string; label?: string }) 
 export function SecretReveal({ secret }: { secret: string }) {
   const t = useT();
   return (
-    <div className="border-caution/40 bg-caution-bg flex flex-col gap-2 rounded-lg border p-4" role="status">
-      <p className="text-caution flex items-center gap-2 text-sm font-medium">
+    <div className="flex flex-col gap-2 rounded-lg border border-caution/40 bg-caution-bg p-4" role="status">
+      <p className="flex items-center gap-2 text-sm font-medium text-caution">
         <KeyRound className="size-4" /> {t('admin.clients.secretTitle')}
       </p>
-      <p className="text-caution text-xs">{t('admin.clients.secretText')}</p>
+      <p className="text-xs text-caution">{t('admin.clients.secretText')}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <code className="bg-sheet border-rule text-ink min-w-0 flex-1 break-all rounded-md border px-3 py-2 font-mono text-[13px]">
+        <code className="min-w-0 flex-1 rounded-md border border-rule bg-sheet px-3 py-2 font-mono text-[13px] break-all text-ink">
           {secret}
         </code>
         <CopyButton value={secret} />

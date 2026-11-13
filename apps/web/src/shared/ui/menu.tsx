@@ -64,7 +64,7 @@ export function Menu({
           id={id}
           role="menu"
           aria-label={label}
-          className={`bg-sheet border-rule absolute top-full z-50 mt-2 min-w-52 overflow-hidden rounded-lg border p-1 shadow-xl ${
+          className={`absolute top-full z-50 mt-2 min-w-52 overflow-hidden rounded-lg border border-rule bg-sheet p-1 shadow-xl ${
             align === 'end' ? 'right-0' : 'left-0'
           }`}
         >
@@ -92,15 +92,15 @@ export function MenuItem({
       role={selected === undefined ? 'menuitem' : 'menuitemradio'}
       aria-checked={selected}
       onClick={onSelect}
-      className="hover:bg-hover text-ink flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm"
+      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-ink hover:bg-hover"
     >
       {icon && <span className="text-graphite [&>svg]:size-4">{icon}</span>}
       <span className="flex-1">{children}</span>
-      {selected && <span className="bg-frr size-1.5 rounded-full" aria-hidden />}
+      {selected && <span className="size-1.5 rounded-full bg-frr" aria-hidden />}
     </button>
   );
 }
 
 export function MenuSeparator() {
-  return <div className="bg-rule my-1 h-px" role="separator" />;
+  return <div className="my-1 h-px bg-rule" role="separator" />;
 }

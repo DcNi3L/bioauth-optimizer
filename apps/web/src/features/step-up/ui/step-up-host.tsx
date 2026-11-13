@@ -79,7 +79,7 @@ export function StepUpHost() {
             </Button>
           </div>
         )}
-        {passkey && totp && <p className="text-graphite text-xs">{t('mfa.login.or')}</p>}
+        {passkey && totp && <p className="text-xs text-graphite">{t('mfa.login.or')}</p>}
         {totp && (
           <form
             className="flex flex-col gap-3"
@@ -118,7 +118,7 @@ export function StepUpHost() {
               </Button>
               <button
                 type="button"
-                className="text-frr text-sm underline underline-offset-4"
+                className="text-sm text-frr underline underline-offset-4"
                 onClick={() => {
                   setRecovery(!recovery);
                   setCode('');

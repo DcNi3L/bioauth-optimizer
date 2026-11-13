@@ -87,7 +87,7 @@ export function ApproveRequest({ requestId, approveKey }: { requestId: string; a
               </Button>
             </div>
           ) : (
-            <p className="text-graphite text-sm">{t('crossDevice.reauthLogin')}</p>
+            <p className="text-sm text-graphite">{t('crossDevice.reauthLogin')}</p>
           )}
         </div>
       ) : (
@@ -100,7 +100,7 @@ export function ApproveRequest({ requestId, approveKey }: { requestId: string; a
                 type="button"
                 disabled={busy}
                 onClick={() => void run(() => approveRequest(requestId, approveKey, n), 'approved')}
-                className="border-rule bg-sheet hover:border-ink focus-visible:ring-frr num min-h-16 rounded-xl border font-serif text-3xl transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:opacity-60"
+                className="num min-h-16 rounded-xl border border-rule bg-sheet font-serif text-3xl transition-colors hover:border-ink focus-visible:ring-2 focus-visible:ring-frr focus-visible:outline-none disabled:opacity-60"
               >
                 {n}
               </button>

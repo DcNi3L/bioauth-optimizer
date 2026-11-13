@@ -35,7 +35,7 @@ export function RevokeOthersButton({ disabled }: { disabled?: boolean }) {
   return (
     <div className="flex items-center gap-3">
       {m.data && (
-        <span className="text-graphite text-sm" role="status">
+        <span className="text-sm text-graphite" role="status">
           {t('profile.sessions.ended', { n: m.data.revoked })}
         </span>
       )}

@@ -24,7 +24,7 @@ export function UploadScores({
     <div className="flex flex-col gap-3">
       <label
         htmlFor={id}
-        className="border-graphite/50 bg-paper hover:border-ink flex cursor-pointer flex-col gap-1 rounded-md border border-dashed px-4 py-5 text-sm"
+        className="flex cursor-pointer flex-col gap-1 rounded-md border border-dashed border-graphite/50 bg-paper px-4 py-5 text-sm hover:border-ink"
       >
         <span className="font-medium">
           {upload.isPending ? t('algo.chrome.uploadPending') : t('algo.chrome.uploadPick')}

@@ -38,11 +38,11 @@ export function ConsentCard({ request }: { request: OauthRequestInfoDto }) {
   });
   const name = request.user?.displayName ?? me?.displayName ?? '';
   return (
-    <div className="border-rule bg-sheet overflow-hidden rounded-2xl border shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-rule bg-sheet shadow-sm">
       <div className="profile-cover flex items-center justify-center gap-4 px-6 py-7">
-        <Avatar src={me?.avatarUrl} name={name || '?'} size={56} className="ring-sheet ring-4" />
-        <ArrowLeftRight className="text-graphite size-5" aria-hidden />
-        <span className="bg-ink text-sheet ring-sheet flex size-14 items-center justify-center rounded-full font-serif text-2xl font-semibold ring-4">
+        <Avatar src={me?.avatarUrl} name={name || '?'} size={56} className="ring-4 ring-sheet" />
+        <ArrowLeftRight className="size-5 text-graphite" aria-hidden />
+        <span className="flex size-14 items-center justify-center rounded-full bg-ink font-serif text-2xl font-semibold text-sheet ring-4 ring-sheet">
           {request.client.name.slice(0, 1).toUpperCase()}
         </span>
       </div>
@@ -50,9 +50,9 @@ export function ConsentCard({ request }: { request: OauthRequestInfoDto }) {
         <div className="text-center">
           <h1 className="text-xl sm:text-2xl">{t('oauth.consentTitle', { app: request.client.name })}</h1>
           {request.client.description && (
-            <p className="text-graphite mt-1 text-sm">{request.client.description}</p>
+            <p className="mt-1 text-sm text-graphite">{request.client.description}</p>
           )}
-          <p className="text-graphite mt-2 text-sm">
+          <p className="mt-2 text-sm text-graphite">
             {t('oauth.consentAs', { name })}
             {request.client.firstParty && (
               <Badge tone="optimum" className="ml-2">
@@ -63,14 +63,14 @@ export function ConsentCard({ request }: { request: OauthRequestInfoDto }) {
         </div>
         <div>
           <p className="mb-2 text-sm font-medium">{t('oauth.willAccess')}</p>
-          <ul className="border-rule divide-rule divide-y rounded-xl border">
+          <ul className="divide-y divide-rule rounded-xl border border-rule">
             {request.scopes.map((s) => {
               const Icon = s in SCOPE_ICON ? SCOPE_ICON[s as keyof typeof SCOPE_ICON] : Check;
               return (
                 <li key={s} className="flex items-center gap-3 px-4 py-3 text-sm">
-                  <Icon className="text-frr size-4 shrink-0" aria-hidden />
+                  <Icon className="size-4 shrink-0 text-frr" aria-hidden />
                   <span className="flex-1">{t(`oauth.scope.${s}` as TKey)}</span>
-                  <code className="text-graphite text-[11px]">{s}</code>
+                  <code className="text-[11px] text-graphite">{s}</code>
                 </li>
               );
             })}
@@ -89,7 +89,7 @@ export function ConsentCard({ request }: { request: OauthRequestInfoDto }) {
             {t('oauth.allow')}
           </Button>
         </div>
-        <p className="text-graphite text-center text-xs">
+        <p className="text-center text-xs text-graphite">
           {t('oauth.redirectNote', { host: request.redirectHost })}
         </p>
       </div>

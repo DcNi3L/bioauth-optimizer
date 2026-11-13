@@ -137,7 +137,7 @@ export function AvatarDialog({ me, open, onClose }: { me: MeDto; open: boolean; 
           </div>
         ) : mode === 'preview' && preview ? (
           // eslint-disable-next-line @next/next/no-img-element -- локальный предпросмотр data: URL
-          <img src={preview} alt="" className="ring-rule size-48 rounded-full object-cover ring-4" />
+          <img src={preview} alt="" className="size-48 rounded-full object-cover ring-4 ring-rule" />
         ) : (
           <>
             <Avatar src={me.avatarUrl} name={me.displayName} size={128} />
@@ -145,17 +145,17 @@ export function AvatarDialog({ me, open, onClose }: { me: MeDto; open: boolean; 
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="border-rule hover:border-graphite hover:bg-hover flex flex-col items-center gap-2 rounded-xl border border-dashed px-4 py-5 text-sm transition-colors"
+                className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-rule px-4 py-5 text-sm transition-colors hover:border-graphite hover:bg-hover"
               >
-                <ImageUp className="text-frr size-6" aria-hidden />
+                <ImageUp className="size-6 text-frr" aria-hidden />
                 {t('profile.avatar.upload')}
               </button>
               <button
                 type="button"
                 onClick={() => void startCamera()}
-                className="border-rule hover:border-graphite hover:bg-hover flex flex-col items-center gap-2 rounded-xl border border-dashed px-4 py-5 text-sm transition-colors"
+                className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-rule px-4 py-5 text-sm transition-colors hover:border-graphite hover:bg-hover"
               >
-                <Camera className="text-optimum size-6" aria-hidden />
+                <Camera className="size-6 text-optimum" aria-hidden />
                 {t('profile.avatar.camera')}
               </button>
             </div>

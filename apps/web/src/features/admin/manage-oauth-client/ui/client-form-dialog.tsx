@@ -7,7 +7,7 @@ import {
   type UpdateOauthClient,
 } from '@bioauth/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { type FormEvent, useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 
 import { oauthKeys } from '@/entities/oauth-client';
 import { ApiError, apiSend } from '@/shared/api';
@@ -111,7 +111,7 @@ export function ClientFormDialog({
   };
   const toggle = <T extends string>(list: T[], v: T) =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
-  const submit = (e: FormEvent) => {
+  const submit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     save.mutate();
   };
@@ -145,7 +145,7 @@ export function ClientFormDialog({
                 error={fieldErr('clientId')}
               />
               <div className="flex flex-col gap-1.5">
-                <span className="text-graphite text-sm">{t('admin.clients.type')}</span>
+                <span className="text-sm text-graphite">{t('admin.clients.type')}</span>
                 <Segmented
                   label={t('admin.clients.type')}
                   value={d.type}
@@ -164,7 +164,7 @@ export function ClientFormDialog({
                     { value: 'public', label: t('admin.clients.public') },
                   ]}
                 />
-                <span className="text-graphite text-xs">
+                <span className="text-xs text-graphite">
                   {d.type === 'public' ? t('admin.clients.publicHint') : t('admin.clients.confidentialHint')}
                 </span>
               </div>
@@ -201,7 +201,7 @@ export function ClientFormDialog({
             />
           </div>
           <fieldset className="flex flex-col gap-2">
-            <legend className="text-graphite mb-1 text-sm">{t('admin.clients.grants')}</legend>
+            <legend className="mb-1 text-sm text-graphite">{t('admin.clients.grants')}</legend>
             <div className="flex flex-wrap gap-x-5 gap-y-2">
               {GRANTS.map((g) => (
                 <Checkbox
@@ -213,10 +213,10 @@ export function ClientFormDialog({
                 />
               ))}
             </div>
-            {fieldErr('grantTypes') && <p className="text-far text-xs">{fieldErr('grantTypes')}</p>}
+            {fieldErr('grantTypes') && <p className="text-xs text-far">{fieldErr('grantTypes')}</p>}
           </fieldset>
           <fieldset className="flex flex-col gap-2">
-            <legend className="text-graphite mb-1 text-sm">{t('admin.clients.scopes')}</legend>
+            <legend className="mb-1 text-sm text-graphite">{t('admin.clients.scopes')}</legend>
             <div className="grid gap-2 sm:grid-cols-2">
               {OIDC_SCOPES.map((s) => (
                 <Checkbox
@@ -226,13 +226,13 @@ export function ClientFormDialog({
                   label={
                     <span>
                       <code className="text-[13px]">{s}</code>{' '}
-                      <span className="text-graphite text-xs">— {t(`oauth.scope.${s}` as TKey)}</span>
+                      <span className="text-xs text-graphite">— {t(`oauth.scope.${s}` as TKey)}</span>
                     </span>
                   }
                 />
               ))}
             </div>
-            {fieldErr('scopes') && <p className="text-far text-xs">{fieldErr('scopes')}</p>}
+            {fieldErr('scopes') && <p className="text-xs text-far">{fieldErr('scopes')}</p>}
           </fieldset>
           <Checkbox
             label={t('admin.clients.firstParty')}

@@ -20,7 +20,7 @@ export function SessionList({
   const f = useFormat();
   const sorted = [...sessions].sort((a, b) => Number(b.current) - Number(a.current));
   return (
-    <ul className="divide-rule flex flex-col divide-y">
+    <ul className="flex flex-col divide-y divide-rule">
       {sorted.map((s) => (
         <li key={s.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5">
           <span
@@ -42,7 +42,7 @@ export function SessionList({
                 <Badge key={a}>{amrLabel(t, a)}</Badge>
               ))}
             </p>
-            <p className="text-graphite mt-0.5 text-xs">
+            <p className="mt-0.5 text-xs text-graphite">
               {s.ip && <span className="num">{s.ip} · </span>}
               {t('profile.sessions.lastActive', { time: f.relative(s.lastSeenAt) })} ·{' '}
               {t('profile.sessions.started', { date: f.dateTime(s.createdAt) })} ·{' '}

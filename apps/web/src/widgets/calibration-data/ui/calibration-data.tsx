@@ -30,12 +30,12 @@ const sourceLabel = (t: TFn, key: string) => {
 /** Накопленные оценки по модальностям и версиям моделей — сырьё для калибровки порогов. */
 export function CalibrationData({ data }: { data: CalibrationDataDto[] }) {
   const t = useT();
-  if (data.length === 0) return <p className="text-graphite text-sm">{t('algo.measurements.scoresEmpty')}</p>;
+  if (data.length === 0) return <p className="text-sm text-graphite">{t('algo.measurements.scoresEmpty')}</p>;
   return (
     <div className="relative overflow-x-auto">
-      <table className="min-w-160 w-full text-sm">
-        <thead className="text-graphite text-left text-xs">
-          <tr className="border-rule border-b">
+      <table className="w-full min-w-160 text-sm">
+        <thead className="text-left text-xs text-graphite">
+          <tr className="border-b border-rule">
             <th className="py-2 pr-3 font-normal">{t('algo.measurements.colModality')}</th>
             <th className="py-2 pr-3 font-normal">{t('algo.measurements.colModel')}</th>
             <th className="py-2 pr-3 text-right font-normal">{t('algo.measurements.colGenuine')}</th>
@@ -48,18 +48,18 @@ export function CalibrationData({ data }: { data: CalibrationDataDto[] }) {
           {data.map((d) => (
             <tr
               key={`${d.modality}|${d.modelVersion}`}
-              className="border-rule border-b align-top last:border-b-0"
+              className="border-b border-rule align-top last:border-b-0"
             >
               <td className="py-2 pr-3">{t(MODALITY[d.modality])}</td>
-              <td className="num break-all py-2 pr-3 text-xs">{d.modelVersion}</td>
+              <td className="num py-2 pr-3 text-xs break-all">{d.modelVersion}</td>
               <td className="num py-2 pr-3 text-right">{d.positives}</td>
               <td className="num py-2 pr-3 text-right">{d.negatives}</td>
-              <td className="text-graphite py-2 pr-3 text-xs">
+              <td className="py-2 pr-3 text-xs text-graphite">
                 {Object.entries(d.bySource)
                   .map(([k, n]) => `${sourceLabel(t, k)}: ${n}`)
                   .join(', ')}
               </td>
-              <td className="num whitespace-nowrap py-2 text-xs">
+              <td className="num py-2 text-xs whitespace-nowrap">
                 {d.lastAt ? formatDateTime(d.lastAt) : '—'}
               </td>
             </tr>

@@ -41,7 +41,7 @@ export function RhythmField({
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm">{t('keystroke.phraseLabel')}</p>
-      <p className="num bg-sheet border-rule rounded-md border p-3 text-lg tracking-wide" aria-hidden>
+      <p className="num rounded-md border border-rule bg-sheet p-3 text-lg tracking-wide" aria-hidden>
         {phrase.split('').map((ch, i) => (
           <span
             key={i}
@@ -53,7 +53,7 @@ export function RhythmField({
       </p>
       <input
         ref={ref}
-        className="num bg-sheet border-rule focus:border-frr h-10 rounded-md border px-3 text-[15px] outline-none"
+        className="num h-10 rounded-md border border-rule bg-sheet px-3 text-[15px] outline-none focus:border-frr"
         aria-label={t('keystroke.phraseLabel')}
         placeholder={t('keystroke.placeholder')}
         value={phrase.slice(0, typed)}

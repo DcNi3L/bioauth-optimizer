@@ -3,7 +3,7 @@
 import type { MeDto } from '@bioauth/contracts';
 import { useMutation } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 
 import { useRefreshViewer } from '@/entities/viewer';
 import { ApiError, apiSend } from '@/shared/api';
@@ -26,7 +26,7 @@ export function ProfileForm({ me }: { me: MeDto }) {
   });
   const dirty = name.trim() !== me.displayName || (email.trim() || null) !== me.email;
   const err = save.error instanceof ApiError ? save.error : null;
-  const submit = (e: FormEvent) => {
+  const submit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     save.mutate();
   };
@@ -59,7 +59,7 @@ export function ProfileForm({ me }: { me: MeDto }) {
           {t('common.save')}
         </Button>
         {save.isSuccess && !dirty && (
-          <span className="text-optimum inline-flex items-center gap-1 text-sm" role="status">
+          <span className="inline-flex items-center gap-1 text-sm text-optimum" role="status">
             <Check className="size-4" /> {t('profile.saved')}
           </span>
         )}

@@ -94,7 +94,7 @@ export function EnrollFace({ onDone }: { onDone?: () => void }) {
         guide={{ command: null, progress, tone: busy ? tone : 'neutral', box, showCenter: true }}
       />
       {!busy && !enroll.isSuccess && state === 'ready' && (
-        <p className="text-graphite text-xs">{t('enroll.hint')}</p>
+        <p className="text-xs text-graphite">{t('enroll.hint')}</p>
       )}
       {hints.length > 0 ? (
         <Notice tone="caution" title={t('enroll.framesBad')}>

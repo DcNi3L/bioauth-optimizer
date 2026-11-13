@@ -13,8 +13,8 @@ import { ApiErrorNotice, Badge, Button, Notice, Panel } from '@/shared/ui';
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="border-rule grid gap-1 border-b py-3 last:border-b-0 sm:grid-cols-[12rem_1fr]">
-      <dt className="text-graphite text-sm">{label}</dt>
+    <div className="grid gap-1 border-b border-rule py-3 last:border-b-0 sm:grid-cols-[12rem_1fr]">
+      <dt className="text-sm text-graphite">{label}</dt>
       <dd className="text-sm">{children}</dd>
     </div>
   );
@@ -58,7 +58,7 @@ export function ProfileOverviewPage() {
                 ? t('profile.faceYes', { date: f.dateTime(me.face.updatedAt), n: me.face.samples })
                 : t('profile.faceNo')}
               {me.face && (
-                <span className="text-graphite block text-xs">
+                <span className="block text-xs text-graphite">
                   {t('profile.faceModel', { m: me.face.modelVersion })}
                 </span>
               )}
@@ -95,7 +95,7 @@ export function ProfileOverviewPage() {
                 {me.consent && (
                   <Link
                     href="/enroll"
-                    className="bg-ink text-sheet hover:bg-ink-hover inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium"
+                    className="inline-flex h-10 items-center justify-center rounded-md bg-ink px-4 text-sm font-medium text-sheet hover:bg-ink-hover"
                   >
                     {me.face ? t('profile.reenrollFace') : t('profile.enrollFace')}
                   </Link>

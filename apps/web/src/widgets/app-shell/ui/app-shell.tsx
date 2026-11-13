@@ -49,12 +49,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       {me && me.role !== 'subject' && <StepUpHost />}
       <a
         href="#main"
-        className="bg-ink text-sheet sr-only z-[60] rounded-md px-3 py-2 text-sm focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+        className="sr-only z-[60] rounded-md bg-ink px-3 py-2 text-sm text-sheet focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
       >
         {t('nav.skip')}
       </a>
 
-      <aside className="border-rule bg-sheet fixed inset-y-0 left-0 z-30 hidden w-64 border-r lg:block">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-rule bg-sheet lg:block">
         <SidebarNav groups={groups} />
       </aside>
 
@@ -68,16 +68,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button
             type="button"
             aria-label={t('nav.closeMenu')}
-            className="bg-overlay absolute inset-0"
+            className="absolute inset-0 bg-overlay"
             onClick={() => setOpen(false)}
           />
-          <div className="bg-sheet border-rule drawer-in absolute inset-y-0 left-0 w-[min(20rem,86vw)] border-r shadow-2xl">
+          <div className="drawer-in absolute inset-y-0 left-0 w-[min(20rem,86vw)] border-r border-rule bg-sheet shadow-2xl">
             <button
               ref={closeRef}
               type="button"
               aria-label={t('nav.closeMenu')}
               onClick={() => setOpen(false)}
-              className="text-graphite hover:text-ink hover:bg-hover absolute right-3 top-4 rounded-lg p-2"
+              className="absolute top-4 right-3 rounded-lg p-2 text-graphite hover:bg-hover hover:text-ink"
             >
               <X className="size-5" />
             </button>
@@ -87,7 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="lg:pl-64">
-        <header className="border-rule bg-paper/85 sticky top-0 z-20 border-b backdrop-blur-md">
+        <header className="sticky top-0 z-20 border-b border-rule bg-paper/85 backdrop-blur-md">
           <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
             <button
               ref={menuRef}
@@ -95,7 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-label={t('nav.menu')}
               aria-expanded={open}
               onClick={() => setOpen(true)}
-              className="text-graphite hover:text-ink hover:bg-hover -ml-1 rounded-lg p-2 lg:hidden"
+              className="-ml-1 rounded-lg p-2 text-graphite hover:bg-hover hover:text-ink lg:hidden"
             >
               <MenuIcon className="size-5" />
             </button>
@@ -103,19 +103,19 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Logo className="size-7" />
               <span className="font-serif font-semibold max-[380px]:hidden">BioAuth</span>
             </Link>
-            <p className="text-graphite hidden min-w-0 items-center gap-2 truncate text-sm lg:flex">
+            <p className="hidden min-w-0 items-center gap-2 truncate text-sm text-graphite lg:flex">
               {current?.group && (
                 <>
                   <span>{t(current.group)}</span>
                   <span aria-hidden>/</span>
                 </>
               )}
-              {current && <span className="text-ink font-medium">{t(current.item.label)}</span>}
+              {current && <span className="font-medium text-ink">{t(current.item.label)}</span>}
             </p>
             <div className="ml-auto flex items-center gap-1">
               <LanguageMenu />
               <ThemeMenu />
-              <span className="bg-rule mx-1 h-6 w-px" aria-hidden />
+              <span className="mx-1 h-6 w-px bg-rule" aria-hidden />
               <ProfileMenu />
             </div>
           </div>

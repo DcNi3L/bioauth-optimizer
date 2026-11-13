@@ -80,7 +80,7 @@ export function ShareBars({
             <span className="truncate">{r.label}</span>
             <span className="num text-graphite">{r.value}</span>
           </div>
-          <div className="bg-paper h-1.5 overflow-hidden rounded-full">
+          <div className="h-1.5 overflow-hidden rounded-full bg-paper">
             <div className={`h-full rounded-full ${bar}`} style={{ width: `${(r.value / max) * 100}%` }} />
           </div>
         </li>

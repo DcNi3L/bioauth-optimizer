@@ -53,14 +53,14 @@ export function TotpSetup({
             alt={t('mfa.qrAlt')}
             width={192}
             height={192}
-            className="border-rule rounded-md border bg-white"
+            className="rounded-md border border-rule bg-white"
           />
         ) : (
-          <div className="bg-sheet border-rule h-48 w-48 animate-pulse rounded-md border" aria-hidden />
+          <div className="h-48 w-48 animate-pulse rounded-md border border-rule bg-sheet" aria-hidden />
         )}
         <details className="text-sm">
-          <summary className="text-frr cursor-pointer">{t('mfa.manual')}</summary>
-          <code className="num bg-sheet border-rule mt-2 block select-all break-all rounded-md border p-3 text-[13px]">
+          <summary className="cursor-pointer text-frr">{t('mfa.manual')}</summary>
+          <code className="num mt-2 block rounded-md border border-rule bg-sheet p-3 text-[13px] break-all select-all">
             {secret.match(/.{1,4}/g)?.join(' ')}
           </code>
         </details>

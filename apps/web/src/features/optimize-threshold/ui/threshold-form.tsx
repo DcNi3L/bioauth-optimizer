@@ -40,22 +40,22 @@ export function ThresholdForm({ values, errors, set, datasetSlot }: Props) {
 
       {values.mode === 'gaussian' ? (
         <div className="grid gap-5 sm:grid-cols-2">
-          <fieldset className="border-frr flex min-w-0 flex-col gap-3 border-l-2 pl-4">
-            <legend className="text-frr mb-2 text-sm font-medium">{t('algo.threshold.genuine')}</legend>
+          <fieldset className="flex min-w-0 flex-col gap-3 border-l-2 border-frr pl-4">
+            <legend className="mb-2 text-sm font-medium text-frr">{t('algo.threshold.genuine')}</legend>
             <NumberField label={t('algo.threshold.meanG')} {...bind('genuineMean')} />
             <NumberField label={t('algo.threshold.stdG')} {...bind('genuineStd')} />
           </fieldset>
-          <fieldset className="border-far flex min-w-0 flex-col gap-3 border-l-2 pl-4">
-            <legend className="text-far mb-2 text-sm font-medium">{t('algo.threshold.impostors')}</legend>
+          <fieldset className="flex min-w-0 flex-col gap-3 border-l-2 border-far pl-4">
+            <legend className="mb-2 text-sm font-medium text-far">{t('algo.threshold.impostors')}</legend>
             <NumberField label={t('algo.threshold.meanI')} {...bind('impostorMean')} />
             <NumberField label={t('algo.threshold.stdI')} {...bind('impostorStd')} />
           </fieldset>
-          <p className="text-graphite text-xs sm:col-span-2">{t('algo.threshold.gaussianNote')}</p>
+          <p className="text-xs text-graphite sm:col-span-2">{t('algo.threshold.gaussianNote')}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
           {datasetSlot}
-          {errors.dataset && <p className="text-far text-xs">{errors.dataset}</p>}
+          {errors.dataset && <p className="text-xs text-far">{errors.dataset}</p>}
         </div>
       )}
 
@@ -80,7 +80,7 @@ export function ThresholdForm({ values, errors, set, datasetSlot }: Props) {
       </fieldset>
 
       <details className="text-sm">
-        <summary className="text-graphite cursor-pointer">{t('algo.threshold.curveRange')}</summary>
+        <summary className="cursor-pointer text-graphite">{t('algo.threshold.curveRange')}</summary>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           <NumberField
             label={t('algo.threshold.curveFrom')}

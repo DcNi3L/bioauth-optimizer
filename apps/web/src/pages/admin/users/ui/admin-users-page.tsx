@@ -71,8 +71,8 @@ export function AdminUsersPage() {
     <Panel>
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
-          <label className="border-rule bg-sheet focus-within:border-frr flex h-10 min-w-0 flex-1 basis-64 items-center gap-2 rounded-md border px-3">
-            <Search className="text-graphite size-4 shrink-0" aria-hidden />
+          <label className="flex h-10 min-w-0 flex-1 basis-64 items-center gap-2 rounded-md border border-rule bg-sheet px-3 focus-within:border-frr">
+            <Search className="size-4 shrink-0 text-graphite" aria-hidden />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -137,10 +137,10 @@ export function AdminUsersPage() {
                           <Link href={`/admin/users/${u.id}`} className="group flex items-center gap-3">
                             <Avatar src={u.avatarUrl} name={u.displayName} size={34} />
                             <span className="min-w-0">
-                              <span className="group-hover:text-frr block truncate font-medium">
+                              <span className="block truncate font-medium group-hover:text-frr">
                                 {u.displayName}
                               </span>
-                              <span className="text-graphite num block truncate text-xs">
+                              <span className="num block truncate text-xs text-graphite">
                                 {u.login}
                                 {u.email && ` · ${u.email}`}
                               </span>
@@ -156,7 +156,7 @@ export function AdminUsersPage() {
                           <Factors u={u} />
                         </td>
                         <td className="r num">{u.activeSessions}</td>
-                        <td className="text-graphite whitespace-nowrap">
+                        <td className="whitespace-nowrap text-graphite">
                           {u.lastLoginAt ? f.relative(u.lastLoginAt) : t('common.never')}
                         </td>
                         <td>
@@ -170,7 +170,7 @@ export function AdminUsersPage() {
                 </tbody>
               </table>
             </div>
-            <ul className="divide-rule flex flex-col divide-y md:hidden">
+            <ul className="flex flex-col divide-y divide-rule md:hidden">
               {data.items.map((u) => {
                 const st = status(t, u);
                 return (
@@ -179,7 +179,7 @@ export function AdminUsersPage() {
                       <Avatar src={u.avatarUrl} name={u.displayName} size={40} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium">{u.displayName}</span>
-                        <span className="text-graphite num block truncate text-xs">
+                        <span className="num block truncate text-xs text-graphite">
                           {u.login} · {roleLabel(t, u.role)}
                         </span>
                         <span className="mt-1 flex items-center gap-2">
@@ -189,7 +189,7 @@ export function AdminUsersPage() {
                           <Factors u={u} />
                         </span>
                       </span>
-                      <ChevronRight className="text-graphite size-4" />
+                      <ChevronRight className="size-4 text-graphite" />
                     </Link>
                   </li>
                 );
@@ -198,7 +198,7 @@ export function AdminUsersPage() {
           </>
         )}
         {data && (
-          <div className="border-rule flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule pt-3 text-sm">
             <span className="text-graphite">{t('admin.users.total', { n: data.total })}</span>
             <span className="flex items-center gap-2">
               <span className="text-graphite">{t('admin.users.page', { p: page, n: pages })}</span>

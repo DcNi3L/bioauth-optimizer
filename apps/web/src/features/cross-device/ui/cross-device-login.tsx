@@ -98,20 +98,20 @@ export function CrossDeviceLogin({ onSuccess }: { onSuccess?: () => void }) {
               className="rounded-lg bg-white p-2"
             />
           ) : (
-            <div className="bg-paper size-56 rounded-lg" />
+            <div className="size-56 rounded-lg bg-paper" />
           )}
           <div className="flex flex-col gap-3">
             <p className="text-sm">{t('crossDevice.scan')}</p>
             <div>
-              <p className="text-graphite text-xs">{t('crossDevice.numberLabel')}</p>
+              <p className="text-xs text-graphite">{t('crossDevice.numberLabel')}</p>
               <p className="num font-serif text-5xl" aria-live="polite">
                 {req.number}
               </p>
             </div>
-            <p className="text-graphite text-xs" aria-live="off">
+            <p className="text-xs text-graphite" aria-live="off">
               {t('crossDevice.expires', { s: left })}
             </p>
-            <p className="text-graphite text-xs">{t('crossDevice.waiting')}</p>
+            <p className="text-xs text-graphite">{t('crossDevice.waiting')}</p>
           </div>
         </div>
       )}

@@ -23,7 +23,7 @@ function OperatingPointColumn({
   return (
     <div className={`flex flex-col gap-3 ${emphasis ? '' : 'text-graphite'}`}>
       <p className="text-sm">{title}</p>
-      <p className={`num font-serif ${emphasis ? 'text-optimum text-4xl' : 'text-ink text-2xl'}`}>
+      <p className={`num font-serif ${emphasis ? 'text-4xl text-optimum' : 'text-2xl text-ink'}`}>
         <span className="formula">τ</span> = {point.tau === null ? '—' : formatNumber(point.tau)}
       </p>
       <div className="grid grid-cols-3 gap-3">
@@ -44,7 +44,7 @@ export function ThresholdSummary({ result }: { result: Result }) {
     <div className="flex flex-col gap-5">
       <div className="grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
         <OperatingPointColumn title={t('algo.threshold.eerTitle')} point={eer} />
-        <div className="bg-rule hidden h-full w-px sm:block" aria-hidden />
+        <div className="hidden h-full w-px bg-rule sm:block" aria-hidden />
         <OperatingPointColumn title={t('algo.threshold.optimalTitle')} point={optimal} emphasis />
       </div>
 
@@ -59,7 +59,7 @@ export function ThresholdSummary({ result }: { result: Result }) {
       )}
 
       {optimal.interval && (
-        <p className="text-graphite text-sm">
+        <p className="text-sm text-graphite">
           {t('algo.threshold.interval', {
             lo: optimal.interval[0] === null ? '−∞' : formatNumber(optimal.interval[0], 6),
             hi: optimal.interval[1] === null ? '+∞' : formatNumber(optimal.interval[1], 6),
@@ -77,7 +77,7 @@ export function ThresholdSummary({ result }: { result: Result }) {
           {w}
         </Notice>
       ))}
-      <p className="text-graphite text-xs">
+      <p className="text-xs text-graphite">
         {verification.status === 'ok' &&
           t('algo.threshold.verifyOk', { diff: formatNumber(verification.absDiff ?? 0, 2) })}
         {verification.status === 'exact' && t('algo.threshold.verifyExact')}

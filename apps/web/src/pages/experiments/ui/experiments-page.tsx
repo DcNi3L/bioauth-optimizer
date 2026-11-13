@@ -10,7 +10,7 @@ export function ExperimentsPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-xl">{t('algo.history.title')}</h2>
-        <p className="text-graphite mt-1 max-w-prose text-sm">{t('algo.history.subtitle')}</p>
+        <p className="mt-1 max-w-prose text-sm text-graphite">{t('algo.history.subtitle')}</p>
       </div>
       <Panel>
         <ExperimentsTable />

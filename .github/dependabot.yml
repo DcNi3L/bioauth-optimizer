@@ -8,6 +8,10 @@ updates:
       minor-and-patch:
         update-types: [minor, patch]
     commit-message: { prefix: "chore(deps)" }
+    ignore:
+      # kysely 0.29 — только ESM: API на CommonJS (NestJS) и Jest 30 его не загружают без перевода проекта на ESM.
+      - dependency-name: kysely
+        versions: [">=0.29.0"]
   - package-ecosystem: pip
     directory: /services/bio-engine
     schedule: { interval: weekly, day: monday }
@@ -21,3 +25,7 @@ updates:
     directory: /docker
     schedule: { interval: monthly }
     commit-message: { prefix: "chore(docker)" }
+    ignore:
+      # Нечётные версии Node.js не получают LTS и в 25 убран corepack, которым образы ставят pnpm.
+      - dependency-name: node
+        versions: ["25.x", "27.x", "29.x"]

@@ -88,7 +88,7 @@ export function AdminDashboardPage() {
                 }))}
               />
             ) : (
-              <p className="text-graphite text-sm">{t('admin.dash.noReasons')}</p>
+              <p className="text-sm text-graphite">{t('admin.dash.noReasons')}</p>
             ))}
         </Panel>
         <Panel title={t('admin.dash.roles')}>
@@ -119,7 +119,7 @@ export function AdminDashboardPage() {
           actions={
             <Link
               href="/admin/policies"
-              className="text-frr inline-flex items-center gap-1 text-sm hover:underline"
+              className="inline-flex items-center gap-1 text-sm text-frr hover:underline"
             >
               {t('admin.dash.policyOpen')} <ArrowRight className="size-3.5" />
             </Link>
@@ -136,7 +136,7 @@ export function AdminDashboardPage() {
                 ))}
               </ol>
               {pending.length > 0 && (
-                <p className="text-caution text-sm">
+                <p className="text-sm text-caution">
                   {t('admin.dash.attention')}: {pending.map((p) => `v${p.version}`).join(', ')}
                 </p>
               )}
@@ -152,7 +152,7 @@ export function AdminDashboardPage() {
         actions={
           <Link
             href="/admin/logins"
-            className="text-frr inline-flex items-center gap-1 text-sm hover:underline"
+            className="inline-flex items-center gap-1 text-sm text-frr hover:underline"
           >
             {t('admin.dash.all')} <ArrowRight className="size-3.5" />
           </Link>

@@ -10,9 +10,7 @@ import { RecoveryCodes } from './recovery-codes';
 import { TotpSetup } from './totp-setup';
 
 type View =
-  | { kind: 'idle' }
-  | { kind: 'setup'; secret: string; uri: string }
-  | { kind: 'codes'; codes: string[] };
+  { kind: 'idle' } | { kind: 'setup'; secret: string; uri: string } | { kind: 'codes'; codes: string[] };
 
 /** Состояние TOTP и кодов восстановления: включить, отключить, выпустить новые. */
 export function MfaPanel() {
@@ -37,7 +35,7 @@ export function MfaPanel() {
             </Badge>
           </span>
           {totp.confirmedAt && (
-            <span className="text-graphite text-xs">
+            <span className="text-xs text-graphite">
               {t('mfa.since', { date: new Date(totp.confirmedAt).toLocaleDateString() })}
             </span>
           )}
@@ -76,10 +74,10 @@ export function MfaPanel() {
       )}
 
       {totp.enabled && view.kind === 'idle' && (
-        <div className="border-rule flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-4">
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium">{t('mfa.recoveryTitle')}</span>
-            <span className="text-graphite max-w-prose text-xs">{t('mfa.recoveryDesc')}</span>
+            <span className="max-w-prose text-xs text-graphite">{t('mfa.recoveryDesc')}</span>
             <span className={`text-xs ${recoveryCodesLeft <= 2 ? 'text-caution' : 'text-graphite'}`}>
               {t('mfa.recoveryLeft', { n: recoveryCodesLeft })}
               {recoveryCodesLeft <= 2 && ` · ${t('mfa.recoveryLow')}`}

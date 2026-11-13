@@ -44,13 +44,13 @@ export function OauthLogoutPage() {
       {me ? (
         <Avatar src={me.avatarUrl} name={me.displayName} size={72} />
       ) : (
-        <span className="bg-paper text-graphite rounded-full p-4">
+        <span className="rounded-full bg-paper p-4 text-graphite">
           <LogOut className="size-8" aria-hidden />
         </span>
       )}
       <div>
         <h1 className="text-2xl">{t('logout.title')}</h1>
-        <p className="text-graphite mt-2">{app ? t('logout.textApp', { app }) : t('logout.text')}</p>
+        <p className="mt-2 text-graphite">{app ? t('logout.textApp', { app }) : t('logout.text')}</p>
       </div>
       <ApiErrorNotice error={logout.error} />
       <div className="grid w-full grid-cols-2 gap-3">

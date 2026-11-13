@@ -84,7 +84,7 @@ export function KeystrokePanel() {
             </Badge>
           </span>
           {st.updatedAt && (
-            <span className="text-graphite text-xs">
+            <span className="text-xs text-graphite">
               {t('keystroke.since', { date: new Date(st.updatedAt).toLocaleDateString() })}
             </span>
           )}
@@ -111,7 +111,7 @@ export function KeystrokePanel() {
           </div>
         )}
       </div>
-      {mode === 'idle' && <p className="text-graphite max-w-prose text-xs">{t('keystroke.note')}</p>}
+      {mode === 'idle' && <p className="max-w-prose text-xs text-graphite">{t('keystroke.note')}</p>}
       {mode === 'idle' && consistency !== null && (
         <Notice tone="success">{t('keystroke.done', { value: consistency })}</Notice>
       )}

@@ -30,7 +30,7 @@ function Step({
       title={
         <span className="flex items-center gap-3">
           <span
-            className={`num inline-flex size-7 items-center justify-center rounded-full text-sm ${done ? 'bg-optimum text-sheet' : active ? 'bg-ink text-sheet' : 'border-rule text-graphite border'}`}
+            className={`num inline-flex size-7 items-center justify-center rounded-full text-sm ${done ? 'bg-optimum text-sheet' : active ? 'bg-ink text-sheet' : 'border border-rule text-graphite'}`}
             aria-hidden
           >
             {done ? '✓' : n}
@@ -43,7 +43,7 @@ function Step({
       {active ? (
         children
       ) : (
-        <p className="text-graphite text-sm">{done ? t('enroll.stepDone') : t('enroll.stepLocked')}</p>
+        <p className="text-sm text-graphite">{done ? t('enroll.stepDone') : t('enroll.stepLocked')}</p>
       )}
     </Panel>
   );
@@ -68,7 +68,7 @@ export function EnrollPage() {
       {me && isStaff(me.role) && <Notice tone="caution">{t('enroll.staffNote')}</Notice>}
       <Step n={1} title={t('enroll.stepAccount')} done={hasAccount} active={!hasAccount && !viewer.isPending}>
         <RegisterSubjectForm />
-        <p className="text-graphite mt-3 text-sm">
+        <p className="mt-3 text-sm text-graphite">
           {t('enroll.already')}{' '}
           <Link href="/login" className="text-frr underline underline-offset-4">
             {t('nav.login')}
@@ -83,7 +83,7 @@ export function EnrollPage() {
       </Step>
       <Step n={4} title={t('enroll.stepPasskey')} done={(me?.passkeys ?? 0) > 0} active={hasFace}>
         <RegisterPasskey />
-        <p className="text-graphite mt-4 text-sm">
+        <p className="mt-4 text-sm text-graphite">
           {t('enroll.doneTo')}{' '}
           <Link href="/profile" className="text-frr underline underline-offset-4">
             {t('nav.profile')}

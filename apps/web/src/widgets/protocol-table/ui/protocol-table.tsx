@@ -68,9 +68,9 @@ export function ProtocolTable({ report }: { report: ProtocolReportDto }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="relative overflow-x-auto">
-        <table className="min-w-208 w-full text-sm">
-          <thead className="text-graphite text-left text-xs">
-            <tr className="border-rule border-b">
+        <table className="w-full min-w-208 text-sm">
+          <thead className="text-left text-xs text-graphite">
+            <tr className="border-b border-rule">
               <th className="py-2 pr-3 font-normal">{t('algo.protocol.policyCol')}</th>
               <th className="py-2 pr-3 text-right font-normal">{t('algo.protocol.tauCol')}</th>
               <th className="py-2 pr-3 text-right font-normal">{t('algo.protocol.farCi')}</th>
@@ -83,7 +83,7 @@ export function ProtocolTable({ report }: { report: ProtocolReportDto }) {
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={r.policyVersion} className="border-rule border-b last:border-b-0">
+              <tr key={r.policyVersion} className="border-b border-rule last:border-b-0">
                 <td className="py-2 pr-3">
                   v{r.policyVersion}{' '}
                   {i === 0
@@ -95,9 +95,9 @@ export function ProtocolTable({ report }: { report: ProtocolReportDto }) {
                 <td className="num py-2 pr-3 text-right">
                   {formatNumber(r.tauFace, 4)} / {formatNumber(r.tauPad, 3)}
                 </td>
-                <td className="num text-far py-2 pr-3 text-right">{ci(r.far)}</td>
+                <td className="num py-2 pr-3 text-right text-far">{ci(r.far)}</td>
                 <td className="num py-2 pr-3 text-right">{formatPercent(r.confirmedFar, 3)}</td>
-                <td className="num text-frr py-2 pr-3 text-right">{ci(r.frr)}</td>
+                <td className="num py-2 pr-3 text-right text-frr">{ci(r.frr)}</td>
                 <td className="num py-2 pr-3 text-right font-medium">{formatNumber(r.cost, 4)}</td>
                 <td className="num py-2 pr-3 text-right">{ci(r.bpcer)}</td>
                 <td className="num py-2 text-right">{formatPercent(r.apcerMax, 1)}</td>
@@ -106,7 +106,7 @@ export function ProtocolTable({ report }: { report: ProtocolReportDto }) {
           </tbody>
         </table>
       </div>
-      <p className="text-graphite text-xs">
+      <p className="text-xs text-graphite">
         {t('algo.protocol.footnote', {
           genuine: report.sampleSizes.genuine,
           impostor: report.sampleSizes.impostor,

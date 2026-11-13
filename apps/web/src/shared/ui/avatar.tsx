@@ -29,7 +29,7 @@ export function Avatar({
         width={size}
         height={size}
         style={style}
-        className={`ring-rule shrink-0 rounded-full object-cover ring-1 ${className}`}
+        className={`shrink-0 rounded-full object-cover ring-1 ring-rule ${className}`}
       />
     );
   }
@@ -37,7 +37,7 @@ export function Avatar({
     <span
       aria-hidden
       style={{ ...style, background: `hsl(${hue} 45% 42%)` }}
-      className={`inline-flex shrink-0 select-none items-center justify-center rounded-full font-medium text-white ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full font-medium text-white select-none ${className}`}
     >
       {initials(name)}
     </span>

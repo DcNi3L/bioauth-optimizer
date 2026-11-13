@@ -37,9 +37,9 @@ export function FactorSelectionSummary({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <p className="text-graphite text-sm">{t('algo.factors.summaryRule')}</p>
-        <p className="text-optimum mt-1 font-serif text-3xl">{optimum.codes.join(' + ')}</p>
-        <p className="text-graphite mt-1 text-sm">
+        <p className="text-sm text-graphite">{t('algo.factors.summaryRule')}</p>
+        <p className="mt-1 font-serif text-3xl text-optimum">{optimum.codes.join(' + ')}</p>
+        <p className="mt-1 text-sm text-graphite">
           {optimum.codes.map((c) => factorNames[c] ?? c).join(', ')}
         </p>
       </div>

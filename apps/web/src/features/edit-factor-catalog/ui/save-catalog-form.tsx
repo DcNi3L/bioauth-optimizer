@@ -42,7 +42,7 @@ export function SaveCatalogForm({ getFactors }: { getFactors: () => FactorDto[] 
         </Button>
       </div>
       {create.isSuccess && (
-        <p className="text-optimum text-xs">{t('algo.chrome.catalogSaved', { name: create.data.name })}</p>
+        <p className="text-xs text-optimum">{t('algo.chrome.catalogSaved', { name: create.data.name })}</p>
       )}
       <ApiErrorNotice error={create.error} />
     </div>

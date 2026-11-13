@@ -22,7 +22,7 @@ export function AdminUserPage({ id }: { id: string }) {
     <div className="flex flex-col gap-6">
       <Link
         href="/admin/users"
-        className="text-graphite hover:text-ink inline-flex w-fit items-center gap-1.5 text-sm"
+        className="inline-flex w-fit items-center gap-1.5 text-sm text-graphite hover:text-ink"
       >
         <ArrowLeft className="size-4" /> {t('admin.user.back')}
       </Link>
@@ -31,7 +31,7 @@ export function AdminUserPage({ id }: { id: string }) {
         <Skeleton className="h-40 w-full rounded-2xl" />
       ) : (
         <>
-          <section className="border-rule bg-sheet flex flex-col gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center">
+          <section className="flex flex-col gap-4 rounded-2xl border border-rule bg-sheet p-5 sm:flex-row sm:items-center">
             <Avatar src={d.user.avatarUrl} name={d.user.displayName} size={80} />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
@@ -40,7 +40,7 @@ export function AdminUserPage({ id }: { id: string }) {
                   {roleLabel(t, d.user.role)}
                 </Badge>
               </div>
-              <p className="text-graphite mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-graphite">
                 <span className="num">@{d.user.login}</span>
                 <span className="inline-flex items-center gap-1.5">
                   <Mail className="size-3.5" /> {d.user.email ?? t('profile.noEmail')}
@@ -90,14 +90,14 @@ export function AdminUserPage({ id }: { id: string }) {
           </Panel>
           {d.apps.length > 0 && (
             <Panel title={t('admin.user.apps')}>
-              <ul className="divide-rule divide-y">
+              <ul className="divide-y divide-rule">
                 {d.apps.map((a) => (
                   <li
                     key={a.clientId}
                     className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
                   >
                     <span className="font-medium">
-                      {a.name} <span className="text-graphite num text-xs">{a.clientId}</span>
+                      {a.name} <span className="num text-xs text-graphite">{a.clientId}</span>
                     </span>
                     <span className="flex flex-wrap gap-1">
                       {a.scopes.map((s) => (

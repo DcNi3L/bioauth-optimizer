@@ -44,7 +44,7 @@ export function ExperimentDetailPage({ id }: { id: string }) {
 
   return (
     <div className="flex max-w-5xl flex-col gap-6">
-      <Link href="/algorithm/history" className="text-frr w-fit text-sm hover:underline">
+      <Link href="/algorithm/history" className="w-fit text-sm text-frr hover:underline">
         {t('algo.history.back')}
       </Link>
       <ApiErrorNotice error={q.error} />
@@ -52,7 +52,7 @@ export function ExperimentDetailPage({ id }: { id: string }) {
         <>
           <div>
             <h2 className="text-xl">{typeLabel(e.type)}</h2>
-            <p className="text-graphite mt-1 text-sm">
+            <p className="mt-1 text-sm text-graphite">
               {formatDateTime(e.createdAt)}; {t('algo.history.methodLabel')}:{' '}
               {e.solver ? solverLabel(e.solver) : '—'}; {t('algo.history.coreLabel')} {e.coreVersion};{' '}
               {t('algo.chrome.ms', { n: e.durationMs })}
@@ -105,8 +105,8 @@ export function ExperimentDetailPage({ id }: { id: string }) {
             actions={<ExportButtons spec={{ baseName: `experiment-${e.id.slice(0, 8)}`, json: e }} />}
           >
             <details>
-              <summary className="text-graphite cursor-pointer text-sm">{t('algo.history.jsonShow')}</summary>
-              <pre className="num max-h-120 bg-paper mt-3 overflow-auto rounded-md p-4 text-xs">
+              <summary className="cursor-pointer text-sm text-graphite">{t('algo.history.jsonShow')}</summary>
+              <pre className="num mt-3 max-h-120 overflow-auto rounded-md bg-paper p-4 text-xs">
                 {JSON.stringify({ input: e.input, result: e.result }, null, 2)}
               </pre>
             </details>

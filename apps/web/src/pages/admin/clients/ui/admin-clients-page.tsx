@@ -52,13 +52,13 @@ function Endpoints() {
     ['register', d.data.registration_endpoint],
   ];
   return (
-    <dl className="divide-rule divide-y">
+    <dl className="divide-y divide-rule">
       {rows
         .filter((r): r is [string, string] => !!r[1])
         .map(([k, v]) => (
           <div key={k} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
-            <dt className="text-graphite w-24 shrink-0 text-xs">{k}</dt>
-            <dd className="min-w-0 flex-1 break-all font-mono text-[12.5px]">{v}</dd>
+            <dt className="w-24 shrink-0 text-xs text-graphite">{k}</dt>
+            <dd className="min-w-0 flex-1 font-mono text-[12.5px] break-all">{v}</dd>
             <CopyButton value={v} />
           </div>
         ))}
@@ -71,10 +71,10 @@ function ClientCard({ c, canEdit }: { c: OauthClientDto; canEdit: boolean }) {
   const f = useFormat();
   return (
     <li
-      className={`border-rule bg-sheet flex flex-col gap-3 rounded-xl border p-4 ${c.disabled ? 'opacity-70' : ''}`}
+      className={`flex flex-col gap-3 rounded-xl border border-rule bg-sheet p-4 ${c.disabled ? 'opacity-70' : ''}`}
     >
       <div className="flex items-start gap-3">
-        <span className="bg-frr-bg text-frr flex size-11 shrink-0 items-center justify-center rounded-xl font-serif text-xl font-semibold">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-frr-bg font-serif text-xl font-semibold text-frr">
           {c.name.slice(0, 1).toUpperCase()}
         </span>
         <div className="min-w-0 flex-1">
@@ -90,10 +90,10 @@ function ClientCard({ c, canEdit }: { c: OauthClientDto; canEdit: boolean }) {
               c.disabled && <Badge tone="far">{t('admin.clients.disabled')}</Badge>
             )}
           </p>
-          <p className="text-graphite num mt-0.5 text-xs">
+          <p className="num mt-0.5 text-xs text-graphite">
             {c.clientId} · {f.date(c.createdAt)} · {t('admin.clients.grantsN', { n: c.activeGrants })}
           </p>
-          {c.description && <p className="text-graphite mt-1 text-sm">{c.description}</p>}
+          {c.description && <p className="mt-1 text-sm text-graphite">{c.description}</p>}
         </div>
       </div>
       <div className="flex flex-wrap gap-1">
@@ -107,7 +107,7 @@ function ClientCard({ c, canEdit }: { c: OauthClientDto; canEdit: boolean }) {
         ))}
       </div>
       {c.redirectUris.length > 0 && (
-        <ul className="text-graphite break-all font-mono text-[12px]">
+        <ul className="font-mono text-[12px] break-all text-graphite">
           {c.redirectUris.map((u) => (
             <li key={u}>↩ {u}</li>
           ))}

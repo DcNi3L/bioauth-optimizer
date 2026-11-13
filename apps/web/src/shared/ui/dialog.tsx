@@ -48,27 +48,27 @@ export function Dialog({
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}
-      className={`bg-sheet text-ink border-rule backdrop:bg-overlay m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-2xl border p-0 shadow-2xl sm:m-auto sm:rounded-xl ${width}`}
+      className={`m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-2xl border border-rule bg-sheet p-0 text-ink shadow-2xl backdrop:bg-overlay sm:m-auto sm:rounded-xl ${width}`}
     >
       {open && (
         <div className="flex max-h-[92dvh] flex-col">
-          <header className="border-rule flex items-start justify-between gap-4 border-b px-5 py-4">
+          <header className="flex items-start justify-between gap-4 border-b border-rule px-5 py-4">
             <div>
               <h2 className="text-lg">{title}</h2>
-              {description && <p className="text-graphite mt-1 text-sm">{description}</p>}
+              {description && <p className="mt-1 text-sm text-graphite">{description}</p>}
             </div>
             <button
               type="button"
               onClick={onClose}
               aria-label={closeLabel ?? t('common.close')}
-              className="text-graphite hover:text-ink hover:bg-hover -mr-1 rounded-md p-1.5"
+              className="-mr-1 rounded-md p-1.5 text-graphite hover:bg-hover hover:text-ink"
             >
               <X className="size-5" />
             </button>
           </header>
           <div className="overflow-y-auto px-5 py-4">{children}</div>
           {footer && (
-            <footer className="border-rule bg-paper/60 flex flex-wrap justify-end gap-2 border-t px-5 py-3">
+            <footer className="flex flex-wrap justify-end gap-2 border-t border-rule bg-paper/60 px-5 py-3">
               {footer}
             </footer>
           )}

@@ -35,7 +35,7 @@ export function RecoveryCodes({ codes, onSaved }: { codes: string[]; onSaved: ()
   return (
     <div className="recovery-print flex flex-col gap-4">
       <Notice tone="caution">{t('mfa.saveNow')}</Notice>
-      <ul className="num bg-sheet border-rule grid grid-cols-1 gap-x-6 gap-y-1 rounded-md border p-4 text-[15px] tracking-wider min-[420px]:grid-cols-2">
+      <ul className="num grid grid-cols-1 gap-x-6 gap-y-1 rounded-md border border-rule bg-sheet p-4 text-[15px] tracking-wider min-[420px]:grid-cols-2">
         {codes.map((c) => (
           <li key={c}>{c}</li>
         ))}

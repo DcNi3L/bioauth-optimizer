@@ -16,18 +16,18 @@ export function SidebarNav({ groups, onNavigate }: { groups: NavGroup[]; onNavig
   const pwa = useInstallPrompt();
   return (
     <div className="flex h-full flex-col">
-      <Link href="/" onClick={onNavigate} className="flex items-center gap-3 px-5 pb-6 pt-5">
+      <Link href="/" onClick={onNavigate} className="flex items-center gap-3 px-5 pt-5 pb-6">
         <Logo />
         <span className="flex flex-col leading-tight">
           <span className="font-serif text-[17px] font-semibold">BioAuth</span>
-          <span className="text-graphite text-[11px]">{t('nav.tagline')}</span>
+          <span className="text-[11px] text-graphite">{t('nav.tagline')}</span>
         </span>
       </Link>
       <nav aria-label={t('nav.sections')} className="flex-1 overflow-y-auto px-3 pb-4">
         {groups.map((g, gi) => (
           <div key={g.title ?? gi} className="mb-5">
             {g.title && (
-              <p className="text-graphite/80 px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider">
+              <p className="px-3 pb-1.5 text-[11px] font-semibold tracking-wider text-graphite/80 uppercase">
                 {t(g.title)}
               </p>
             )}
@@ -41,7 +41,7 @@ export function SidebarNav({ groups, onNavigate }: { groups: NavGroup[]; onNavig
                 const inner = (
                   <>
                     {active && (
-                      <span className="bg-ink absolute -left-3 bottom-2 top-2 w-1 rounded-r" aria-hidden />
+                      <span className="absolute top-2 bottom-2 -left-3 w-1 rounded-r bg-ink" aria-hidden />
                     )}
                     <Icon className={`size-[18px] shrink-0 ${active ? 'text-ink' : ''}`} aria-hidden />
                     <span className="flex-1 truncate">{t(item.label)}</span>
@@ -76,14 +76,14 @@ export function SidebarNav({ groups, onNavigate }: { groups: NavGroup[]; onNavig
           <button
             type="button"
             onClick={() => void pwa.install()}
-            className="border-rule hover:bg-hover text-ink flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-sm"
+            className="flex w-full items-center gap-3 rounded-lg border border-rule px-3 py-2 text-sm text-ink hover:bg-hover"
           >
-            <Download className="text-frr size-[18px]" aria-hidden />
+            <Download className="size-[18px] text-frr" aria-hidden />
             {t('pwa.install')}
           </button>
         </div>
       )}
-      <p className="text-graphite border-rule border-t px-5 py-3 text-[11px]">BioAuth Optimizer · v3.2.0</p>
+      <p className="border-t border-rule px-5 py-3 text-[11px] text-graphite">BioAuth Optimizer · v3.2.0</p>
     </div>
   );
 }

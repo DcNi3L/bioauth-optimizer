@@ -41,7 +41,7 @@ export function ExperimentsTable() {
       <Segmented label={t('algo.history.filterLabel')} value={type} options={FILTERS} onChange={setType} />
       <ApiErrorNotice error={list.error} />
       {list.isSuccess && items.length === 0 && (
-        <p className="text-graphite text-sm">{t('algo.history.empty')}</p>
+        <p className="text-sm text-graphite">{t('algo.history.empty')}</p>
       )}
       {items.length > 0 && (
         <div className="relative overflow-x-auto">
@@ -58,7 +58,7 @@ export function ExperimentsTable() {
             <tbody>
               {items.map((e) => (
                 <tr key={e.id} className="hover:bg-paper">
-                  <td className="num text-graphite whitespace-nowrap">{formatDateTime(e.createdAt)}</td>
+                  <td className="num whitespace-nowrap text-graphite">{formatDateTime(e.createdAt)}</td>
                   <td className="whitespace-nowrap">{t(TYPE_LABELS[e.type])}</td>
                   <td>
                     <Link

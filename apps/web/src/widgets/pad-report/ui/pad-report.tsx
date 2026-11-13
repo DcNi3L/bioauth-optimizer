@@ -30,8 +30,8 @@ export function PadReport({ report }: { report: PadReportDto }) {
         <Metric label={t('algo.pad.genuineN')} value={report.bpcer.total} />
       </div>
       <table className="w-full text-sm">
-        <thead className="text-graphite text-left text-xs">
-          <tr className="border-rule border-b">
+        <thead className="text-left text-xs text-graphite">
+          <tr className="border-b border-rule">
             <th className="py-2 pr-3 font-normal">{t('algo.pad.attackCol')}</th>
             <th className="py-2 pr-3 text-right font-normal">{t('algo.pad.missedCol')}</th>
             <th className="py-2 pr-3 text-right font-normal">{t('algo.pad.apcerCol')}</th>
@@ -40,7 +40,7 @@ export function PadReport({ report }: { report: PadReportDto }) {
         </thead>
         <tbody>
           {report.apcer.map((a) => (
-            <tr key={a.attackType} className="border-rule border-b last:border-b-0">
+            <tr key={a.attackType} className="border-b border-rule last:border-b-0">
               <td className="py-2 pr-3">{t(ATTACK[a.attackType])}</td>
               <td className="num py-2 pr-3 text-right">
                 {a.errors} / {a.total}
@@ -59,7 +59,7 @@ export function PadReport({ report }: { report: PadReportDto }) {
           </tr>
         </tbody>
       </table>
-      {report.apcer.length === 0 && <p className="text-graphite text-sm">{t('algo.pad.noAttacks')}</p>}
+      {report.apcer.length === 0 && <p className="text-sm text-graphite">{t('algo.pad.noAttacks')}</p>}
     </div>
   );
 }

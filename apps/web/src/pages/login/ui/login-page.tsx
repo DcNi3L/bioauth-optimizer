@@ -37,8 +37,8 @@ export function LoginPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
       {oauth && request.data && (
-        <section className="border-frr/30 bg-frr-bg text-frr-ink flex items-start gap-3 rounded-xl border p-4">
-          <span className="bg-sheet text-frr flex size-10 shrink-0 items-center justify-center rounded-lg font-serif text-lg font-semibold">
+        <section className="flex items-start gap-3 rounded-xl border border-frr/30 bg-frr-bg p-4 text-frr-ink">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sheet font-serif text-lg font-semibold text-frr">
             {request.data.client.name.slice(0, 1).toUpperCase()}
           </span>
           <div>
@@ -71,7 +71,7 @@ export function LoginPage() {
           <StaffLogin onSuccess={done} />
         )}
       </Panel>
-      <div className="text-graphite flex flex-wrap items-center justify-between gap-3 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-graphite">
         <p>
           {t('auth.noAccount')}{' '}
           <Link href="/enroll" className="text-frr underline underline-offset-4">

@@ -52,7 +52,7 @@ export function ProfileSecurityPage() {
           sessions.data && <SessionList sessions={sessions.data} />
         )}
         {sessions.data && !others && (
-          <p className="text-graphite pt-2 text-sm">{t('profile.sessions.none')}</p>
+          <p className="pt-2 text-sm text-graphite">{t('profile.sessions.none')}</p>
         )}
       </Panel>
     </div>

@@ -12,9 +12,9 @@ export function MeasuredFactors({ data }: { data: MeasuredFactorsDto }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="relative overflow-x-auto">
-        <table className="min-w-160 w-full text-sm">
-          <thead className="text-graphite text-left text-xs">
-            <tr className="border-rule border-b">
+        <table className="w-full min-w-160 text-sm">
+          <thead className="text-left text-xs text-graphite">
+            <tr className="border-b border-rule">
               <th className="py-2 pr-3 font-normal">{t('algo.measurements.factorCol')}</th>
               <th className="py-2 pr-3 text-right font-normal">{t('algo.measurements.farCol')}</th>
               <th className="py-2 pr-3 text-right font-normal">{t('algo.measurements.frrCol')}</th>
@@ -24,11 +24,11 @@ export function MeasuredFactors({ data }: { data: MeasuredFactorsDto }) {
           </thead>
           <tbody>
             {data.factors.map((f) => (
-              <tr key={f.code} className="border-rule border-b last:border-b-0">
+              <tr key={f.code} className="border-b border-rule last:border-b-0">
                 <td className="py-2 pr-3">{f.name}</td>
                 <td className="num py-2 pr-3 text-right">
                   {formatPercent(f.far, 4)}{' '}
-                  <span className="text-graphite text-xs">
+                  <span className="text-xs text-graphite">
                     {f.sources.far === 'measured'
                       ? t('algo.measurements.measured')
                       : t('algo.measurements.claimed')}
@@ -36,7 +36,7 @@ export function MeasuredFactors({ data }: { data: MeasuredFactorsDto }) {
                 </td>
                 <td className="num py-2 pr-3 text-right">
                   {formatPercent(f.frr, 2)}{' '}
-                  <span className="text-graphite text-xs">
+                  <span className="text-xs text-graphite">
                     ({formatPercent(f.frrInterval[0], 1)} … {formatPercent(f.frrInterval[1], 1)})
                   </span>
                 </td>
@@ -50,7 +50,7 @@ export function MeasuredFactors({ data }: { data: MeasuredFactorsDto }) {
         </table>
       </div>
       {data.factors.length === 0 && (
-        <p className="text-graphite text-sm">{t('algo.measurements.factorsEmpty')}</p>
+        <p className="text-sm text-graphite">{t('algo.measurements.factorsEmpty')}</p>
       )}
       {data.warnings.map((w) => (
         <Notice key={w} tone="caution">

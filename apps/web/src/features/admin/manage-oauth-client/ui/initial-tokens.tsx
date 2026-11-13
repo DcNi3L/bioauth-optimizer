@@ -52,9 +52,9 @@ export function InitialTokens({
     <div className="flex flex-col gap-4">
       {!enabled && <Notice tone="info">{t('admin.clients.regOff')}</Notice>}
       {registrationEndpoint && (
-        <p className="text-graphite text-sm">
+        <p className="text-sm text-graphite">
           {t('admin.clients.regHow')}{' '}
-          <code className="break-all font-mono text-[12.5px]">POST {registrationEndpoint}</code>
+          <code className="font-mono text-[12.5px] break-all">POST {registrationEndpoint}</code>
         </p>
       )}
       <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
@@ -77,12 +77,12 @@ export function InitialTokens({
       <ApiErrorNotice error={create.error ?? del.error ?? list.error} />
       {create.data && (
         <div
-          className="border-caution/40 bg-caution-bg flex flex-col gap-2 rounded-lg border p-4"
+          className="flex flex-col gap-2 rounded-lg border border-caution/40 bg-caution-bg p-4"
           role="status"
         >
-          <p className="text-caution text-xs">{t('admin.clients.regOnce')}</p>
+          <p className="text-xs text-caution">{t('admin.clients.regOnce')}</p>
           <div className="flex flex-wrap items-center gap-2">
-            <code className="bg-sheet border-rule text-ink min-w-0 flex-1 break-all rounded-md border px-3 py-2 font-mono text-[13px]">
+            <code className="min-w-0 flex-1 rounded-md border border-rule bg-sheet px-3 py-2 font-mono text-[13px] break-all text-ink">
               {create.data.token}
             </code>
             <CopyButton value={create.data.token} />
@@ -90,12 +90,12 @@ export function InitialTokens({
         </div>
       )}
       {list.data && list.data.length > 0 && (
-        <ul className="divide-rule divide-y text-sm">
+        <ul className="divide-y divide-rule text-sm">
           {list.data.map((x) => (
             <li key={x.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
               <span className="min-w-0 flex-1">
                 {x.note ?? '—'}
-                <span className="text-graphite block text-xs">
+                <span className="block text-xs text-graphite">
                   {t('admin.clients.regLeft', { n: x.usesLeft, date: f.dateTime(x.expiresAt) })}
                 </span>
               </span>

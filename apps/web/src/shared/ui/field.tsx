@@ -20,16 +20,16 @@ function FieldShell({ label, hint, error, children, className = '' }: FieldShell
   const hintId = hint || error ? `${id}-hint` : undefined;
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label htmlFor={id} className="text-graphite text-sm">
+      <label htmlFor={id} className="text-sm text-graphite">
         {label}
       </label>
       {children(id, hintId)}
       {error ? (
-        <p id={hintId} className="text-far text-xs">
+        <p id={hintId} className="text-xs text-far">
           {error}
         </p>
       ) : hint ? (
-        <p id={hintId} className="text-graphite text-xs">
+        <p id={hintId} className="text-xs text-graphite">
           {hint}
         </p>
       ) : null}

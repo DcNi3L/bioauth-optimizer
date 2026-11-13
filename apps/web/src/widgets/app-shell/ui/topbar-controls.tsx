@@ -95,12 +95,12 @@ export function ProfileMenu() {
   const viewer = useViewer();
   const me = viewer.isError ? null : viewer.data;
   const logout = useLogout();
-  if (me === undefined) return <span className="bg-rule size-9 animate-pulse rounded-full" aria-hidden />;
+  if (me === undefined) return <span className="size-9 animate-pulse rounded-full bg-rule" aria-hidden />;
   if (me === null) {
     return (
       <Link
         href="/login"
-        className="bg-ink text-sheet hover:bg-ink-hover inline-flex h-9 items-center rounded-lg px-3.5 text-sm font-medium"
+        className="inline-flex h-9 items-center rounded-lg bg-ink px-3.5 text-sm font-medium text-sheet hover:bg-ink-hover"
       >
         {t('topbar.signIn')}
       </Link>
@@ -114,7 +114,7 @@ export function ProfileMenu() {
         <>
           <Avatar src={me.avatarUrl} name={me.displayName} size={30} />
           <span className="hidden max-w-36 truncate text-sm font-medium md:inline">{me.displayName}</span>
-          <ChevronDown className="text-graphite hidden size-4 md:inline" aria-hidden />
+          <ChevronDown className="hidden size-4 text-graphite md:inline" aria-hidden />
         </>
       }
     >
@@ -124,7 +124,7 @@ export function ProfileMenu() {
             <Avatar src={me.avatarUrl} name={me.displayName} size={40} />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{me.displayName}</p>
-              <p className="text-graphite truncate text-xs">
+              <p className="truncate text-xs text-graphite">
                 <span className="num">{me.login}</span> · {roleLabel(t, me.role)}
               </p>
             </div>

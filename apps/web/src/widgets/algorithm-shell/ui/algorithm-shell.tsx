@@ -33,7 +33,7 @@ export function AlgorithmShell({ children }: { children: ReactNode }) {
     href: x.href,
     label: t(x.label),
     badge: x.staff ? (
-      <span className="bg-frr size-1.5 rounded-full" title={t('algo.staffMark')} aria-hidden />
+      <span className="size-1.5 rounded-full bg-frr" title={t('algo.staffMark')} aria-hidden />
     ) : undefined,
   }));
   const blocked = !!tab?.staff && !viewer.isPending && !staff;

@@ -67,7 +67,7 @@ export function FactorsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-xl">{t('algo.factors.title')}</h2>
-          <p className="text-graphite mt-1 max-w-prose text-sm">{t('algo.factors.subtitle')}</p>
+          <p className="mt-1 max-w-prose text-sm text-graphite">{t('algo.factors.subtitle')}</p>
         </div>
         <LoadExampleButton
           onLoad={(ex) => {
@@ -90,7 +90,7 @@ export function FactorsPage() {
       >
         <div className="flex flex-col gap-6">
           <FactorTableEditor form={form} />
-          <div className="border-rule border-t pt-4">
+          <div className="border-t border-rule pt-4">
             <SaveCatalogForm getFactors={form.currentFactorDtos} />
           </div>
         </div>
@@ -106,7 +106,7 @@ export function FactorsPage() {
             }}
           >
             <SelectionSettingsForm form={form} />
-            <div className="border-rule border-t pt-4">
+            <div className="border-t border-rule pt-4">
               <Button type="submit" busy={solve.isPending}>
                 {t('algo.factors.solve')}
               </Button>
@@ -123,7 +123,7 @@ export function FactorsPage() {
             <ApiErrorNotice error={solve.error} />
           )}
           {!result && !solve.error && (
-            <div className="border-rule text-graphite rounded-lg border border-dashed px-6 py-16 text-center text-sm">
+            <div className="rounded-lg border border-dashed border-rule px-6 py-16 text-center text-sm text-graphite">
               {t('algo.factors.placeholder')}
             </div>
           )}
@@ -171,7 +171,7 @@ export function FactorsPage() {
           {sweep.data && (
             <>
               <BudgetSensitivity result={sweep.data} />
-              <p className="text-graphite text-xs">
+              <p className="text-xs text-graphite">
                 {t('algo.factors.points', { n: sweep.data.points.length })};{' '}
                 {t('algo.factors.breaks', { n: Math.max(0, sweep.data.breakpoints.length - 1) })};{' '}
                 {t('algo.factors.duration', { ms: formatNumber(sweep.data.meta.durationMs, 0) })}

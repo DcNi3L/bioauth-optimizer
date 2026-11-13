@@ -35,7 +35,7 @@ function Job({ job }: { job: BatchJobDto }) {
   const cancel = useCancelBatch();
   const r = job.result;
   return (
-    <li className="border-rule rounded-md border p-4">
+    <li className="rounded-md border border-rule p-4">
       <div className="flex flex-wrap items-center gap-3">
         <h3 className="font-medium">{job.name}</h3>
         <span
@@ -44,7 +44,7 @@ function Job({ job }: { job: BatchJobDto }) {
           {t(STATE[job.state])}
           {job.stage ? `: ${t(STAGE[job.stage])}…` : ''}
         </span>
-        <span className="text-graphite text-xs">
+        <span className="text-xs text-graphite">
           {t('algo.batch.started', { file: job.filename, seed: job.seed, at: formatDateTime(job.startedAt) })}
         </span>
         {job.state === 'running' && (
@@ -76,7 +76,7 @@ function Job({ job }: { job: BatchJobDto }) {
             />
             <Metric label={t('algo.batch.farBound')} value={(3 / r.impostorCount).toExponential(1)} />
           </div>
-          <p className="text-graphite text-xs">
+          <p className="text-xs text-graphite">
             {t('algo.batch.model', { version: r.modelVersion })}{' '}
             {r.impostorSampled
               ? t('algo.batch.sampled', { n: r.impostorTotal.toLocaleString('ru-RU') })
@@ -86,7 +86,7 @@ function Job({ job }: { job: BatchJobDto }) {
           {r.skippedTotal > 0 && (
             <details className="text-sm">
               <summary className="cursor-pointer">{t('algo.batch.skipped', { n: r.skippedTotal })}</summary>
-              <ul className="text-graphite mt-1 list-inside list-disc text-xs">
+              <ul className="mt-1 list-inside list-disc text-xs text-graphite">
                 {r.skipped.map((x) => (
                   <li key={x.file}>
                     <span className="num">{x.file}</span> — {reasonText(t, x.reason)}
@@ -111,7 +111,7 @@ function Job({ job }: { job: BatchJobDto }) {
 
 function EmptyJobs() {
   const t = useT();
-  return <p className="text-graphite text-sm">{t('algo.batch.empty')}</p>;
+  return <p className="text-sm text-graphite">{t('algo.batch.empty')}</p>;
 }
 
 export function BatchJobs() {

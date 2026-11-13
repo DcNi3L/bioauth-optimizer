@@ -58,7 +58,7 @@ export function AttemptsTable() {
       {stats.length > 0 && (
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
           {stats.map((s) => (
-            <div key={s.factor} className="border-rule rounded-md border p-4">
+            <div key={s.factor} className="rounded-md border border-rule p-4">
               <p className="font-medium">{t(FACTOR_KEY[s.factor])}</p>
               <div className="mt-2 grid grid-cols-3 gap-3">
                 <Metric label={t('algo.attempts.attempts')} value={s.total} />
@@ -70,7 +70,7 @@ export function AttemptsTable() {
                 <Metric label={t('algo.attempts.p95')} value={s.p95Ms === null ? '—' : formatMs(s.p95Ms)} />
               </div>
               {Object.keys(s.byReason).length > 0 && (
-                <p className="text-graphite mt-2 text-xs">
+                <p className="mt-2 text-xs text-graphite">
                   {Object.entries(s.byReason)
                     .map(([r, n]) => `${reasonTitle(r)}: ${n}`)
                     .join(' · ')}
@@ -82,9 +82,9 @@ export function AttemptsTable() {
       )}
       <ApiErrorNotice error={q.error} />
       <div className="relative overflow-x-auto">
-        <table className="min-w-3xl w-full text-sm">
-          <thead className="text-graphite text-left text-xs">
-            <tr className="border-rule border-b">
+        <table className="w-full min-w-3xl text-sm">
+          <thead className="text-left text-xs text-graphite">
+            <tr className="border-b border-rule">
               <th className="py-2 pr-3 font-normal">{t('algo.attempts.colTime')}</th>
               <th className="py-2 pr-3 font-normal">{t('algo.attempts.colLogin')}</th>
               <th className="py-2 pr-3 font-normal">{t('algo.attempts.colFactor')}</th>
@@ -98,8 +98,8 @@ export function AttemptsTable() {
           </thead>
           <tbody>
             {items.map((a) => (
-              <tr key={a.id} className="border-rule border-b last:border-b-0">
-                <td className="num whitespace-nowrap py-2 pr-3">{formatDateTime(a.at)}</td>
+              <tr key={a.id} className="border-b border-rule last:border-b-0">
+                <td className="num py-2 pr-3 whitespace-nowrap">{formatDateTime(a.at)}</td>
                 <td className="num py-2 pr-3">{a.login ?? '—'}</td>
                 <td className="py-2 pr-3">{t(FACTOR_KEY[a.factor])}</td>
                 <td
@@ -120,7 +120,7 @@ export function AttemptsTable() {
         </table>
       </div>
       {q.isSuccess && items.length === 0 && (
-        <p className="text-graphite text-sm">{t('algo.attempts.empty')}</p>
+        <p className="text-sm text-graphite">{t('algo.attempts.empty')}</p>
       )}
       {q.hasNextPage && (
         <div>

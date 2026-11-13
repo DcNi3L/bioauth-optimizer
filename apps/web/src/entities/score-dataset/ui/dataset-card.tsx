@@ -48,7 +48,7 @@ export function DatasetCard({ dataset }: { dataset: ScoreDatasetDto }) {
   }, [dataset, t]);
 
   return (
-    <div className="border-rule bg-paper flex flex-col gap-3 rounded-md border p-4">
+    <div className="flex flex-col gap-3 rounded-md border border-rule bg-paper p-4">
       <div className="flex flex-wrap gap-x-6 gap-y-2">
         <Metric label={t('algo.chrome.dataset')} value={dataset.name} />
         <Metric

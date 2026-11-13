@@ -20,7 +20,7 @@ export function Metric({
           : 'text-ink';
   return (
     <div className="flex flex-col">
-      <span className="text-graphite text-xs">{label}</span>
+      <span className="text-xs text-graphite">{label}</span>
       <span className={`num text-[15px] font-medium ${color}`}>{value}</span>
     </div>
   );

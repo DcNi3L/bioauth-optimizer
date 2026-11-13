@@ -38,7 +38,7 @@ export function ThresholdPage() {
       <div className="flex flex-col gap-6">
         <div>
           <h2 className="text-xl">{t('algo.threshold.title')}</h2>
-          <p className="text-graphite mt-1 max-w-prose text-sm">{t('algo.threshold.subtitle')}</p>
+          <p className="mt-1 max-w-prose text-sm text-graphite">{t('algo.threshold.subtitle')}</p>
         </div>
         <Panel>
           <form
@@ -54,7 +54,7 @@ export function ThresholdPage() {
               set={form.set}
               datasetSlot={<UploadScores dataset={dataset} onUploaded={setDataset} />}
             />
-            <div className="border-rule flex flex-wrap gap-3 border-t pt-4">
+            <div className="flex flex-wrap gap-3 border-t border-rule pt-4">
               <Button type="submit" busy={optimize.isPending}>
                 {t('algo.calculate')}
               </Button>
@@ -67,7 +67,7 @@ export function ThresholdPage() {
 
       <div className="flex flex-col gap-6" aria-live="polite">
         {!result ? (
-          <div className="border-rule text-graphite lg:mt-18 rounded-lg border border-dashed px-6 py-16 text-center text-sm">
+          <div className="rounded-lg border border-dashed border-rule px-6 py-16 text-center text-sm text-graphite lg:mt-18">
             {t('algo.threshold.placeholder')}
           </div>
         ) : (

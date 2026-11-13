@@ -3,7 +3,7 @@
 import type { AdminCreateUser, AdminUserDto } from '@bioauth/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserPlus, Wand2 } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 
 import { adminKeys } from '@/entities/admin-user';
 import { roleLabel } from '@/entities/viewer';
@@ -40,7 +40,7 @@ export function CreateStaffButton({ disabled }: { disabled?: boolean }) {
     create.reset();
     setForm({ login: '', displayName: '', role: 'researcher', password: '', email: null });
   };
-  const submit = (e: FormEvent) => {
+  const submit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     create.mutate(form);
   };

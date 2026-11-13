@@ -286,15 +286,7 @@ export interface AuditEventTable {
 // ── Учётные записи и OpenID Connect (миграция 0005) ──
 
 export type LoginMethodDb =
-  | 'register'
-  | 'password'
-  | 'face'
-  | 'passkey'
-  | 'oidc'
-  | 'totp'
-  | 'recovery'
-  | 'keystroke'
-  | 'cross_device';
+  'register' | 'password' | 'face' | 'passkey' | 'oidc' | 'totp' | 'recovery' | 'keystroke' | 'cross_device';
 
 export interface CrossDeviceRequestTable {
   id: Generated<string>;

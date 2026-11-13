@@ -27,7 +27,7 @@ function Card({
   return (
     <Link
       href={href}
-      className="border-rule bg-sheet hover:border-graphite group flex flex-col gap-3 rounded-2xl border p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+      className="group flex flex-col gap-3 rounded-2xl border border-rule bg-sheet p-5 transition-all hover:-translate-y-0.5 hover:border-graphite hover:shadow-lg"
     >
       <span className={`flex size-10 items-center justify-center rounded-xl [&>svg]:size-5 ${tone}`}>
         {icon}
@@ -36,7 +36,7 @@ function Card({
         {title}
         <ArrowRight className="size-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
       </span>
-      <span className="text-graphite text-sm">{text}</span>
+      <span className="text-sm text-graphite">{text}</span>
     </Link>
   );
 }
@@ -49,14 +49,14 @@ export function HomePage() {
     <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-10 sm:px-6 sm:py-14">
       <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div className="flex flex-col gap-6">
-          <p className="text-frr text-xs font-semibold uppercase tracking-wider">{t('home.eyebrow')}</p>
+          <p className="text-xs font-semibold tracking-wider text-frr uppercase">{t('home.eyebrow')}</p>
           <h1 className="text-3xl leading-tight sm:text-[42px]">{t('home.title')}</h1>
-          <p className="text-graphite max-w-2xl text-[17px]">{t('home.lead')}</p>
+          <p className="max-w-2xl text-[17px] text-graphite">{t('home.lead')}</p>
           <div className="flex flex-wrap gap-3">
             {me ? (
               <Link
                 href="/profile"
-                className="bg-ink text-sheet hover:bg-ink-hover inline-flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-medium"
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-ink px-5 text-sm font-medium text-sheet hover:bg-ink-hover"
               >
                 <UserRound className="size-4" /> {t('home.ctaProfile')}
               </Link>
@@ -64,13 +64,13 @@ export function HomePage() {
               <>
                 <Link
                   href="/login"
-                  className="bg-ink text-sheet hover:bg-ink-hover inline-flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-medium"
+                  className="inline-flex h-11 items-center gap-2 rounded-lg bg-ink px-5 text-sm font-medium text-sheet hover:bg-ink-hover"
                 >
                   <ScanFace className="size-4" /> {t('home.ctaLogin')}
                 </Link>
                 <Link
                   href="/enroll"
-                  className="border-rule bg-sheet hover:border-graphite inline-flex h-11 items-center rounded-lg border px-5 text-sm font-medium"
+                  className="inline-flex h-11 items-center rounded-lg border border-rule bg-sheet px-5 text-sm font-medium hover:border-graphite"
                 >
                   {t('home.ctaEnroll')}
                 </Link>
@@ -78,13 +78,13 @@ export function HomePage() {
             )}
             <Link
               href="/algorithm"
-              className="text-frr inline-flex h-11 items-center gap-1.5 px-2 text-sm font-medium hover:underline"
+              className="inline-flex h-11 items-center gap-1.5 px-2 text-sm font-medium text-frr hover:underline"
             >
               {t('home.ctaAlgo')} <ArrowRight className="size-4" />
             </Link>
           </div>
         </div>
-        <div className="border-rule bg-sheet relative overflow-hidden rounded-2xl border p-6">
+        <div className="relative overflow-hidden rounded-2xl border border-rule bg-sheet p-6">
           <div className="profile-cover absolute inset-0 opacity-60" aria-hidden />
           <div className="relative flex flex-col gap-4">
             <p
@@ -154,7 +154,7 @@ export function HomePage() {
         />
       </section>
 
-      <p className="border-rule text-graphite max-w-3xl border-t pt-6 text-sm">{t('home.source')}</p>
+      <p className="max-w-3xl border-t border-rule pt-6 text-sm text-graphite">{t('home.source')}</p>
     </div>
   );
 }

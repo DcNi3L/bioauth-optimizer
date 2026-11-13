@@ -13,7 +13,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="border-rule bg-paper inline-flex rounded-md border p-0.5"
+      className="inline-flex rounded-md border border-rule bg-paper p-0.5"
     >
       {options.map((o) => (
         <button

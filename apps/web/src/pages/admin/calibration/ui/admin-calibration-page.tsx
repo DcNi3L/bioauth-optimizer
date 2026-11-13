@@ -130,7 +130,7 @@ export function AdminCalibrationPage() {
           </>
         ) : (
           <Panel title={t('algo.result')}>
-            <p className="text-graphite px-5 py-4 text-sm">{t('algo.calibration.empty')}</p>
+            <p className="px-5 py-4 text-sm text-graphite">{t('algo.calibration.empty')}</p>
           </Panel>
         )}
       </div>

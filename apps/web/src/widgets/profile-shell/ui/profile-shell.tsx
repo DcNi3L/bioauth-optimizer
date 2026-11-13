@@ -14,10 +14,10 @@ import { Avatar, Badge, Button, LinkTabs, Notice, Skeleton } from '@/shared/ui';
 
 function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: ReactNode }) {
   return (
-    <div className="bg-sheet flex flex-col gap-0.5 px-4 py-3">
-      <span className="text-graphite text-xs">{label}</span>
+    <div className="flex flex-col gap-0.5 bg-sheet px-4 py-3">
+      <span className="text-xs text-graphite">{label}</span>
       <span className="num font-serif text-xl font-semibold">{value}</span>
-      {sub && <span className="text-graphite text-[11px]">{sub}</span>}
+      {sub && <span className="text-[11px] text-graphite">{sub}</span>}
     </div>
   );
 }
@@ -64,20 +64,20 @@ export function ProfileShell({ children }: { children: ReactNode }) {
   const factors = [me.face ? t('profile.face') : null, me.passkeys > 0 ? 'passkey' : null].filter(Boolean);
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <section className="border-rule bg-sheet overflow-hidden rounded-2xl border">
+      <section className="overflow-hidden rounded-2xl border border-rule bg-sheet">
         <div className="profile-cover h-24 sm:h-28" aria-hidden />
         <div className="flex flex-col gap-4 px-5 pb-5 sm:flex-row sm:items-start sm:gap-5">
           <button
             type="button"
             onClick={() => setAvatarOpen(true)}
-            className="ring-sheet group relative -mt-12 w-fit rounded-full ring-4 sm:-mt-14"
+            className="group relative -mt-12 w-fit rounded-full ring-4 ring-sheet sm:-mt-14"
             aria-label={t('profile.changeAvatar')}
           >
             <Avatar src={me.avatarUrl} name={me.displayName} size={104} />
-            <span className="bg-ink/55 absolute inset-0 flex items-center justify-center rounded-full text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-ink/55 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
               <Camera className="size-6" />
             </span>
-            <span className="bg-ink text-sheet ring-sheet absolute bottom-1 right-1 rounded-full p-1.5 ring-2 sm:hidden">
+            <span className="absolute right-1 bottom-1 rounded-full bg-ink p-1.5 text-sheet ring-2 ring-sheet sm:hidden">
               <Camera className="size-3.5" />
             </span>
           </button>
@@ -86,7 +86,7 @@ export function ProfileShell({ children }: { children: ReactNode }) {
               <h1 className="truncate text-2xl sm:text-3xl">{me.displayName}</h1>
               <Badge tone={me.role === 'subject' ? 'neutral' : 'frr'}>{roleLabel(t, me.role)}</Badge>
             </div>
-            <p className="text-graphite mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-graphite">
               <span className="num">@{me.login}</span>
               <span className="inline-flex items-center gap-1.5">
                 <Mail className="size-3.5" aria-hidden />
@@ -114,7 +114,7 @@ export function ProfileShell({ children }: { children: ReactNode }) {
             <LogOut className="size-4" /> {t('topbar.logout')}
           </Button>
         </div>
-        <div className="border-rule bg-rule grid grid-cols-2 gap-px border-t sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-px border-t border-rule bg-rule sm:grid-cols-4">
           <Stat label={t('profile.stat.factors')} value={factors.length} sub={factors.join(' + ') || '—'} />
           <Stat label={t('profile.stat.sessions')} value={sessions.data?.length ?? '—'} />
           <Stat

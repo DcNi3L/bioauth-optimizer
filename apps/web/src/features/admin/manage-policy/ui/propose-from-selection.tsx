@@ -13,8 +13,8 @@ export function ProposeFromSelection({ experimentId }: { experimentId: string })
   const propose = useProposeFromSelection();
   if (viewer?.role !== 'admin' && viewer?.role !== 'researcher') return null;
   return (
-    <div className="border-rule flex flex-col gap-3 border-t pt-4">
-      <p className="text-graphite text-sm">{t('algo.factors.toPolicyHint')}</p>
+    <div className="flex flex-col gap-3 border-t border-rule pt-4">
+      <p className="text-sm text-graphite">{t('algo.factors.toPolicyHint')}</p>
       <ApiErrorNotice error={propose.error} />
       {propose.data && (
         <Notice tone="success">{t('algo.calibration.proposed', { version: propose.data.version })}</Notice>

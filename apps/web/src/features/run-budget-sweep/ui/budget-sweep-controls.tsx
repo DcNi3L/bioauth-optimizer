@@ -70,7 +70,7 @@ export function BudgetSweepControls({
           {t('algo.factors.sweepRun')}
         </Button>
       </div>
-      {error && <p className="text-far text-xs">{error}</p>}
+      {error && <p className="text-xs text-far">{error}</p>}
     </div>
   );
 }

@@ -13,18 +13,18 @@ export function ConsentForm({ onDone }: { onDone?: () => void }) {
   const text = useConsentText();
   const grant = useGrantConsent();
   const [accepted, setAccepted] = useState(false);
-  if (text.isPending) return <p className="text-graphite text-sm">{t('enroll.consentLoading')}</p>;
+  if (text.isPending) return <p className="text-sm text-graphite">{t('enroll.consentLoading')}</p>;
   if (text.error) return <ApiErrorNotice error={text.error} />;
   return (
     <div className="flex flex-col gap-4">
       <h3 className="text-base">{text.data.title}</h3>
-      <div className="border-rule bg-paper max-h-72 overflow-y-auto rounded-md border px-4 py-3 text-sm leading-relaxed">
+      <div className="max-h-72 overflow-y-auto rounded-md border border-rule bg-paper px-4 py-3 text-sm leading-relaxed">
         {text.data.text.split('\n\n').map((p) => (
           <p key={p.slice(0, 32)} className="mb-2 last:mb-0">
             {p}
           </p>
         ))}
-        <p className="text-graphite mt-3 text-xs">{t('enroll.consentVersion', { v: text.data.version })}</p>
+        <p className="mt-3 text-xs text-graphite">{t('enroll.consentVersion', { v: text.data.version })}</p>
       </div>
       <Checkbox
         label={t('enroll.consentCheck')}

@@ -120,7 +120,7 @@ export function StaffLogin({ onSuccess }: { onSuccess?: (needsPasskey: boolean) 
               </Button>
             </div>
           )}
-          {methods.passkey && methods.totp && <p className="text-graphite text-xs">{t('mfa.login.or')}</p>}
+          {methods.passkey && methods.totp && <p className="text-xs text-graphite">{t('mfa.login.or')}</p>}
           {left !== null ? (
             <div className="flex flex-col gap-3">
               <Notice tone="caution">{t('mfa.login.left', { n: left })}</Notice>
@@ -167,7 +167,7 @@ export function StaffLogin({ onSuccess }: { onSuccess?: (needsPasskey: boolean) 
                   </Button>
                   <button
                     type="button"
-                    className="text-frr text-sm underline underline-offset-4"
+                    className="text-sm text-frr underline underline-offset-4"
                     onClick={() => {
                       setRecovery(!recovery);
                       setCode('');

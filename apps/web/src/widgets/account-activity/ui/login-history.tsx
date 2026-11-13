@@ -21,18 +21,18 @@ export function LoginHistory({ events, showUser = false }: { events: Event[]; sh
   if (events.length === 0) return <EmptyState title={t('profile.history.empty')} />;
   const result = (e: Event) =>
     e.success ? (
-      <span className="text-optimum inline-flex items-center gap-1.5 text-sm">
+      <span className="inline-flex items-center gap-1.5 text-sm text-optimum">
         <CheckCircle2 className="size-4" aria-hidden /> {t('profile.history.success')}
       </span>
     ) : (
-      <span className="text-far inline-flex items-center gap-1.5 text-sm">
+      <span className="inline-flex items-center gap-1.5 text-sm text-far">
         <XCircle className="size-4" aria-hidden /> {t('profile.history.failure')}
       </span>
     );
   const method = (e: Event) => (
     <span className="flex flex-wrap items-center gap-1.5">
       <span>{methodLabel(t, e.method)}</span>
-      {e.clientId && <code className="text-graphite text-xs">{e.clientId}</code>}
+      {e.clientId && <code className="text-xs text-graphite">{e.clientId}</code>}
       {e.amr.map((a) => (
         <Badge key={a}>{amrLabel(t, a)}</Badge>
       ))}
@@ -40,7 +40,7 @@ export function LoginHistory({ events, showUser = false }: { events: Event[]; sh
   );
   const user = (e: Event) =>
     e.userId && e.login ? (
-      <Link href={`/admin/users/${e.userId}`} className="hover:text-frr flex items-center gap-2 font-medium">
+      <Link href={`/admin/users/${e.userId}`} className="flex items-center gap-2 font-medium hover:text-frr">
         <Avatar name={e.login} size={24} />
         <span className="num">{e.login}</span>
       </Link>
@@ -63,22 +63,22 @@ export function LoginHistory({ events, showUser = false }: { events: Event[]; sh
               <tr key={e.id}>
                 <td className="whitespace-nowrap">
                   <span className="block">{f.relative(e.at)}</span>
-                  <span className="text-graphite num text-xs">{f.dateTime(e.at)}</span>
+                  <span className="num text-xs text-graphite">{f.dateTime(e.at)}</span>
                 </td>
                 {showUser && <td>{user(e)}</td>}
                 <td>
                   {result(e)}
                   {!e.success && (
-                    <span className="text-graphite block text-xs">{reasonLabel(t, e.reason)}</span>
+                    <span className="block text-xs text-graphite">{reasonLabel(t, e.reason)}</span>
                   )}
                 </td>
                 <td>{method(e)}</td>
                 <td>
                   <span className="flex items-center gap-2">
-                    <DeviceIcon type={e.device.type} className="text-graphite size-4 shrink-0" />
+                    <DeviceIcon type={e.device.type} className="size-4 shrink-0 text-graphite" />
                     <span>
                       {deviceLabel(t, e.device)}
-                      {e.ip && <span className="text-graphite num block text-xs">{e.ip}</span>}
+                      {e.ip && <span className="num block text-xs text-graphite">{e.ip}</span>}
                     </span>
                   </span>
                 </td>
@@ -87,17 +87,17 @@ export function LoginHistory({ events, showUser = false }: { events: Event[]; sh
           </tbody>
         </table>
       </div>
-      <ul className="divide-rule flex flex-col divide-y md:hidden">
+      <ul className="flex flex-col divide-y divide-rule md:hidden">
         {events.map((e) => (
           <li key={e.id} className="flex flex-col gap-1.5 py-3">
             <div className="flex items-center justify-between gap-2">
               {result(e)}
-              <span className="text-graphite text-xs">{f.relative(e.at)}</span>
+              <span className="text-xs text-graphite">{f.relative(e.at)}</span>
             </div>
             {showUser && user(e)}
             <div className="text-sm">{method(e)}</div>
-            {!e.success && e.reason && <p className="text-graphite text-xs">{reasonLabel(t, e.reason)}</p>}
-            <p className="text-graphite flex items-center gap-1.5 text-xs">
+            {!e.success && e.reason && <p className="text-xs text-graphite">{reasonLabel(t, e.reason)}</p>}
+            <p className="flex items-center gap-1.5 text-xs text-graphite">
               <DeviceIcon type={e.device.type} className="size-3.5" />
               {deviceLabel(t, e.device)}
               {e.ip && <span className="num">· {e.ip}</span>}

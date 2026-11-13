@@ -49,9 +49,9 @@ export function AdminAuditPage() {
             </Notice>
           ))}
         <div className="relative overflow-x-auto">
-          <table className="min-w-3xl w-full text-sm">
-            <thead className="text-graphite text-left text-xs">
-              <tr className="border-rule border-b">
+          <table className="w-full min-w-3xl text-sm">
+            <thead className="text-left text-xs text-graphite">
+              <tr className="border-b border-rule">
                 <th className="py-2 pr-3 font-normal">{t('algo.audit.colSeq')}</th>
                 <th className="py-2 pr-3 font-normal">{t('algo.audit.colTime')}</th>
                 <th className="py-2 pr-3 font-normal">{t('algo.audit.colAction')}</th>
@@ -62,15 +62,15 @@ export function AdminAuditPage() {
             </thead>
             <tbody>
               {items.map((e) => (
-                <tr key={e.seq} className="border-rule border-b align-top last:border-b-0">
+                <tr key={e.seq} className="border-b border-rule align-top last:border-b-0">
                   <td className="num py-2 pr-3">{e.seq}</td>
-                  <td className="num whitespace-nowrap py-2 pr-3">{formatDateTime(e.at)}</td>
+                  <td className="num py-2 pr-3 whitespace-nowrap">{formatDateTime(e.at)}</td>
                   <td className="num py-2 pr-3">{e.action}</td>
-                  <td className="num break-all py-2 pr-3 text-xs">{e.target ?? '—'}</td>
-                  <td className="num text-graphite break-all py-2 pr-3 text-xs">
+                  <td className="num py-2 pr-3 text-xs break-all">{e.target ?? '—'}</td>
+                  <td className="num py-2 pr-3 text-xs break-all text-graphite">
                     {Object.keys(e.details).length ? JSON.stringify(e.details) : ''}
                   </td>
-                  <td className="num text-graphite py-2 text-xs" title={e.hash}>
+                  <td className="num py-2 text-xs text-graphite" title={e.hash}>
                     {e.hash.slice(0, 12)}…
                   </td>
                 </tr>

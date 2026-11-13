@@ -14,18 +14,18 @@ export function OauthErrorPage() {
   const description = p?.get('error_description');
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-16 text-center">
-      <span className="bg-far-bg text-far rounded-full p-4">
+      <span className="rounded-full bg-far-bg p-4 text-far">
         <TriangleAlert className="size-8" aria-hidden />
       </span>
       <h1 className="text-2xl">{t('oauth.errorTitle')}</h1>
       <p className="text-graphite">{t('oauth.errorText')}</p>
-      <div className="border-rule bg-sheet w-full rounded-lg border px-4 py-3 text-left">
-        <code className="text-far text-sm">{error}</code>
-        {description && <p className="text-graphite mt-1 text-sm">{description}</p>}
+      <div className="w-full rounded-lg border border-rule bg-sheet px-4 py-3 text-left">
+        <code className="text-sm text-far">{error}</code>
+        {description && <p className="mt-1 text-sm text-graphite">{description}</p>}
       </div>
       <Link
         href="/"
-        className="bg-ink text-sheet hover:bg-ink-hover rounded-md px-4 py-2 text-sm font-medium"
+        className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-sheet hover:bg-ink-hover"
       >
         {t('oauth.home')}
       </Link>

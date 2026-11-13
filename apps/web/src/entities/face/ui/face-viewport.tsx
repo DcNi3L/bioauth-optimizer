@@ -130,7 +130,7 @@ export function FaceViewport({
                   ? t('face.camera.voiceOff')
                   : t('face.camera.voiceOn')
             }
-            className={`absolute bottom-4 right-3 flex size-10 items-center justify-center rounded-full shadow backdrop-blur transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+            className={`absolute right-3 bottom-4 flex size-10 items-center justify-center rounded-full shadow backdrop-blur transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${
               speech.enabled ? 'bg-white/90 text-[#0b1118]' : 'bg-black/55 text-white'
             }`}
           >

@@ -65,7 +65,7 @@ export function FactorTableEditor({ form }: { form: FactorSelectionFormState }) 
                   <input
                     type="checkbox"
                     aria-label={`PAD, ${i + 1}`}
-                    className="accent-ink size-4"
+                    className="size-4 accent-ink"
                     checked={f.hasPad}
                     onChange={(e) => updateFactor(f.key, { hasPad: e.target.checked })}
                   />
@@ -76,7 +76,7 @@ export function FactorTableEditor({ form }: { form: FactorSelectionFormState }) 
                     onClick={() => removeFactor(f.key)}
                     disabled={factors.length === 1}
                     aria-label={`Delete factor ${f.code || i + 1}`}
-                    className="text-graphite hover:bg-paper hover:text-far rounded px-2 py-1 disabled:opacity-30"
+                    className="rounded px-2 py-1 text-graphite hover:bg-paper hover:text-far disabled:opacity-30"
                   >
                     ✕
                   </button>
@@ -90,11 +90,11 @@ export function FactorTableEditor({ form }: { form: FactorSelectionFormState }) 
         .filter(([p]) => p.startsWith('factors.'))
         .slice(0, 3)
         .map(([p, m]) => (
-          <p key={p} className="text-far text-xs">
+          <p key={p} className="text-xs text-far">
             {Number(p.split('.')[1]) + 1}: {m}
           </p>
         ))}
-      {errors.factors && <p className="text-far text-xs">{errors.factors}</p>}
+      {errors.factors && <p className="text-xs text-far">{errors.factors}</p>}
       <div>
         <Button variant="secondary" onClick={addFactor} disabled={factors.length >= 50}>
           {t('algo.factors.addFactor')}
