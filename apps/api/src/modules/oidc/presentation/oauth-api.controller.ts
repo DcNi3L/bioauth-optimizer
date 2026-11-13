@@ -1,8 +1,11 @@
 import {
   type ConnectedAppDto,
   connectedAppSchema,
+  createInitialTokenSchema,
   type CreateOauthClient,
   createOauthClientSchema,
+  initialTokenCreatedSchema,
+  initialTokenSchema,
   oauthClientCreatedSchema,
   type OauthClientDto,
   oauthClientSchema,
@@ -180,5 +183,39 @@ export class OauthClientsController {
   @RequireRecentMfa()
   async remove(@CurrentUser() user: AuthUser, @Param('clientId') clientId: string): Promise<void> {
     await this.clients.remove(user, clientId);
+  }
+
+  @Get('initial-tokens')
+  @Roles('admin')
+  @RequireMfa()
+  @ApiOperation({ summary: 'Начальные токены для самостоятельной регистрации клиентов (RFC 7591)' })
+  @ApiZodOk(z.array(initialTokenSchema))
+  initialTokens() {
+    return this.clients.initialTokens();
+  }
+
+  @Post('initial-tokens')
+  @HttpCode(201)
+  @Roles('admin')
+  @RequireRecentMfa()
+  @ApiOperation({
+    summary: 'Выпустить начальный токен: показывается один раз; число регистраций и срок ограничены',
+  })
+  @ApiZodBody(createInitialTokenSchema)
+  @ApiZodOk(initialTokenCreatedSchema)
+  createInitialToken(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(createInitialTokenSchema)) body: z.output<typeof createInitialTokenSchema>,
+  ) {
+    return this.clients.createInitialToken(user, body);
+  }
+
+  @Delete('initial-tokens/:id')
+  @HttpCode(204)
+  @Roles('admin')
+  @RequireMfa()
+  @ApiOperation({ summary: 'Отозвать начальный токен' })
+  async deleteInitialToken(@CurrentUser() user: AuthUser, @Param('id', UuidPipe) id: string): Promise<void> {
+    await this.clients.deleteInitialToken(user, id);
   }
 }

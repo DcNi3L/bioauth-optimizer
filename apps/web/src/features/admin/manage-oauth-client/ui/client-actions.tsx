@@ -51,7 +51,11 @@ export function ClientActions({ client }: { client: OauthClientDto }) {
           onClick={() => patch.mutate({ disabled: !client.disabled })}
         >
           {client.disabled ? <Power className="size-3.5" /> : <Ban className="size-3.5" />}
-          {client.disabled ? t('admin.clients.enable') : t('admin.clients.disable')}
+          {client.pendingReview
+            ? t('admin.clients.approve')
+            : client.disabled
+              ? t('admin.clients.enable')
+              : t('admin.clients.disable')}
         </Button>
         <Button size="sm" variant="danger" onClick={() => setConfirm(true)}>
           <Trash2 className="size-3.5" /> {t('admin.clients.delete')}

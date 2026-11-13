@@ -70,6 +70,18 @@ const envSchema = z.object({
   OIDC_REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   /** Создать демо-клиента bioauth-demo (страница /oauth/demo) при старте. */
   OIDC_DEMO_CLIENT: booleanFlag.default(true),
+  /** Динамическая регистрация клиентов (RFC 7591, #47): POST /oidc/register с начальным токеном администратора. */
+  OIDC_DYNAMIC_REGISTRATION: booleanFlag.default(false),
+  /** Разрешённые хосты адресов возврата для самостоятельной регистрации (через запятую); пусто — любые https. */
+  OIDC_REGISTRATION_ALLOWED_HOSTS: z
+    .string()
+    .default('')
+    .transform((v) =>
+      v
+        .split(',')
+        .map((h) => h.trim().toLowerCase())
+        .filter(Boolean),
+    ),
 });
 
 type RawConfig = z.infer<typeof envSchema>;

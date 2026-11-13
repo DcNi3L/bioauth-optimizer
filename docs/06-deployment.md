@@ -67,6 +67,8 @@ flowchart LR
 | `REQUIRE_STAFF_PASSKEY`                      | api             | true                               | Требовать passkey вторым фактором сотрудника                                             |
 | `STEP_UP_MAX_AGE_SEC`                        | api             | 300                                | Сколько секунд после проверки второго фактора разрешены опасные действия (ADR-0021)      |
 | `METRICS_TOKEN`                              | api             | —                                  | Токен `GET /metrics` (≥ 16 символов); без него в production метрики скрыты (404)         |
+| `OIDC_DYNAMIC_REGISTRATION`                  | api             | false                              | Самостоятельная регистрация клиентов (RFC 7591) по начальному токену                     |
+| `OIDC_REGISTRATION_ALLOWED_HOSTS`            | api             | —                                  | Хосты адресов возврата для самостоятельной регистрации, через запятую                    |
 | `AUTH_RATE_LIMIT_PER_MIN`                    | api             | 30                                 | Ограничение частоты запросов входа                                                       |
 | `CROSS_IMPOSTOR_LIMIT`                       | api             | 50                                 | Сколько чужих шаблонов сравнивать с пробой попытки (impostor-оценки)                     |
 | `PASSKEY_DECLARED_FAR`                       | api             | 2·10⁻⁵                             | Заявленный FAR passkey для измеренного каталога                                          |

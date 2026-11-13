@@ -36,6 +36,9 @@ export type AuditAction =
   | 'oauth.client_created'
   | 'oauth.client_updated'
   | 'oauth.client_deleted'
+  | 'oauth.client_registered'
+  | 'oauth.initial_token_created'
+  | 'oauth.initial_token_deleted'
   | 'oauth.consent_granted'
   | 'oauth.consent_revoked';
 

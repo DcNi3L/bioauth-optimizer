@@ -228,6 +228,7 @@ export interface Database {
   cross_device_request: CrossDeviceRequestTable;
   user_avatar: UserAvatarTable;
   oauth_client: OauthClientTable;
+  oauth_initial_token: OauthInitialTokenTable;
   oauth_request: OauthRequestTable;
   oauth_code: OauthCodeTable;
   oauth_refresh_token: OauthRefreshTokenTable;
@@ -344,6 +345,17 @@ export interface OauthClientTable {
   scopes: string[];
   first_party: Generated<boolean>;
   disabled: Generated<boolean>;
+  pending_review: Generated<boolean>;
+  created_by: string | null;
+  created_at: Generated<Date>;
+}
+
+export interface OauthInitialTokenTable {
+  id: Generated<string>;
+  token_hash: string;
+  note: string | null;
+  uses_left: number;
+  expires_at: Date;
   created_by: string | null;
   created_at: Generated<Date>;
 }

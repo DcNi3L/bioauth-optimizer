@@ -26,6 +26,8 @@ export const oauthClientSchema = z.object({
   scopes: z.array(z.string()),
   firstParty: z.boolean(),
   disabled: z.boolean(),
+  /** Зарегистрирован сам (RFC 7591) и ждёт проверки: включает администратор. */
+  pendingReview: z.boolean(),
   createdAt: z.string(),
   activeGrants: z.number().int(),
 });
@@ -46,11 +48,20 @@ export const createOauthClientSchema = z.strictObject({
 });
 export type CreateOauthClient = z.input<typeof createOauthClientSchema>;
 
-export const updateOauthClientSchema = createOauthClientSchema
-  .omit({ clientId: true, type: true })
-  .partial()
-  .extend({ disabled: z.boolean().optional(), rotateSecret: z.literal(true).optional() })
-  .strict();
+// Без значений по умолчанию: .partial() их сохраняет, и PATCH без поля стирал бы адреса возврата, описание и firstParty.
+export const updateOauthClientSchema = z
+  .strictObject({
+    name: z.string().trim().min(1).max(120),
+    description: z.string().trim().max(500).nullable(),
+    redirectUris: z.array(redirectUri).max(10),
+    postLogoutRedirectUris: z.array(redirectUri).max(10),
+    grantTypes: z.array(grantTypeSchema).min(1),
+    scopes: z.array(oidcScopeSchema).min(1),
+    firstParty: z.boolean(),
+    disabled: z.boolean(),
+    rotateSecret: z.literal(true),
+  })
+  .partial();
 export type UpdateOauthClient = z.input<typeof updateOauthClientSchema>;
 
 export const oauthClientCreatedSchema = z.object({
@@ -93,3 +104,31 @@ export const oauthLogoutRequestSchema = z.strictObject({
 });
 export type OauthLogoutRequest = z.infer<typeof oauthLogoutRequestSchema>;
 export const oauthLogoutInfoSchema = z.object({ clientName: z.string().nullable() });
+
+// ── v3.3 (#47): динамическая регистрация клиентов (RFC 7591) ──
+
+export const createInitialTokenSchema = z.strictObject({
+  note: z.string().trim().max(200).nullable().default(null),
+  /** Сколько клиентов можно зарегистрировать этим токеном. */
+  uses: z.int().min(1).max(100).default(1),
+  ttlHours: z
+    .int()
+    .min(1)
+    .max(24 * 30)
+    .default(24),
+});
+
+export const initialTokenSchema = z.object({
+  id: z.uuid(),
+  note: z.string().nullable(),
+  usesLeft: z.number().int(),
+  expiresAt: z.string(),
+  createdAt: z.string(),
+});
+export type InitialTokenDto = z.infer<typeof initialTokenSchema>;
+
+export const initialTokenCreatedSchema = initialTokenSchema.extend({
+  /** Показывается один раз; в базе — только sha256. */
+  token: z.string(),
+});
+export type InitialTokenCreatedDto = z.infer<typeof initialTokenCreatedSchema>;

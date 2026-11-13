@@ -7,7 +7,12 @@ import { useState } from 'react';
 
 import { useOauthClients } from '@/entities/oauth-client';
 import { useViewer } from '@/entities/viewer';
-import { ClientActions, ClientFormDialog, CopyButton } from '@/features/admin/manage-oauth-client';
+import {
+  ClientActions,
+  ClientFormDialog,
+  CopyButton,
+  InitialTokens,
+} from '@/features/admin/manage-oauth-client';
 import { useT } from '@/shared/i18n';
 import { useFormat } from '@/shared/lib';
 import { ApiErrorNotice, Badge, Button, EmptyState, Panel, Skeleton } from '@/shared/ui';
@@ -21,14 +26,18 @@ interface Discovery {
   introspection_endpoint?: string;
   revocation_endpoint?: string;
   end_session_endpoint?: string;
+  registration_endpoint?: string;
 }
 
-function Endpoints() {
-  const t = useT();
-  const d = useQuery({
+const useDiscovery = () =>
+  useQuery({
     queryKey: ['oidc', 'discovery'],
     queryFn: async () => (await fetch('/.well-known/openid-configuration')).json() as Promise<Discovery>,
   });
+
+function Endpoints() {
+  const t = useT();
+  const d = useDiscovery();
   if (!d.data) return <Skeleton className="h-40 w-full" />;
   const rows: [string, string | undefined][] = [
     [t('admin.clients.issuer'), d.data.issuer],
@@ -40,6 +49,7 @@ function Endpoints() {
     ['introspect', d.data.introspection_endpoint],
     ['revoke', d.data.revocation_endpoint],
     ['logout', d.data.end_session_endpoint],
+    ['register', d.data.registration_endpoint],
   ];
   return (
     <dl className="divide-rule divide-y">
@@ -74,7 +84,11 @@ function ClientCard({ c, canEdit }: { c: OauthClientDto; canEdit: boolean }) {
               {c.type === 'confidential' ? t('admin.clients.confidential') : t('admin.clients.public')}
             </Badge>
             {c.firstParty && <Badge tone="optimum">{t('admin.clients.firstPartyBadge')}</Badge>}
-            {c.disabled && <Badge tone="far">{t('admin.clients.disabled')}</Badge>}
+            {c.pendingReview ? (
+              <Badge tone="caution">{t('admin.clients.pending')}</Badge>
+            ) : (
+              c.disabled && <Badge tone="far">{t('admin.clients.disabled')}</Badge>
+            )}
           </p>
           <p className="text-graphite num mt-0.5 text-xs">
             {c.clientId} · {f.date(c.createdAt)} · {t('admin.clients.grantsN', { n: c.activeGrants })}
@@ -110,6 +124,7 @@ export function AdminClientsPage() {
   const me = useViewer().data;
   const clients = useOauthClients();
   const [creating, setCreating] = useState(false);
+  const discovery = useDiscovery();
   const canEdit = me?.role === 'admin' && me.mfaComplete;
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -133,9 +148,21 @@ export function AdminClientsPage() {
           </ul>
         )}
       </div>
-      <Panel title={t('admin.clients.endpoints')} className="h-fit xl:sticky xl:top-20">
-        <Endpoints />
-      </Panel>
+      <div className="flex h-fit flex-col gap-6 xl:sticky xl:top-20">
+        <Panel title={t('admin.clients.endpoints')}>
+          <Endpoints />
+        </Panel>
+        {canEdit && (
+          <Panel title={t('admin.clients.regTitle')} description={t('admin.clients.regDesc')}>
+            <div className="px-5 py-4">
+              <InitialTokens
+                enabled={!!discovery.data?.registration_endpoint}
+                registrationEndpoint={discovery.data?.registration_endpoint}
+              />
+            </div>
+          </Panel>
+        )}
+      </div>
       {creating && <ClientFormDialog open client={null} onClose={() => setCreating(false)} />}
     </div>
   );

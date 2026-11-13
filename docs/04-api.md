@@ -349,6 +349,19 @@ POST /oidc/token  grant_type=authorization_code&code=…&redirect_uri=…&code_v
 `POST /cross-device/{id}/details|approve|deny` (телефон, сессия, `{key, number}`) → `POST /cross-device/{id}/status` и
 `/complete` (компьютер, `{pollSecret}`; сессия выдаётся один раз). Ошибки: `422 NUMBER_MISMATCH`, `403 reauth-required`.
 
+**Динамическая регистрация клиентов (RFC 7591).** Включается `OIDC_DYNAMIC_REGISTRATION=true`. Администратор выпускает
+начальный токен: `POST /admin/oauth-clients/initial-tokens {note, uses, ttlHours}`; токен показывается один раз. Затем
+разработчик вызывает `POST /oidc/register` с заголовком `Authorization: Bearer iat_…` и метаданными RFC 7591
+(`redirect_uris`, `client_name`, `token_endpoint_auth_method`, `grant_types`, `scope`). Ограничения:
+
+- адреса возврата — только `https` (http — лишь для localhost), без фрагментов и масок; хосты можно ограничить
+  `OIDC_REGISTRATION_ALLOWED_HOSTS`;
+- scope — `openid profile email offline_access`;
+- grant types — `authorization_code` и `refresh_token`.
+
+Клиент создаётся выключенным (`pendingReview: true`) и начинает работать, когда администратор его включит. Ошибки —
+`invalid_redirect_uri`, `invalid_client_metadata` (400) и `invalid_token` (401).
+
 **Повторное подтверждение (step-up).** Смена роли (`PATCH /admin/users/{id}`), изменение и удаление клиента OIDC,
 утверждение и откат политики, удаление passkey сотрудником требуют второго фактора, проверенного не более
 `STEP_UP_MAX_AGE_SEC` (300 с) назад. Иначе — `403` с `code: step-up-required`: повторите `POST /webauthn/staff/verify`,

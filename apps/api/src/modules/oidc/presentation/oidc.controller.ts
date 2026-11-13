@@ -1,5 +1,6 @@
-import { All, Controller, Get, Header, HttpCode, Inject, Post, Query, Req, Res } from '@nestjs/common';
+import { All, Body, Controller, Get, Header, HttpCode, Inject, Post, Query, Req, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 
 import {
@@ -11,6 +12,7 @@ import {
 } from '../../../shared/auth/auth';
 import { APP_CONFIG, type AppConfig } from '../../../shared/config/env';
 import { SESSION_STORE, type SessionStore } from '../../identity/application/ports';
+import { ClientsService } from '../application/clients.service';
 import { KeysService } from '../application/keys.service';
 import { AuthorizeFatalError, OAuthError, OidcService, type TokenRequest } from '../application/oidc.service';
 
@@ -66,6 +68,7 @@ export class OidcController {
   constructor(
     private readonly oidc: OidcService,
     private readonly keys: KeysService,
+    private readonly clients: ClientsService,
     @Inject(SESSION_STORE) private readonly sessions: SessionStore,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
@@ -132,6 +135,23 @@ export class OidcController {
         return;
       }
       throw err;
+    }
+  }
+
+  /** RFC 7591: регистрация клиента с начальным токеном администратора; клиент ждёт проверки (выключен). */
+  @Post('oidc/register')
+  @HttpCode(201)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Header('cache-control', 'no-store')
+  async register(@Req() req: Request, @Body() body: unknown, @Res({ passthrough: true }) res: Response) {
+    try {
+      const auth = req.headers.authorization;
+      const bearer = auth?.startsWith('Bearer ') ? auth.slice(7).trim() : undefined;
+      const meta =
+        body && typeof body === 'object' && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
+      return await this.clients.register(bearer, meta);
+    } catch (err) {
+      return this.oauthError(res, err);
     }
   }
 

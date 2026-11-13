@@ -102,6 +102,7 @@ export class OidcService {
       revocation_endpoint: `${i}/oidc/revoke`,
       introspection_endpoint: `${i}/oidc/introspect`,
       end_session_endpoint: `${i}/oidc/logout`,
+      ...(this.config.OIDC_DYNAMIC_REGISTRATION && { registration_endpoint: `${i}/oidc/register` }),
       response_types_supported: ['code'],
       response_modes_supported: ['query'],
       grant_types_supported: ['authorization_code', 'refresh_token', 'client_credentials'],

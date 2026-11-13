@@ -25,6 +25,7 @@ const toClient = (r: ClientRow): ClientRecord => ({
   scopes: r.scopes,
   firstParty: r.first_party,
   disabled: r.disabled,
+  pendingReview: r.pending_review,
   createdAt: r.created_at,
 });
 
@@ -58,7 +59,11 @@ export class KyselyOidcRepository implements OidcRepository {
   }
 
   async createClient(
-    c: Omit<ClientRecord, 'createdAt' | 'disabled'> & { createdBy: string | null },
+    c: Omit<ClientRecord, 'createdAt' | 'disabled' | 'pendingReview'> & {
+      createdBy: string | null;
+      disabled?: boolean;
+      pendingReview?: boolean;
+    },
   ): Promise<boolean> {
     const r = await this.db
       .insertInto('oauth_client')
@@ -73,6 +78,8 @@ export class KyselyOidcRepository implements OidcRepository {
         scopes: c.scopes,
         first_party: c.firstParty,
         created_by: c.createdBy,
+        disabled: c.disabled ?? false,
+        pending_review: c.pendingReview ?? false,
       })
       .onConflict((oc) => oc.column('client_id').doNothing())
       .executeTakeFirst();
@@ -94,11 +101,64 @@ export class KyselyOidcRepository implements OidcRepository {
         ...(p.scopes && { scopes: p.scopes }),
         ...(p.firstParty !== undefined && { first_party: p.firstParty }),
         ...(p.disabled !== undefined && { disabled: p.disabled }),
+        ...(p.pendingReview !== undefined && { pending_review: p.pendingReview }),
         ...(p.secretHash !== undefined && { secret_hash: p.secretHash }),
       })
       .where('client_id', '=', clientId)
       .executeTakeFirst();
     return r.numUpdatedRows > 0n;
+  }
+
+  async createInitialToken(t: {
+    tokenHash: string;
+    note: string | null;
+    uses: number;
+    expiresAt: Date;
+    createdBy: string;
+  }): Promise<string> {
+    const r = await this.db
+      .insertInto('oauth_initial_token')
+      .values({
+        token_hash: t.tokenHash,
+        note: t.note,
+        uses_left: t.uses,
+        expires_at: t.expiresAt,
+        created_by: t.createdBy,
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow();
+    return r.id;
+  }
+
+  async useInitialToken(tokenHash: string): Promise<boolean> {
+    const r = await this.db
+      .updateTable('oauth_initial_token')
+      .set((eb) => ({ uses_left: eb('uses_left', '-', 1) }))
+      .where('token_hash', '=', tokenHash)
+      .where('uses_left', '>', 0)
+      .where('expires_at', '>', new Date())
+      .executeTakeFirst();
+    return r.numUpdatedRows > 0n;
+  }
+
+  async initialTokens() {
+    const rows = await this.db
+      .selectFrom('oauth_initial_token')
+      .select(['id', 'note', 'uses_left', 'expires_at', 'created_at'])
+      .orderBy('created_at', 'desc')
+      .execute();
+    return rows.map((r) => ({
+      id: r.id,
+      note: r.note,
+      usesLeft: r.uses_left,
+      expiresAt: r.expires_at,
+      createdAt: r.created_at,
+    }));
+  }
+
+  async deleteInitialToken(id: string): Promise<boolean> {
+    const r = await this.db.deleteFrom('oauth_initial_token').where('id', '=', id).executeTakeFirst();
+    return r.numDeletedRows > 0n;
   }
 
   async deleteClient(clientId: string): Promise<boolean> {

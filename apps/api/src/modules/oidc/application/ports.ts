@@ -13,6 +13,8 @@ export interface ClientRecord {
   readonly scopes: string[];
   readonly firstParty: boolean;
   readonly disabled: boolean;
+  /** Зарегистрирован сам (RFC 7591) и ждёт проверки администратором. */
+  readonly pendingReview: boolean;
   readonly createdAt: Date;
 }
 
@@ -63,8 +65,25 @@ export interface OidcRepository {
   client(clientId: string): Promise<ClientRecord | null>;
   clients(): Promise<(ClientRecord & { activeGrants: number })[]>;
   createClient(
-    c: Omit<ClientRecord, 'createdAt' | 'disabled'> & { createdBy: string | null },
+    c: Omit<ClientRecord, 'createdAt' | 'disabled' | 'pendingReview'> & {
+      createdBy: string | null;
+      disabled?: boolean;
+      pendingReview?: boolean;
+    },
   ): Promise<boolean>;
+  createInitialToken(t: {
+    tokenHash: string;
+    note: string | null;
+    uses: number;
+    expiresAt: Date;
+    createdBy: string;
+  }): Promise<string>;
+  /** Списывает одно использование токена; false — токена нет, он истёк или исчерпан. */
+  useInitialToken(tokenHash: string): Promise<boolean>;
+  initialTokens(): Promise<
+    { id: string; note: string | null; usesLeft: number; expiresAt: Date; createdAt: Date }[]
+  >;
+  deleteInitialToken(id: string): Promise<boolean>;
   updateClient(
     clientId: string,
     patch: Partial<Omit<ClientRecord, 'clientId' | 'createdAt'>>,
