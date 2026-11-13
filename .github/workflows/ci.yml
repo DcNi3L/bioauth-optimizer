@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -91,7 +91,7 @@ jobs:
           curl -fsS http://localhost:3000/ > /dev/null
           curl -fsS http://localhost:3000/api/v1/examples/sro1 > /dev/null
           curl -fsS http://localhost:3000/api/v1/consent/text > /dev/null
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 22
