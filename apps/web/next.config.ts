@@ -9,8 +9,6 @@ const config: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, '../../'),
   transpilePackages: ['@bioauth/contracts'],
   poweredByHeader: false,
-  // ESLint запускается отдельно (pnpm lint, CI) с общей конфигурацией монорепозитория.
-  eslint: { ignoreDuringBuilds: true },
   // Браузер обращается к /api/* на том же origin — CORS не нужен (ADR-0004). Конечные точки OpenID Connect
   // (/oidc/*, /.well-known/*) тоже открываются на адресе интерфейса: он и есть издатель (issuer).
   rewrites() {
