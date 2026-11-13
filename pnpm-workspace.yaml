@@ -1,13 +1,12 @@
-# Защита от атак через цепочку поставок: устанавливаются только версии, опубликованные не менее суток назад
-# (так же работает pnpm у Dependabot).
-minimumReleaseAge: 1440
-
 packages:
   - apps/*
   - packages/*
 
+minimumReleaseAge: 1440
+
 onlyBuiltDependencies:
   - "@nestjs/core"
+  - "@parcel/watcher"
   - "@prisma/client"
   - "@prisma/engines"
   - "@scarf/scarf"
@@ -15,12 +14,11 @@ onlyBuiltDependencies:
   - prisma
   - sharp
   - unrs-resolver
+  - vue-demi
 
-# webpack из @nestjs/cli старше, чем требует schema-utils 4.8 — поднимаем до совместимой версии.
 overrides:
   webpack: ^5.112.2
 
 peerDependencyRules:
   allowedVersions:
-    # tsconfck (через steiger) объявляет TypeScript ^5, но только читает tsconfig — с TypeScript 6 работает.
     tsconfck>typescript: "6"
