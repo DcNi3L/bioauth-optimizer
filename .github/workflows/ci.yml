@@ -31,7 +31,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Сообщения коммитов (commitlint)
@@ -94,7 +94,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @bioauth/web exec playwright install --with-deps chromium
