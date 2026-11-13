@@ -12,9 +12,10 @@
 
 ### Изменено
 
-- **Зависимости (PR Dependabot #51–#64).** Next.js 16, nestjs-pino 5 (с pino-http 11), Jest 30, Prettier 3.9 и ещё
-  20 минорных обновлений, FastAPI, NumPy и ruff, новые версии GitHub Actions. Образы и CI переведены на Node.js 24 LTS
-  вместо предложенного Node.js 25: в 25 нет corepack, а нечётные версии не получают долгой поддержки.
+- **Зависимости (PR Dependabot #51–#73).** Next.js 16, nestjs-pino 5 (с pino-http 11), Jest 30, Prettier 3.9 и ещё
+  20 минорных обновлений; FastAPI, Starlette, Pydantic, NumPy, pytest и ruff; новые версии GitHub Actions (checkout 7,
+  setup-node 7, деплой Pages 5, docker/login 4, docker/metadata 6). Образы и CI переведены на Node.js 24 LTS
+  вместо предложенного Node.js 25 (PR #53, #65): в 25 нет corepack, а нечётные версии не получают долгой поддержки.
 - **Не обновлено, нужен перевод API на ESM:** NestJS 12 и @nestjs/swagger 12 (PR #62 закрыт), kysely 0.29 — эти
   пакеты распространяются только как ESM. Dependabot настроен их не предлагать. Исключения глобального префикса
   записаны в синтаксисе path-to-regexp 8 — предупреждения при запуске исчезли.
