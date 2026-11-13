@@ -22,7 +22,7 @@ export function AdminOverviewPage() {
   return (
     <div className="flex flex-col gap-6">
       <Panel title={t('algo.measurements.policyTitle')} description={t('algo.measurements.policyDesc')}>
-        <div className="flex flex-col gap-3 px-5 py-4">
+        <div className="flex flex-col gap-3">
           <ApiErrorNotice error={policies.error ?? overview.error} />
           {active && (
             <>
@@ -49,7 +49,7 @@ export function AdminOverviewPage() {
         </div>
       </Panel>
       <Panel title={t('algo.measurements.scoresTitle')} description={t('algo.measurements.scoresDesc')}>
-        <div className="px-5 py-4">{o && <CalibrationData data={o.data} />}</div>
+        <div>{o && <CalibrationData data={o.data} />}</div>
       </Panel>
       <Panel
         className="lg:col-span-2"

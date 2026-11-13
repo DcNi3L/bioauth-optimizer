@@ -137,6 +137,23 @@ test('администратор: пароль, passkey и утверждени�
   await page.getByRole('link', { name: 'Аудит' }).click();
   await page.getByRole('button', { name: 'Проверить целостность' }).click();
   await expect(page.getByText(/Цепочка цела/)).toBeVisible();
+
+  // Брендинг и вход (ADR-0026): название и выключенная регистрация видны на странице входа.
+  const setBranding = async (name: string) => {
+    await page.goto('/admin/branding');
+    await page.getByLabel('Название').fill(name);
+    await page.getByRole('switch', { name: /Самостоятельная регистрация/ }).click();
+    await page.getByRole('button', { name: 'Сохранить' }).click();
+    await expect(page.getByText('Изменения сохранены')).toBeVisible();
+  };
+  await setBranding('Кафедра e2e');
+  const guest = await browser.newContext();
+  const guestPage = await guest.newPage();
+  await guestPage.goto('/login');
+  await expect(guestPage.getByText('Войдите в Кафедра e2e, чтобы продолжить')).toBeVisible();
+  await expect(guestPage.getByRole('link', { name: 'Зарегистрироваться' })).toHaveCount(0);
+  await guest.close();
+  await setBranding('BioAuth');
 });
 
 test('вход субъекта по новой политике: лицо, затем passkey', async () => {

@@ -1,8 +1,10 @@
 import { ruV3 } from './ru-v3';
+import { ruV34 } from './ru-v34';
 
 /** Русский — основной язык; структура этого словаря задаёт ключи для остальных. */
 export const ru = {
   ...ruV3,
+  ...ruV34,
   common: {
     loading: 'Загрузка…',
     cancel: 'Отмена',
@@ -187,3 +189,4 @@ export const ru = {
 type Widen<T> = { [K in keyof T]: T[K] extends string ? string : Widen<T[K]> };
 export type Dict = Widen<typeof ru>;
 export type DictV3 = Widen<typeof ruV3>;
+export type DictV34 = Widen<typeof ruV34>;

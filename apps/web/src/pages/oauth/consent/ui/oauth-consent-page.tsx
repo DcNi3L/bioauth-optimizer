@@ -20,7 +20,7 @@ export function OauthConsentPage() {
     if (id && viewer.data === null) router.replace(`/login?oauth=${encodeURIComponent(id)}`);
   }, [id, viewer.data, router]);
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-4 px-4 py-8 sm:py-14">
+    <div className="flex w-full max-w-[30rem] flex-col gap-4">
       {!id || request.isError ? (
         <Notice tone="caution">{t('oauth.expired')}</Notice>
       ) : request.data ? (

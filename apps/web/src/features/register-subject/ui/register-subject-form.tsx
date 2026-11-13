@@ -27,7 +27,7 @@ export function RegisterSubjectForm() {
 
   return (
     <form
-      className="flex flex-col gap-4 sm:max-w-sm"
+      className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
         submit();
@@ -49,11 +49,9 @@ export function RegisterSubjectForm() {
         autoComplete="name"
       />
       <ApiErrorNotice error={register.error} />
-      <div>
-        <Button type="submit" busy={register.isPending}>
-          {t('enroll.create')}
-        </Button>
-      </div>
+      <Button type="submit" busy={register.isPending} className="w-full">
+        {t('enroll.create')}
+      </Button>
     </form>
   );
 }

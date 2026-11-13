@@ -8,7 +8,7 @@ export function AdminAttemptsPage() {
   const t = useT();
   return (
     <Panel title={t('algo.attempts.title')} description={t('algo.attempts.desc')}>
-      <div className="px-5 py-4">
+      <div>
         <AttemptsTable />
       </div>
     </Panel>

@@ -4,7 +4,7 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'subtle';
 type Size = 'sm' | 'md';
 
 const styles: Record<Variant, string> = {
-  primary: 'bg-ink text-sheet hover:bg-ink-hover disabled:bg-graphite shadow-sm',
+  primary: 'bg-ink text-sheet hover:bg-ink-hover shadow-sm',
   secondary: 'bg-sheet text-ink border border-rule hover:border-graphite hover:bg-hover',
   ghost: 'text-frr hover:underline underline-offset-4 px-1',
   danger: 'bg-sheet text-far border border-far/40 hover:bg-far-bg',
@@ -27,7 +27,8 @@ export function Button({
       {...props}
       disabled={props.disabled || busy}
       aria-busy={busy || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+      data-variant={variant}
+      className={`inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
         variant === 'ghost' ? '' : sizes[size]
       } ${styles[variant]} ${className}`}
     >

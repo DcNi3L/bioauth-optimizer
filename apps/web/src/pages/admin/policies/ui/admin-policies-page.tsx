@@ -17,14 +17,18 @@ export function AdminPoliciesPage() {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
       <Panel title={t('algo.policies.title')} description={t('algo.policies.desc')}>
-        <div className="px-5 py-4">
+        <div>
           <ApiErrorNotice error={policies.error} />
           {policies.data && <PolicyList policies={policies.data} canDecide={viewer?.role === 'admin'} />}
         </div>
       </Panel>
       {canPropose && active && (
-        <Panel title={t('algo.policies.manualTitle')} description={t('algo.policies.manualDesc')}>
-          <div className="px-5 py-4">
+        <Panel
+          title={t('algo.policies.manualTitle')}
+          description={t('algo.policies.manualDesc')}
+          className="h-fit lg:sticky lg:top-20"
+        >
+          <div>
             <ProposePolicyForm steps={active.steps} costs={active.costs} />
           </div>
         </Panel>

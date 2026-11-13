@@ -1,3 +1,6 @@
+import { Suspense } from 'react';
+
+import { EnrollPage } from '@/pages/enroll';
 import { pageMeta } from '@/shared/config';
 
 export const metadata = pageMeta(
@@ -6,4 +9,10 @@ export const metadata = pageMeta(
   '/enroll',
 );
 
-export { EnrollPage as default } from '@/pages/enroll';
+export default function Page() {
+  return (
+    <Suspense>
+      <EnrollPage />
+    </Suspense>
+  );
+}

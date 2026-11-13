@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 
 @custom-variant dark (&:where(.dark, .dark *));
+/* Свёрнутая боковая панель (только на широком экране: в выезжающем меню на телефоне подписи видны всегда). */
+@custom-variant collapsed (&:where([data-sidebar='collapsed'] [data-rail], [data-sidebar='collapsed'] [data-rail] *));
+/* Отступ содержимого под свёрнутую панель. */
+@custom-variant rail-collapsed (&:where([data-sidebar='collapsed'] *));
 
 /*
  * «Калибровочный стенд»: светлая лабораторная бумага, чернила, у каждой ошибки — свой постоянный цвет.
@@ -304,4 +308,39 @@
       ),
       var(--color-paper);
   }
+}
+
+/* Страницы входа: тихий фон «миллиметровки» с акцентом бренда, карточка в центре. */
+@layer components {
+  .auth-backdrop {
+    background:
+      radial-gradient(
+        60rem 30rem at 50% -10%,
+        color-mix(in srgb, var(--color-frr) 14%, transparent),
+        transparent 70%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--color-rule) 45%, transparent) 0 1px,
+        transparent 1px 28px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-rule) 45%, transparent) 0 1px,
+        transparent 1px 28px
+      ),
+      var(--color-paper);
+  }
+}
+
+/* Цвет бренда (настройки тенанта): ссылки, фокус и главная кнопка на страницах входа. */
+[data-brand-accent] {
+  --color-frr: var(--brand-accent);
+}
+[data-brand-accent] [data-variant='primary'] {
+  background: var(--brand-accent);
+  color: var(--brand-on);
+}
+[data-brand-accent] [data-variant='primary']:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--brand-accent) 86%, black);
 }

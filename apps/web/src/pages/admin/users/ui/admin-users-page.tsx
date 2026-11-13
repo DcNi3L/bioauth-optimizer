@@ -1,13 +1,14 @@
 'use client';
 
 import type { AdminUserDto, Role } from '@bioauth/contracts';
-import { ChevronLeft, ChevronRight, KeyRound, ScanFace, Search, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, KeyRound, ScanFace, Search, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { useAdminUsers, type UsersFilter } from '@/entities/admin-user';
 import { roleLabel, useViewer } from '@/entities/viewer';
 import { CreateStaffButton } from '@/features/admin/create-staff';
+import { API_BASE } from '@/shared/config';
 import { type TFn, useT } from '@/shared/i18n';
 import { useFormat } from '@/shared/lib';
 import {
@@ -20,6 +21,15 @@ import {
   Panel,
   Skeleton,
 } from '@/shared/ui';
+
+/** Те же фильтры, что и у списка: выгружается то, что видно на экране (без постраничности). */
+function exportQuery(f: UsersFilter): string {
+  const p = new URLSearchParams({ format: 'csv' });
+  if (f.q) p.set('q', f.q);
+  if (f.role) p.set('role', f.role);
+  if (f.status) p.set('status', f.status);
+  return p.toString();
+}
 
 const ROLES: Role[] = ['subject', 'admin', 'researcher', 'auditor'];
 const PAGE = 20;
@@ -70,8 +80,8 @@ export function AdminUsersPage() {
   return (
     <Panel>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="flex h-10 min-w-0 flex-1 basis-64 items-center gap-2 rounded-md border border-rule bg-sheet px-3 focus-within:border-frr">
+        <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
+          <label className="col-span-2 flex h-10 min-w-0 flex-1 basis-64 items-center gap-2 rounded-md border border-rule bg-sheet px-3 focus-within:border-frr">
             <Search className="size-4 shrink-0 text-graphite" aria-hidden />
             <input
               value={q}
@@ -107,7 +117,18 @@ export function AdminUsersPage() {
             <option value="locked">{t('admin.users.locked')}</option>
             <option value="disabled">{t('admin.users.disabled')}</option>
           </select>
-          <CreateStaffButton disabled={me?.role !== 'admin' || !me.mfaComplete} />
+          <a
+            href={`${API_BASE}/admin/users/export?${exportQuery(filter)}`}
+            download
+            title={t('usersExport.hint')}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-rule bg-sheet px-3 text-sm font-medium text-ink transition-colors hover:border-graphite hover:bg-hover"
+          >
+            <Download className="size-4" aria-hidden /> {t('usersExport.button')}
+          </a>
+          <CreateStaffButton
+            disabled={me?.role !== 'admin' || !me.mfaComplete}
+            reason={me?.role !== 'admin' ? t('usersExport.adminOnly') : t('usersExport.mfaFirst')}
+          />
         </div>
         <ApiErrorNotice error={users.error} />
         {!data ? (

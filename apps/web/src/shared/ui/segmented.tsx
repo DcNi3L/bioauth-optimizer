@@ -3,17 +3,20 @@ export function Segmented<T extends string>({
   options,
   onChange,
   label,
+  fill = false,
 }: {
   value: T;
   options: readonly { value: T; label: string }[];
   onChange: (v: T) => void;
   label: string;
+  /** Во всю ширину, кнопки поровну (карточка входа). */
+  fill?: boolean;
 }) {
   return (
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex rounded-md border border-rule bg-paper p-0.5"
+      className={`${fill ? 'flex w-full' : 'inline-flex'} rounded-md border border-rule bg-paper p-0.5`}
     >
       {options.map((o) => (
         <button
@@ -22,7 +25,7 @@ export function Segmented<T extends string>({
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`rounded px-3 py-1.5 text-sm transition-colors ${
+          className={`rounded py-1.5 text-sm whitespace-nowrap transition-colors ${fill ? 'min-w-0 flex-1 px-1.5 max-sm:text-[13px]' : 'px-3'} ${
             value === o.value
               ? 'bg-sheet text-ink shadow-[0_0_0_1px_var(--color-rule)]'
               : 'text-graphite hover:text-ink'

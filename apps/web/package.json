@@ -1,6 +1,6 @@
 {
   "name": "@bioauth/web",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "private": true,
   "description": "Интерфейс BioAuth Optimizer (Next.js, Feature-Sliced Design)",
   "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
@@ -8,7 +8,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node -e \"require('fs').rmSync('.next/dev/types',{recursive:true,force:true})\" && next typegen && tsc --noEmit",
     "lint": "eslint . --max-warnings=0 && steiger ./src",
     "test:e2e": "playwright test",
     "test": "vitest run"

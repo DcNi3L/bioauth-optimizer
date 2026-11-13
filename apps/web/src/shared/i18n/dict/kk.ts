@@ -1,8 +1,10 @@
 import { kkV3 } from './kk-v3';
+import { kkV34 } from './kk-v34';
 import type { Dict } from './ru';
 
 export const kk: Dict = {
   ...kkV3,
+  ...kkV34,
   common: {
     loading: 'Жүктелуде…',
     cancel: 'Бас тарту',

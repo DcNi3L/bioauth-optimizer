@@ -22,12 +22,10 @@ export function AdminPadTestPage() {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <Panel title={t('algo.pad.captureTitle')} description={t('algo.pad.captureDesc')}>
-        <div className="px-5 py-4">
-          {canRecord ? <PadTestCapture /> : <Notice tone="info">{t('algo.pad.recordRole')}</Notice>}
-        </div>
+        <div>{canRecord ? <PadTestCapture /> : <Notice tone="info">{t('algo.pad.recordRole')}</Notice>}</div>
       </Panel>
       <Panel title={t('algo.pad.reportTitle')} description={t('algo.pad.reportDesc')}>
-        <div className="flex flex-col gap-4 px-5 py-4">
+        <div className="flex flex-col gap-4">
           <NumberField
             label={t('algo.pad.thresholdLabel')}
             placeholder={t('algo.pad.thresholdPlaceholder')}

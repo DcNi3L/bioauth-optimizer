@@ -10,6 +10,7 @@ import { apiGet, apiSend } from '@/shared/api';
 import { useT } from '@/shared/i18n';
 import { hardNavigate } from '@/shared/lib/browser';
 import { ApiErrorNotice, Avatar, Button } from '@/shared/ui';
+import { AuthCard } from '@/widgets/auth-shell';
 
 /**
  * Подтверждение выхода по запросу приложения (RP-Initiated Logout без id_token_hint): без него любой сайт
@@ -41,18 +42,20 @@ export function OauthLogoutPage() {
   });
   const app = info.data?.clientName;
   return (
-    <div className="mx-auto flex max-w-sm flex-col items-center gap-5 px-4 py-16 text-center">
-      {me ? (
-        <Avatar src={me.avatarUrl} name={me.displayName} size={72} />
-      ) : (
-        <span className="rounded-full bg-paper p-4 text-graphite">
-          <LogOut className="size-8" aria-hidden />
-        </span>
-      )}
-      <div>
-        <h1 className="text-2xl">{t('logout.title')}</h1>
-        <p className="mt-2 text-graphite">{app ? t('logout.textApp', { app }) : t('logout.text')}</p>
-      </div>
+    <AuthCard
+      width="sm"
+      title={t('logout.title')}
+      subtitle={app ? t('logout.textApp', { app }) : t('logout.text')}
+      icon={
+        me ? (
+          <Avatar src={me.avatarUrl} name={me.displayName} size={72} />
+        ) : (
+          <span className="rounded-full bg-paper p-4 text-graphite">
+            <LogOut className="size-8" aria-hidden />
+          </span>
+        )
+      }
+    >
       <ApiErrorNotice error={logout.error} />
       <div className="grid w-full grid-cols-2 gap-3">
         <Button
@@ -65,6 +68,6 @@ export function OauthLogoutPage() {
           {t('logout.confirm')}
         </Button>
       </div>
-    </div>
+    </AuthCard>
   );
 }

@@ -10,6 +10,7 @@ import {
   ListChecks,
   LogIn,
   type LucideIcon,
+  Palette,
   ScanFace,
   ScrollText,
   ShieldCheck,
@@ -53,7 +54,7 @@ export function navFor(me: MeDto | null | undefined): NavGroup[] {
     },
     { title: 'nav.account', items: account },
   ];
-  if (staff) {
+  if (me && staff) {
     groups.push({
       title: 'nav.admin',
       items: [
@@ -64,6 +65,9 @@ export function navFor(me: MeDto | null | undefined): NavGroup[] {
         { href: '/admin/attempts', label: 'nav.attempts', icon: ListChecks },
         { href: '/admin/clients', label: 'nav.clients', icon: AppWindow },
         { href: '/admin/audit', label: 'nav.audit', icon: ScrollText },
+        ...(me.role === 'admin'
+          ? [{ href: '/admin/branding', label: 'nav.branding' as const, icon: Palette }]
+          : []),
       ],
     });
   }

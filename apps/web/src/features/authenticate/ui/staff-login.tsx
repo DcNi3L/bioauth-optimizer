@@ -80,7 +80,7 @@ export function StaffLogin({ onSuccess }: { onSuccess?: (needsPasskey: boolean) 
   }
 
   return (
-    <div className="flex flex-col gap-4 sm:max-w-sm">
+    <div className="flex flex-col gap-4">
       {step === 'password' ? (
         <form
           className="flex flex-col gap-4"
@@ -104,11 +104,9 @@ export function StaffLogin({ onSuccess }: { onSuccess?: (needsPasskey: boolean) 
             autoComplete="current-password"
             required
           />
-          <div>
-            <Button type="submit" busy={busy}>
-              {t('auth.signIn')}
-            </Button>
-          </div>
+          <Button type="submit" busy={busy} className="w-full">
+            {t('auth.signIn')}
+          </Button>
         </form>
       ) : (
         <div className="flex flex-col gap-4">

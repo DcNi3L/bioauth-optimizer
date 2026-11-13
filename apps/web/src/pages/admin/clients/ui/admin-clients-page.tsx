@@ -51,15 +51,20 @@ function Endpoints() {
     ['logout', d.data.end_session_endpoint],
     ['register', d.data.registration_endpoint],
   ];
+  const issuer = d.data.issuer;
+  // Конечные точки — относительно издателя: короче и читаются без переносов; копируется полный адрес.
+  const short = (v: string) => (v.startsWith(issuer) && v !== issuer ? v.slice(issuer.length) : v);
   return (
     <dl className="divide-y divide-rule">
       {rows
         .filter((r): r is [string, string] => !!r[1])
         .map(([k, v]) => (
-          <div key={k} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
-            <dt className="w-24 shrink-0 text-xs text-graphite">{k}</dt>
-            <dd className="min-w-0 flex-1 font-mono text-[12.5px] break-all">{v}</dd>
-            <CopyButton value={v} />
+          <div key={k} className="flex items-center gap-3 py-1.5">
+            <dt className="w-20 shrink-0 text-xs text-graphite">{k}</dt>
+            <dd className="min-w-0 flex-1 truncate font-mono text-[12.5px]" title={v}>
+              {short(v)}
+            </dd>
+            <CopyButton value={v} iconOnly />
           </div>
         ))}
     </dl>
@@ -131,9 +136,17 @@ export function AdminClientsPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg">{t('nav.clients')}</h2>
-          <Button onClick={() => setCreating(true)} disabled={!canEdit}>
-            <Plus className="size-4" /> {t('admin.clients.create')}
-          </Button>
+          <span
+            title={
+              canEdit
+                ? undefined
+                : t(me?.role === 'admin' ? 'usersExport.mfaFirst' : 'usersExport.adminOnlyAction')
+            }
+          >
+            <Button onClick={() => setCreating(true)} disabled={!canEdit}>
+              <Plus className="size-4" /> {t('admin.clients.create')}
+            </Button>
+          </span>
         </div>
         <ApiErrorNotice error={clients.error} />
         {!clients.data ? (
@@ -154,7 +167,7 @@ export function AdminClientsPage() {
         </Panel>
         {canEdit && (
           <Panel title={t('admin.clients.regTitle')} description={t('admin.clients.regDesc')}>
-            <div className="px-5 py-4">
+            <div>
               <InitialTokens
                 enabled={!!discovery.data?.registration_endpoint}
                 registrationEndpoint={discovery.data?.registration_endpoint}

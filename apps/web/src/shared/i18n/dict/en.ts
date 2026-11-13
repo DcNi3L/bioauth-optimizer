@@ -1,8 +1,10 @@
 import { enV3 } from './en-v3';
+import { enV34 } from './en-v34';
 import type { Dict } from './ru';
 
 export const en: Dict = {
   ...enV3,
+  ...enV34,
   common: {
     loading: 'Loading…',
     cancel: 'Cancel',

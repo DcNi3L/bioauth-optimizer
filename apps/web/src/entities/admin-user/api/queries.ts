@@ -36,7 +36,7 @@ export const useAdminStats = (enabled = true) =>
     refetchInterval: 30_000,
   });
 
-export function useAdminUsers(f: UsersFilter) {
+export function useAdminUsers(f: UsersFilter, enabled = true) {
   const p = new URLSearchParams({ limit: String(f.limit), offset: String(f.offset) });
   if (f.q) p.set('q', f.q);
   if (f.role) p.set('role', f.role);
@@ -45,6 +45,7 @@ export function useAdminUsers(f: UsersFilter) {
     queryKey: adminKeys.users(f),
     queryFn: () => apiGet(`/admin/users?${p.toString()}`, adminUsersPageSchema),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 

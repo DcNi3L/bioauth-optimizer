@@ -7,8 +7,14 @@ import { useMediaQuery, useStoredValue, writeStored } from '../lib/browser';
 export type ThemeChoice = 'light' | 'dark' | 'system';
 const KEY = 'bioauth.theme';
 
-/** Скрипт до гидрации: класс dark ставится раньше первой отрисовки, без вспышки светлой темы. */
-export const THEME_INIT_SCRIPT = `(function(){try{var c=localStorage.getItem('${KEY}')||'system';var d=c==='dark'||(c==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
+/** Ключ свёрнутой боковой панели: читается тем же скриптом до гидрации, чтобы панель не «прыгала». */
+export const SIDEBAR_KEY = 'bioauth.sidebar';
+
+/**
+ * Скрипт до гидрации: класс dark и состояние боковой панели ставятся раньше первой отрисовки — без вспышки
+ * светлой темы и без сдвига содержимого.
+ */
+export const THEME_INIT_SCRIPT = `(function(){try{var h=document.documentElement;var c=localStorage.getItem('${KEY}')||'system';var d=c==='dark'||(c==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);h.classList.toggle('dark',d);h.dataset.sidebar=localStorage.getItem('${SIDEBAR_KEY}')==='collapsed'?'collapsed':'expanded';}catch(e){}})();`;
 
 interface ThemeValue {
   choice: ThemeChoice;

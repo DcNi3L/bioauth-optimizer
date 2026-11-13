@@ -19,6 +19,7 @@ const HEADERS: readonly { href: string; title: TKey; description?: TKey; exact?:
   { href: '/admin/attempts', title: 'nav.attempts' },
   { href: '/admin/clients', title: 'nav.clients', description: 'admin.clients.subtitle' },
   { href: '/admin/audit', title: 'nav.audit' },
+  { href: '/admin/branding', title: 'nav.branding', description: 'tenant.subtitle' },
 ];
 
 /**

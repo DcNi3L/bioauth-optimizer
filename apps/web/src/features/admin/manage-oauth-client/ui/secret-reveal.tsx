@@ -6,13 +6,26 @@ import { useState } from 'react';
 import { useT } from '@/shared/i18n';
 import { Button } from '@/shared/ui';
 
-export function CopyButton({ value, label }: { value: string; label?: string }) {
+/** Кнопка «Копировать»; `iconOnly` — только значок (подпись — для экранного диктора и подсказки). */
+export function CopyButton({
+  value,
+  label,
+  iconOnly = false,
+}: {
+  value: string;
+  label?: string;
+  iconOnly?: boolean;
+}) {
   const t = useT();
   const [copied, setCopied] = useState(false);
+  const text = copied ? t('common.copied') : (label ?? t('common.copy'));
   return (
     <Button
       size="sm"
-      variant="secondary"
+      variant={iconOnly ? 'subtle' : 'secondary'}
+      aria-label={iconOnly ? text : undefined}
+      title={iconOnly ? text : undefined}
+      className={iconOnly ? 'w-8 !px-0' : ''}
       onClick={() => {
         void navigator.clipboard.writeText(value).then(() => {
           setCopied(true);
@@ -21,7 +34,7 @@ export function CopyButton({ value, label }: { value: string; label?: string }) 
       }}
     >
       {copied ? <Check className="size-4 text-optimum" /> : <Copy className="size-4" />}
-      {copied ? t('common.copied') : (label ?? t('common.copy'))}
+      {!iconOnly && text}
     </Button>
   );
 }

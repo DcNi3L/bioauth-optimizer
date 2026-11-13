@@ -33,13 +33,13 @@ export function AdminCalibrationPage() {
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <div className="flex flex-col gap-6">
         <Panel title={t('algo.calibration.title')} description={t('algo.calibration.desc')}>
-          <div className="px-5 py-4">
+          <div>
             <ApiErrorNotice error={overview.error} />
             {o && <CalibrateForm data={o.data} costs={o.activePolicy.costs} onResult={setResult} />}
           </div>
         </Panel>
         <Panel title={t('algo.calibration.catalogTitle')} description={t('algo.calibration.catalogDesc')}>
-          <div className="px-5 py-4">
+          <div>
             <CreateMeasuredCatalog />
           </div>
         </Panel>
@@ -48,7 +48,7 @@ export function AdminCalibrationPage() {
         {result ? (
           <>
             <Panel title={t('algo.calibration.sufficiencyTitle')}>
-              <div className="flex flex-col gap-3 px-5 py-4">
+              <div className="flex flex-col gap-3">
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <Metric label={t('algo.calibration.genuine')} value={result.sufficiency.positives} />
                   <Metric label={t('algo.calibration.impostor')} value={result.sufficiency.negatives} />
@@ -78,14 +78,14 @@ export function AdminCalibrationPage() {
               </div>
             </Panel>
             <Panel title={t('algo.calibration.optimalTitle')}>
-              <div className="flex flex-col gap-5 px-5 py-4">
+              <div className="flex flex-col gap-5">
                 <ThresholdSummary result={result.threshold} />
                 <ThresholdErrorChart result={result.threshold} />
                 <RocChart result={result.threshold} />
               </div>
             </Panel>
             <Panel title={t('algo.calibration.proposeTitle')} description={t('algo.calibration.proposeDesc')}>
-              <div className="flex flex-col gap-3 px-5 py-4">
+              <div className="flex flex-col gap-3">
                 {result.threshold.optimal.tau === null && (
                   <Notice tone="caution">{t('algo.calibration.noOptimum')}</Notice>
                 )}
@@ -130,7 +130,7 @@ export function AdminCalibrationPage() {
           </>
         ) : (
           <Panel title={t('algo.result')}>
-            <p className="px-5 py-4 text-sm text-graphite">{t('algo.calibration.empty')}</p>
+            <p className="text-sm text-graphite">{t('algo.calibration.empty')}</p>
           </Panel>
         )}
       </div>

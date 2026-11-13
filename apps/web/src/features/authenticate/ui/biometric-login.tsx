@@ -243,7 +243,7 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
     <div className="flex flex-col gap-5">
       {phase === 'login' && (
         <form
-          className="flex flex-col gap-4 sm:max-w-sm"
+          className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
             void begin();
@@ -255,12 +255,11 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
             onChange={(e) => setLogin(e.target.value)}
             autoComplete="username"
             required
+            minLength={3}
           />
-          <div>
-            <Button type="submit" busy={busy} disabled={login.trim().length < 3}>
-              {t('auth.continue')}
-            </Button>
-          </div>
+          <Button type="submit" busy={busy} className="w-full">
+            {t('auth.continue')}
+          </Button>
         </form>
       )}
 
@@ -325,7 +324,7 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
 
       {phase === 'totp' && session && (
         <form
-          className="flex flex-col gap-3 sm:max-w-sm"
+          className="flex flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault();
             void runStep(() => submitTotpStep(session.sessionId, code));
@@ -352,7 +351,7 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
       )}
 
       {phase === 'keystroke' && session && (
-        <div className="flex flex-col gap-3 sm:max-w-lg">
+        <div className="flex flex-col gap-3">
           <p className="text-sm">{t('auth.keystrokeIntro')}</p>
           <RhythmField
             phrase={(() => {

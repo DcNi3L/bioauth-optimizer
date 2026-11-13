@@ -19,7 +19,8 @@ function generatePassword(): string {
   return Array.from(bytes, (b) => abc[b % abc.length]).join('');
 }
 
-export function CreateStaffButton({ disabled }: { disabled?: boolean }) {
+/** `reason` — почему кнопка недоступна: показывается подсказкой (у отключённой кнопки своей подсказки нет). */
+export function CreateStaffButton({ disabled, reason }: { disabled?: boolean; reason?: string }) {
   const t = useT();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -46,9 +47,11 @@ export function CreateStaffButton({ disabled }: { disabled?: boolean }) {
   };
   return (
     <>
-      <Button onClick={() => setOpen(true)} disabled={disabled}>
-        <UserPlus className="size-4" /> {t('admin.users.create')}
-      </Button>
+      <span title={disabled ? reason : undefined} className="inline-flex">
+        <Button onClick={() => setOpen(true)} disabled={disabled}>
+          <UserPlus className="size-4" /> {t('admin.users.create')}
+        </Button>
+      </span>
       <Dialog
         open={open}
         onClose={close}

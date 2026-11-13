@@ -20,7 +20,7 @@ export function AdminReportPage() {
   const fr = parseNumber(cFR);
   return (
     <Panel title={t('algo.protocol.title')} description={t('algo.protocol.desc')}>
-      <div className="flex flex-col gap-5 px-5 py-4">
+      <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-end gap-3">
           <NumberField
             className="w-36"

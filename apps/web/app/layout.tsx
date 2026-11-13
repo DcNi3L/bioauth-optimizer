@@ -9,7 +9,6 @@ import type { ReactNode } from 'react';
 import { QueryProvider, ServiceWorker } from '@/app';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, THEME_DARK, THEME_LIGHT } from '@/shared/config';
 import { THEME_INIT_SCRIPT } from '@/shared/theme';
-import { AppShell } from '@/widgets/app-shell';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -103,7 +102,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD).replace(/</g, '\\u003c') }}
         />
         <QueryProvider>
-          <AppShell>{children}</AppShell>
+          {children}
           <ServiceWorker />
         </QueryProvider>
       </body>

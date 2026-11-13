@@ -61,7 +61,13 @@ export function ProfileShell({ children }: { children: ReactNode }) {
   }
   const ok = history.data?.filter((e) => e.success).length;
   const failed = history.data?.filter((e) => !e.success).length ?? 0;
-  const factors = [me.face ? t('profile.face') : null, me.passkeys > 0 ? 'passkey' : null].filter(Boolean);
+  // Пароль есть только у сотрудников; ритм набора здесь не учитывается — его состояние на вкладке «Безопасность».
+  const factors = [
+    me.role !== 'subject' ? t('amr.pwd') : null,
+    me.face ? t('profile.face') : null,
+    me.passkeys > 0 ? 'passkey' : null,
+    me.totp ? t('amr.otp') : null,
+  ].filter(Boolean);
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <section className="overflow-hidden rounded-2xl border border-rule bg-sheet">
