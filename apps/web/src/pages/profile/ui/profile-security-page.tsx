@@ -3,6 +3,7 @@
 import { useSessions } from '@/entities/account';
 import { useViewer } from '@/entities/viewer';
 import { RevokeOthersButton } from '@/features/account/manage-sessions';
+import { KeystrokePanel } from '@/features/manage-keystroke';
 import { MfaPanel } from '@/features/manage-mfa';
 import { RegisterPasskey } from '@/features/register-passkey';
 import { useT } from '@/shared/i18n';
@@ -33,6 +34,9 @@ export function ProfileSecurityPage() {
       </Panel>
       <Panel title={t('mfa.title')} description={t('mfa.desc')}>
         <MfaPanel />
+      </Panel>
+      <Panel title={t('keystroke.title')} description={t('keystroke.desc')}>
+        <KeystrokePanel />
       </Panel>
       <Panel
         title={t('profile.sessions.title')}

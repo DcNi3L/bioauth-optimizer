@@ -138,6 +138,19 @@ export interface UserRecoveryCodeTable {
   created_at: ColumnType<Date, never, never>;
 }
 
+export interface KeystrokeTemplateTable {
+  user_id: string;
+  ciphertext: Buffer;
+  iv: Buffer;
+  key_id: string;
+  samples: number;
+  phrase: string;
+  failed_attempts: Generated<number>;
+  locked_until: Date | null;
+  created_at: ColumnType<Date, never, never>;
+  updated_at: Generated<Date>;
+}
+
 export type PolicyStatusDb = 'proposed' | 'active' | 'retired' | 'rejected';
 
 export interface AuthPolicyTable {
@@ -229,6 +242,7 @@ export interface Database {
   webauthn_credential: WebauthnCredentialTable;
   user_totp: UserTotpTable;
   user_recovery_code: UserRecoveryCodeTable;
+  keystroke_template: KeystrokeTemplateTable;
   auth_policy: AuthPolicyTable;
   auth_session: AuthSessionTable;
   auth_attempt: AuthAttemptTable;

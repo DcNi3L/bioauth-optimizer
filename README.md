@@ -31,7 +31,7 @@ make up            # или: docker compose up --build
 Интерфейс — <http://localhost:3000>, справочник API (Scalar) — <http://localhost:4000/api/docs>, спецификация OpenAPI —
 <http://localhost:4000/api/openapi.json>. Поднимаются `db`, `api`, `web` и сервис
 распознавания `bio-engine` (только во внутренней сети). Администратор по умолчанию — `admin` / `change-me-admin-123`
-(смените через `ADMIN_PASSWORD`); при первом входе он регистрирует passkey. Других сотрудников создаёт команда
+(смените через `ADMIN_PASSWORD`); при первом входе он регистрирует passkey или включает приложение-аутентификатор (TOTP). Других сотрудников создаёт команда
 `STAFF_PASSWORD=… pnpm --filter @bioauth/api staff -- --login anna --role researcher`.
 
 Камера и passkey работают только в безопасном контексте: на `localhost` или по HTTPS. Для демонстрации с другого

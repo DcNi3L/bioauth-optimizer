@@ -10,6 +10,8 @@ export type AuditAction =
   | 'face.deleted'
   | 'passkey.registered'
   | 'passkey.deleted'
+  | 'keystroke.enrolled'
+  | 'keystroke.deleted'
   | 'totp.enabled'
   | 'totp.disabled'
   | 'recovery.generated'

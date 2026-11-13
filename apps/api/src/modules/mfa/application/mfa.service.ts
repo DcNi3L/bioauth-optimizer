@@ -5,6 +5,7 @@ import type { MfaStatusDto, TotpSetupDto } from '@bioauth/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { AuthUser } from '../../../shared/auth/auth';
+import { SECRET_BOX, type SecretBox } from '../../../shared/crypto/secret-box';
 import {
   ConflictError,
   TooManyAttemptsError,
@@ -20,7 +21,7 @@ import {
 } from '../../identity/application/ports';
 import { generateRecoveryCode, normalizeRecoveryCode, RECOVERY_CODES } from '../domain/recovery-code';
 import { base32Encode, generateTotpSecret, otpauthUri, totpCounter, verifyTotp } from '../domain/totp';
-import { MFA_REPOSITORY, type MfaRepository, SECRET_BOX, type SecretBox, type TotpRow } from './ports';
+import { MFA_REPOSITORY, type MfaRepository, type TotpRow } from './ports';
 
 const scrypt = promisify(scryptCb) as (pw: string, salt: string, len: number) => Promise<Buffer>;
 
@@ -62,7 +63,7 @@ export class MfaService {
   /** Новый секрет. Уже включённый фактор перевыпустить нельзя: сначала его нужно отключить. */
   async setup(user: AuthUser): Promise<TotpSetupDto> {
     const secret = generateTotpSecret();
-    if (!(await this.repo.savePending(user.id, this.box.seal(user.id, secret))))
+    if (!(await this.repo.savePending(user.id, this.box.seal('totp', user.id, secret))))
       throw new ConflictError('приложение-аутентификатор уже включено — сначала отключите его');
     return { secret: base32Encode(secret), otpauthUri: otpauthUri(ISSUER, user.login, secret) };
   }
@@ -156,7 +157,7 @@ export class MfaService {
   /** Проверяет код, принимает шаг времени (защита от повтора) и возвращает его; иначе — отказ со счётчиком. */
   private async checkCode(user: AuthUser, row: TotpRow, code: string, record = false): Promise<number> {
     this.assertNotLocked(row);
-    const secret = this.box.open(user.id, row.sealed);
+    const secret = this.box.open('totp', user.id, row.sealed);
     const counter = verifyTotp(secret, code, this.now(), row.lastCounter);
     if (counter === null || (row.confirmedAt && !(await this.repo.acceptCounter(user.id, counter)))) {
       await this.fail(user, 'totp', 'TOTP_INVALID', record);

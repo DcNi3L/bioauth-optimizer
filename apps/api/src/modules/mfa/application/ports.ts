@@ -1,17 +1,5 @@
 export const MFA_REPOSITORY = Symbol('MFA_REPOSITORY');
-export const SECRET_BOX = Symbol('SECRET_BOX');
-
-export interface SealedSecret {
-  readonly ciphertext: Buffer;
-  readonly iv: Buffer;
-  readonly keyId: string;
-}
-
-/** Шифрование секретов второго фактора; AAD привязывает шифротекст к пользователю. */
-export interface SecretBox {
-  seal(userId: string, secret: Buffer): SealedSecret;
-  open(userId: string, sealed: SealedSecret): Buffer;
-}
+import type { SealedSecret } from '../../../shared/crypto/secret-box';
 
 export interface TotpRow {
   readonly userId: string;

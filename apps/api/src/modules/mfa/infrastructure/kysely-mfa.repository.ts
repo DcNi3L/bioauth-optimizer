@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { sql } from 'kysely';
 
+import type { SealedSecret } from '../../../shared/crypto/secret-box';
 import { type Db, KYSELY } from '../../../shared/database/kysely';
-import type { MfaRepository, SealedSecret, TotpRow } from '../application/ports';
+import type { MfaRepository, TotpRow } from '../application/ports';
 
 @Injectable()
 export class KyselyMfaRepository implements MfaRepository {

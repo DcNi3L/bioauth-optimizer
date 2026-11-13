@@ -169,3 +169,12 @@ CREATE INDEX experiment_dataset_idx      ON experiment (score_dataset_id);
   активный).
 
 Токены и коды хранятся только в виде хэшей: утечка базы не даёт действующих токенов.
+
+## 5.8. Схема v3.3 (миграции 0006–0007)
+
+- `user_totp` — секрет TOTP (`secret_enc`, `iv`, `key_id`: AES-256-GCM), `confirmed_at` (NULL — секрет выдан, но не
+  подтверждён), `last_counter` (последний принятый шаг времени), `failed_attempts`, `locked_until`.
+- `user_recovery_code` — только `code_hash` (scrypt, 64 hex), `used_at`; уникальность `(user_id, code_hash)`.
+- `login_event.method` допускает `totp` и `recovery`.
+- `keystroke_template` — зашифрованный шаблон ритма (`ciphertext`, `iv`, `key_id`), число повторов, фраза (`^[a-z ]{8,64}$`),
+  счётчик отказов и блокировка. Удаляется в одной транзакции с шаблоном лица при отзыве согласия.

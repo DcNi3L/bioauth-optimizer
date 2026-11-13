@@ -70,7 +70,7 @@ describeDb('API e2e (PostgreSQL)', () => {
 
   it('состав факторов по предустановленному каталогу и анализ бюджета', async () => {
     const catalogs = (await http.get('/api/v1/factor-catalogs').expect(200)).body.items;
-    const preset = catalogs.find((c: { isPreset: boolean }) => c.isPreset);
+    const preset = catalogs.find((c: { name: string }) => c.name.startsWith('СРО1'));
     expect(preset.factors).toHaveLength(5);
     const body = {
       catalogId: preset.id,
@@ -117,6 +117,27 @@ describeDb('API e2e (PostgreSQL)', () => {
       .send({ factors, costs: { cFA: 1, cFR: 1 }, constraints: {}, solver: 'exhaustive' })
       .expect(413);
     expect(big.body.type).toMatch(/problem-too-large$/);
+  });
+
+  it('предустановленный каталог v3.3: четыре реализованных фактора выбираются оптимизатором', async () => {
+    const cats = (await http.get('/api/v1/factor-catalogs')).body.items as {
+      id: string;
+      name: string;
+      factors: { code: string }[];
+    }[];
+    const v33 = cats.find((c) => c.name.startsWith('v3.3'))!;
+    expect(v33.factors.map((f) => f.code)).toEqual(['FACE', 'PASSKEY', 'TOTP', 'KEYSTROKE']);
+    const res = await http
+      .post('/api/v1/factor-selection/solve')
+      .send({
+        catalogId: v33.id,
+        costs: { cFA: 100, cFR: 1 },
+        constraints: { latencyMaxMs: 20000, budget: 1.2, farMax: 1e-4, minPadFactors: 1 },
+      })
+      .expect(200);
+    // Бюджет 1,2 и FAR ≤ 1e-4 исключают лицо одно; оптимум обязан содержать фактор с PAD.
+    expect(res.body.optimum.codes.some((c: string) => ['FACE', 'PASSKEY'].includes(c))).toBe(true);
+    expect(res.body.stats.feasibleCount).toBeGreaterThan(0);
   });
 
   it('каталоги: CRUD, предустановленный — только чтение, уникальность имени', async () => {

@@ -319,3 +319,25 @@ GET  /oidc/authorize?response_type=code&client_id=crm&redirect_uri=https://crm.e
      &scope=openid%20profile%20offline_access&state=…&nonce=…&code_challenge=…&code_challenge_method=S256
 POST /oidc/token  grant_type=authorization_code&code=…&redirect_uri=…&code_verifier=…  (Basic client_id:secret)
 ```
+
+## 4.8. API v3.3: второй фактор и ритм набора
+
+Все операции требуют входа. Ответы об ошибке — RFC 7807; неверный код — `401` с заголовком «Код не подошёл», блокировка — `429`.
+
+| Метод и путь                    | Назначение                                                                                                         |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `GET /mfa`                      | Состояние: включён ли TOTP, сколько кодов восстановления осталось                                                  |
+| `POST /mfa/totp/setup`          | Новый секрет (base32) и `otpauth://`-ссылка для QR; `409`, если TOTP уже включён                                   |
+| `POST /mfa/totp/confirm`        | `{code}` — подтверждение первым кодом; выдаёт 10 кодов восстановления (один раз); сотрудник получает полный доступ |
+| `POST /mfa/totp/verify`         | `{code}` — второй фактор входа сотрудника; шаг времени принимается один раз                                        |
+| `DELETE /mfa/totp`              | `{code}` — отключить; нужен завершённый вход (`@RequireMfa`); коды восстановления удаляются                        |
+| `POST /mfa/recovery/verify`     | `{code}` — вход по коду восстановления; код гасится, в ответе — сколько кодов осталось                             |
+| `POST /mfa/recovery/regenerate` | `{code}` — новый набор кодов (нужен код из приложения); прежние аннулируются                                       |
+| `GET /keystroke`                | Зарегистрирован ли ритм, число повторов, фраза, сколько повторов нужно                                             |
+| `POST /keystroke/enroll`        | `{samples: [{events: [{code, down, up}]}]}` — не менее 5 повторов; нужно согласие (`403 consent-required`)         |
+| `POST /keystroke/verify`        | Один ввод фразы → `{accepted, distance, threshold, score}`; 5 отказов подряд — `429` на 5 минут                    |
+| `DELETE /keystroke`             | Удалить ритм набора (отзыв согласия удаляет его тоже)                                                              |
+
+Ритм: `code` — `KeyboardEvent.code` (физическая клавиша, не зависит от раскладки), `down`/`up` — миллисекунды от начала
+ввода. Ошибки `422`: `KEYSTROKE_LENGTH`, `KEYSTROKE_CODES` (другая фраза, исправления), `KEYSTROKE_TIMING`, `KEYSTROKE_ROBOTIC`
+(слишком ровные паузы). Подробности и обоснование — [ADR-0020](adr/0020-totp-recovery-keystroke.md).

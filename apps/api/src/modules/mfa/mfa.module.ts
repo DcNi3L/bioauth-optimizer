@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
+import { AesGcmSecretBox, SECRET_BOX } from '../../shared/crypto/secret-box';
 import { MfaService } from './application/mfa.service';
-import { MFA_REPOSITORY, SECRET_BOX } from './application/ports';
-import { AesGcmSecretBox } from './infrastructure/aes-gcm-secret-box';
+import { MFA_REPOSITORY } from './application/ports';
 import { KyselyMfaRepository } from './infrastructure/kysely-mfa.repository';
 import { MfaController } from './presentation/mfa.controller';
 

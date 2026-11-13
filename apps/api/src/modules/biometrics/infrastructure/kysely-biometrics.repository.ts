@@ -178,6 +178,8 @@ export class KyselyBiometricEraser implements BiometricEraser {
   async erase(userId: string) {
     return this.db.transaction().execute(async (trx) => {
       const face = await trx.deleteFrom('face_template').where('user_id', '=', userId).executeTakeFirst();
+      // Динамика набора — тоже биометрический признак: удаляется вместе с шаблоном лица.
+      await trx.deleteFrom('keystroke_template').where('user_id', '=', userId).execute();
       const keys = await trx
         .deleteFrom('webauthn_credential')
         .where('user_id', '=', userId)

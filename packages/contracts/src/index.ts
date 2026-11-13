@@ -8,6 +8,7 @@ export * from './examples';
 export * from './experiments';
 export * from './factor-selection';
 export * from './identity';
+export * from './keystroke';
 export * from './mfa';
 export * from './oauth';
 export * from './problem';
