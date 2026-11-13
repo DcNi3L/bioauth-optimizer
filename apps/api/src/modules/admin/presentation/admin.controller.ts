@@ -16,10 +16,12 @@ import {
   roleSchema,
   z,
 } from '@bioauth/contracts';
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 
 import { type AuthUser, CurrentUser, RequireMfa, RequireRecentMfa, Roles } from '../../../shared/auth/auth';
+import { csvTable } from '../../../shared/http/csv';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import { AdminUsersService } from '../application/admin-users.service';
@@ -32,6 +34,26 @@ const listQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(25),
   offset: z.coerce.number().int().min(0).default(0),
 });
+
+const exportQuery = listQuery.omit({ limit: true, offset: true }).extend({
+  format: z.enum(['csv', 'json']).default('csv'),
+});
+const EXPORT_LIMIT = 10_000;
+const EXPORT_COLUMNS = [
+  'id',
+  'login',
+  'displayName',
+  'email',
+  'role',
+  'createdAt',
+  'lastLoginAt',
+  'disabled',
+  'lockedUntil',
+  'face',
+  'passkeys',
+  'consent',
+  'activeSessions',
+] as const satisfies readonly (keyof AdminUserDto)[];
 
 const eventsQuery = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
@@ -65,6 +87,28 @@ export class AdminController {
       limit: q.limit,
       offset: q.offset,
     });
+  }
+
+  @Get('users/export')
+  @Roles('admin', 'auditor')
+  @ApiOperation({
+    summary: 'Выгрузить пользователей (CSV или JSON) по тем же фильтрам, что и список',
+    description: `Не более ${EXPORT_LIMIT} записей. Биометрия не выгружается — только признаки наличия.`,
+  })
+  async exportUsers(
+    @Res({ passthrough: true }) res: Response,
+    @Query(new ZodValidationPipe(exportQuery)) q: z.output<typeof exportQuery>,
+  ): Promise<string | AdminUserDto[]> {
+    const items = await this.query.exportUsers(
+      { q: q.q === undefined || q.q === '' ? null : q.q, role: q.role ?? null, status: q.status ?? null },
+      EXPORT_LIMIT,
+    );
+    const stamp = new Date().toISOString().slice(0, 10);
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Content-Disposition', `attachment; filename="users-${stamp}.${q.format}"`);
+    if (q.format === 'json') return items;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    return csvTable(EXPORT_COLUMNS, items);
   }
 
   @Post('users')

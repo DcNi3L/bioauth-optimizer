@@ -1,6 +1,6 @@
 {
   "name": "@bioauth/api",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "private": true,
   "description": "REST API BioAuth Optimizer (NestJS, Clean Architecture)",
   "author": "Daniel Mekenbaev <donniekun03@gmail.com>",

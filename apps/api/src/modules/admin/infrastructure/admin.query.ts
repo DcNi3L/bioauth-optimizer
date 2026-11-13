@@ -135,6 +135,12 @@ export class AdminQuery {
     return { items: rows.map((r) => AdminQuery.toDto(r)), total: Number(total.n) };
   }
 
+  /** Все пользователи для выгрузки (не более limit), по фильтру списка. */
+  async exportUsers(f: Omit<UserFilter, 'limit' | 'offset'>, limit: number): Promise<AdminUserDto[]> {
+    const page = await this.users({ ...f, limit, offset: 0 });
+    return page.items;
+  }
+
   async user(id: string): Promise<AdminUserDto | null> {
     const r = await this.usersBase().where('u.id', '=', id).executeTakeFirst();
     return r ? AdminQuery.toDto(r) : null;

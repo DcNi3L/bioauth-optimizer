@@ -10,6 +10,7 @@ import { clientInfo } from '../../../shared/http/request-context';
 import { AUDIT_LOG, type AuditLog } from '../../audit/application/audit-log';
 import { USER_REPOSITORY, type UserRepository } from '../../identity/application/ports';
 import { type IssuedSession, SessionIssuer } from '../../identity/application/session-issuer';
+import { TenantSettingsService } from '../../tenant/application/tenant-settings.service';
 
 export const CROSS_DEVICE_STORE = Symbol('CROSS_DEVICE_STORE');
 
@@ -61,9 +62,11 @@ export class CrossDeviceService {
     @Inject(AUDIT_LOG) private readonly audit: AuditLog,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     private readonly issuer: SessionIssuer,
+    private readonly tenant: TenantSettingsService,
   ) {}
 
   async start(): Promise<CrossDeviceStartDto> {
+    await this.tenant.assertCrossDeviceAllowed();
     const pollSecret = randomBytes(24).toString('base64url');
     const key = randomBytes(24).toString('base64url');
     const number = randomInt(10, 100);

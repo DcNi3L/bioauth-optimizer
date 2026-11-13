@@ -4,6 +4,7 @@ import type { Response } from 'express';
 
 import { Roles } from '../../../shared/auth/auth';
 import { ValidationError } from '../../../shared/errors';
+import { csvCell } from '../../../shared/http/csv';
 import {
   AUDIT_LOG,
   type AuditEventView,
@@ -11,17 +12,9 @@ import {
   type ChainVerification,
 } from '../application/audit-log';
 
-const CSV_COLUMNS = ['seq', 'at', 'actorId', 'action', 'target', 'details', 'hash'] as const;
+export { csvCell };
 
-/** Защита от CSV-инъекции: ячейка, начинающаяся с = + - @, открывается в Excel как формула. */
-export function csvCell(value: unknown): string {
-  let s: string;
-  if (value === null || value === undefined) s = '';
-  else if (typeof value === 'string') s = value;
-  else s = JSON.stringify(value);
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
+const CSV_COLUMNS = ['seq', 'at', 'actorId', 'action', 'target', 'details', 'hash'] as const;
 
 export function toCsv(events: readonly AuditEventView[]): string {
   const lines = [CSV_COLUMNS.join(',')];

@@ -12,5 +12,6 @@ export * from './keystroke';
 export * from './mfa';
 export * from './oauth';
 export * from './problem';
+export * from './tenant';
 export * from './threshold';
 export { z } from 'zod';

@@ -229,6 +229,7 @@ export interface Database {
   user_avatar: UserAvatarTable;
   oauth_client: OauthClientTable;
   oauth_initial_token: OauthInitialTokenTable;
+  tenant_settings: TenantSettingsTable;
   oauth_request: OauthRequestTable;
   oauth_code: OauthCodeTable;
   oauth_refresh_token: OauthRefreshTokenTable;
@@ -350,6 +351,22 @@ export interface OauthInitialTokenTable {
   expires_at: Date;
   created_by: string | null;
   created_at: Generated<Date>;
+}
+
+export interface TenantSettingsTable {
+  id: Generated<boolean>;
+  product_name: string;
+  accent_color: string | null;
+  logo_url: string | null;
+  login_title: string | null;
+  login_subtitle: string | null;
+  support_url: string | null;
+  privacy_url: string | null;
+  terms_url: string | null;
+  allow_signup: boolean;
+  allow_cross_device: boolean;
+  updated_at: Date | null;
+  updated_by: string | null;
 }
 
 export interface OauthRequestTable {

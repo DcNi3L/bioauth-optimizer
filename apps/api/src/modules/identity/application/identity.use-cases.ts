@@ -10,6 +10,7 @@ import {
   UnauthorizedError,
 } from '../../../shared/errors';
 import { AUDIT_LOG, type AuditLog } from '../../audit/application/audit-log';
+import { TenantSettingsService } from '../../tenant/application/tenant-settings.service';
 import { MeQuery } from '../infrastructure/me.query';
 import {
   LOGIN_EVENTS,
@@ -33,9 +34,11 @@ export class RegisterSubjectUseCase {
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
     private readonly issuer: SessionIssuer,
     @Inject(AUDIT_LOG) private readonly audit: AuditLog,
+    private readonly tenant: TenantSettingsService,
   ) {}
 
   async execute(cmd: RegisterSubjectRequest): Promise<IssuedSession> {
+    await this.tenant.assertSignupAllowed();
     const user = await this.users.create({
       login: cmd.login,
       displayName: cmd.displayName,

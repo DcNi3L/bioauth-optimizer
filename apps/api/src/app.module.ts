@@ -19,6 +19,7 @@ import { MfaModule } from './modules/mfa/mfa.module';
 import { OidcModule } from './modules/oidc/oidc.module';
 import { PolicyModule } from './modules/policy/policy.module';
 import { ScoreDatasetsModule } from './modules/score-datasets/score-datasets.module';
+import { TenantModule } from './modules/tenant/tenant.module';
 import { ThresholdModule } from './modules/threshold/threshold.module';
 import { VerificationModule } from './modules/verification/verification.module';
 import { WebAuthnModule } from './modules/webauthn/webauthn.module';
@@ -41,6 +42,7 @@ import { HttpMetricsInterceptor, Metrics, MetricsController } from './shared/met
       useFactory: (config: AppConfig) => [{ ttl: 60_000, limit: config.AUTH_RATE_LIMIT_PER_MIN * 10 }],
     }),
     AuditModule,
+    TenantModule,
     IdentityModule,
     BiometricsModule,
     PolicyModule,
