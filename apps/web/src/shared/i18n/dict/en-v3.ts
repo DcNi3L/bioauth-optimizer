@@ -834,6 +834,12 @@ export const enV3: DictV3 = {
     source:
       'Methods from the SRO1 paper “Multi-criteria optimisation of biometric authentication parameters” (D. K. Mekenbaev, Turan University).',
   },
+  stepUp: {
+    title: 'Confirm it’s you',
+    desc: 'This action changes roles, keys or the sign-in policy: confirm your second factor. The confirmation lasts 5 minutes.',
+    confirm: 'Confirm',
+    noFactor: 'No second factor is set up. Add a passkey or an authenticator app in Profile → Security.',
+  },
   mfa: {
     title: 'Authenticator app',
     desc: 'One-time codes from Google Authenticator, Aegis or 1Password. Works without a camera and replaces the passkey when staff sign in.',

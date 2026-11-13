@@ -19,7 +19,7 @@ import {
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { type AuthUser, CurrentUser, RequireMfa, Roles } from '../../../shared/auth/auth';
+import { type AuthUser, CurrentUser, RequireMfa, RequireRecentMfa, Roles } from '../../../shared/auth/auth';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import { AdminUsersService } from '../application/admin-users.service';
@@ -91,7 +91,7 @@ export class AdminController {
 
   @Patch('users/:id')
   @Roles('admin')
-  @RequireMfa()
+  @RequireRecentMfa()
   @ApiOperation({ summary: 'Роль, отключение, снятие блокировки, имя' })
   @ApiZodBody(adminUpdateUserSchema)
   @ApiZodOk(adminUserSchema)

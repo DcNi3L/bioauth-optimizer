@@ -515,6 +515,7 @@ export class OidcService {
           mfaComplete: true,
           amr: [],
           authTime: new Date(),
+          mfaAt: null,
         })
       : null;
     if (scope.includes('profile') && me) {

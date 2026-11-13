@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import type { AuthUser } from '../../../shared/auth/auth';
+import { assertRecentMfa, type AuthUser } from '../../../shared/auth/auth';
+import { APP_CONFIG, type AppConfig } from '../../../shared/config/env';
 import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '../../../shared/errors';
 import { AUDIT_LOG, type AuditLog } from '../../audit/application/audit-log';
 import { SESSION_STORE, type SessionStore } from '../../identity/application/ports';
@@ -22,6 +23,7 @@ export class PasskeyService {
     @Inject(CHALLENGES) private readonly challenges: ChallengeStore,
     @Inject(SESSION_STORE) private readonly sessions: SessionStore,
     @Inject(AUDIT_LOG) private readonly audit: AuditLog,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
 
   async registrationOptions(user: AuthUser): Promise<Record<string, unknown>> {
@@ -65,8 +67,10 @@ export class PasskeyService {
 
   /** Сотрудник удаляет passkey только после полного входа: иначе второй фактор можно снять паролем. */
   async remove(user: AuthUser, credentialId: string): Promise<void> {
-    if (user.role !== 'subject' && !user.mfaComplete)
-      throw new UnauthorizedError('сначала подтвердите вход passkey');
+    if (user.role !== 'subject') {
+      if (!user.mfaComplete) throw new UnauthorizedError('сначала подтвердите вход passkey');
+      assertRecentMfa(user, this.config.STEP_UP_MAX_AGE_SEC, this.config.REQUIRE_STAFF_PASSKEY);
+    }
     if (!(await this.credentials.delete(user.id, credentialId))) throw new NotFoundError('passkey не найден');
     await this.audit.record({ actorId: user.id, action: 'passkey.deleted', target: user.id });
   }
@@ -92,7 +96,7 @@ export class PasskeyService {
       actorId: user.id,
       action: 'staff.login',
       target: user.id,
-      details: { factor: 'passkey' },
+      details: user.mfaComplete ? { factor: 'passkey', stepUp: true } : { factor: 'passkey' },
     });
     return { mfaComplete: true };
   }

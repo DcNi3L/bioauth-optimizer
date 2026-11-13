@@ -84,6 +84,7 @@ export interface UserSessionTable {
   ip: string | null;
   amr: Generated<string[]>;
   last_seen_at: Generated<Date>;
+  mfa_verified_at: ColumnType<Date | null, Date | null | undefined, Date | null>;
 }
 
 export interface ConsentTable {

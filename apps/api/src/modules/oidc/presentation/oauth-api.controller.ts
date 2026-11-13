@@ -43,6 +43,7 @@ import {
   Public,
   readCookie,
   RequireMfa,
+  RequireRecentMfa,
   Roles,
   SESSION_COOKIE,
 } from '../../../shared/auth/auth';
@@ -162,7 +163,7 @@ export class OauthClientsController {
 
   @Patch(':clientId')
   @Roles('admin')
-  @RequireMfa()
+  @RequireRecentMfa()
   @ApiZodBody(updateOauthClientSchema)
   @ApiZodOk(oauthClientCreatedSchema)
   update(
@@ -176,7 +177,7 @@ export class OauthClientsController {
   @Delete(':clientId')
   @HttpCode(204)
   @Roles('admin')
-  @RequireMfa()
+  @RequireRecentMfa()
   async remove(@CurrentUser() user: AuthUser, @Param('clientId') clientId: string): Promise<void> {
     await this.clients.remove(user, clientId);
   }

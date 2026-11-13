@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useViewer } from '@/entities/viewer';
+import { StepUpHost } from '@/features/step-up';
 import { useT } from '@/shared/i18n';
 
 import { currentItem, navFor } from '../model/nav';
@@ -45,6 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh">
+      {me && me.role !== 'subject' && <StepUpHost />}
       <a
         href="#main"
         className="bg-ink text-sheet sr-only z-[60] rounded-md px-3 py-2 text-sm focus:not-sr-only focus:fixed focus:left-3 focus:top-3"

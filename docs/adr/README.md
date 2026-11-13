@@ -24,3 +24,4 @@
 | [0018](0018-oidc-authorization-server.md)            | BioAuth как сервер авторизации OpenID Connect (код + PKCE, RS256, JWKS)               | Принято                         |
 | [0019](0019-scalar-api-reference.md)                 | Справочник API — Scalar вместо Swagger UI, без CDN                                    | Принято                         |
 | [0020](0020-totp-recovery-keystroke.md)              | Дополнительные способы входа: TOTP, коды восстановления, ритм набора                  | Принято                         |
+| [0021](0021-step-up.md)                              | Повторное подтверждение для опасных действий                                          | Принято                         |

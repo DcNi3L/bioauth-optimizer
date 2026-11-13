@@ -65,6 +65,7 @@ flowchart LR
 | `RP_ID`, `RP_ORIGIN`                         | api             | localhost, <http://localhost:3000> | Relying Party WebAuthn — домен и origin интерфейса                                       |
 | `ADMIN_LOGIN`, `ADMIN_PASSWORD`              | api             | admin, —                           | Первый администратор (создаётся при старте, если администраторов нет)                    |
 | `REQUIRE_STAFF_PASSKEY`                      | api             | true                               | Требовать passkey вторым фактором сотрудника                                             |
+| `STEP_UP_MAX_AGE_SEC`                        | api             | 300                                | Сколько секунд после проверки второго фактора разрешены опасные действия (ADR-0021)      |
 | `AUTH_RATE_LIMIT_PER_MIN`                    | api             | 30                                 | Ограничение частоты запросов входа                                                       |
 | `CROSS_IMPOSTOR_LIMIT`                       | api             | 50                                 | Сколько чужих шаблонов сравнивать с пробой попытки (impostor-оценки)                     |
 | `PASSKEY_DECLARED_FAR`                       | api             | 2·10⁻⁵                             | Заявленный FAR passkey для измеренного каталога                                          |

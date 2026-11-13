@@ -2,7 +2,7 @@ import { type AuthPolicyDto, authPolicySchema, costsSchema, policyStepsSchema, z
 import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { type AuthUser, CurrentUser, RequireMfa, Roles } from '../../../shared/auth/auth';
+import { type AuthUser, CurrentUser, RequireMfa, RequireRecentMfa, Roles } from '../../../shared/auth/auth';
 import { UuidPipe, ZodValidationPipe } from '../../../shared/http/zod-validation.pipe';
 import { ApiZodBody, ApiZodOk } from '../../../shared/swagger/api-zod';
 import { PolicyService } from '../application/policy.use-cases';
@@ -51,7 +51,7 @@ export class PolicyController {
   @Post(':id/approve')
   @HttpCode(200)
   @Roles('admin')
-  @RequireMfa()
+  @RequireRecentMfa()
   @ApiOperation({ summary: 'Утвердить: политика становится активной, предыдущая — выведена' })
   @ApiZodBody(decisionSchema)
   approve(
@@ -78,7 +78,7 @@ export class PolicyController {
   @Post(':id/rollback')
   @HttpCode(200)
   @Roles('admin')
-  @RequireMfa()
+  @RequireRecentMfa()
   @ApiOperation({ summary: 'Откат к ранее действовавшей версии' })
   @ApiZodBody(decisionSchema)
   rollback(

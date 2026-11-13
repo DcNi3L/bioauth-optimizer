@@ -7,6 +7,8 @@ export interface RouteAccess {
   readonly public: boolean;
   readonly roles: readonly Role[] | null;
   readonly mfa: boolean;
+  /** Нужна свежая проверка второго фактора (@RequireRecentMfa). */
+  readonly stepUp: boolean;
   /** Ограничение частоты: запросов в минуту с одного адреса; null — общий предел сервера. */
   readonly perMinute: number | null;
 }
@@ -54,6 +56,7 @@ export function collectAccess(app: INestApplication): Map<string, RouteAccess> {
           public: meta('auth:public', handler) === true,
           roles: (meta('auth:roles', handler) as Role[] | undefined) ?? null,
           mfa: meta('auth:mfa', handler) === true,
+          stepUp: meta('auth:step-up', handler) === true,
           perMinute:
             typeof limit === 'number' && typeof ttl === 'number' ? Math.round((limit * 60_000) / ttl) : null,
         };

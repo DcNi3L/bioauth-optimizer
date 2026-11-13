@@ -48,18 +48,47 @@ export async function apiGet<T>(path: string, schema?: z.ZodType<T>): Promise<T>
   return handle(res, schema);
 }
 
+/** Повторная проверка второго фактора (#41): true — пройдена, запрос можно повторить; false — отменена. */
+export type StepUpHandler = () => Promise<boolean>;
+let stepUpHandler: StepUpHandler | null = null;
+
+/** Регистрирует окно повторной проверки; возвращает функцию отмены регистрации. */
+export function setStepUpHandler(handler: StepUpHandler): () => void {
+  stepUpHandler = handler;
+  return () => {
+    if (stepUpHandler === handler) stepUpHandler = null;
+  };
+}
+
+export function isStepUpRequired(err: unknown): boolean {
+  return (
+    err instanceof ApiError &&
+    err.status === 403 &&
+    (err.problem as { code?: unknown }).code === 'step-up-required'
+  );
+}
+
 export async function apiSend<T>(
   method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
   body?: unknown,
   schema?: z.ZodType<T>,
 ): Promise<T> {
-  const res = await fetch(API_BASE + path, {
-    method,
-    headers: { 'content-type': 'application/json', accept: 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  }).catch(networkError);
-  return handle(res, schema);
+  const send = async () => {
+    const res = await fetch(API_BASE + path, {
+      method,
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }).catch(networkError);
+    return handle(res, schema);
+  };
+  try {
+    return await send();
+  } catch (err) {
+    // Опасное действие: показать окно проверки и повторить запрос один раз.
+    if (isStepUpRequired(err) && stepUpHandler && (await stepUpHandler())) return send();
+    throw err;
+  }
 }
 
 export async function apiUpload<T>(path: string, form: FormData, schema?: z.ZodType<T>): Promise<T> {

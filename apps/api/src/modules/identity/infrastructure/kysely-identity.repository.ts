@@ -197,6 +197,7 @@ export class KyselySessionStore implements SessionStore, SessionReader {
         mfa_complete: mfa,
         expires_at: expiresAt,
         amr: [...meta.amr],
+        mfa_verified_at: mfa && meta.amr.includes('mfa') ? new Date(Date.now()) : null,
         ip: meta.ip,
         user_agent: meta.userAgent,
       })
@@ -210,6 +211,7 @@ export class KyselySessionStore implements SessionStore, SessionReader {
       .updateTable('user_session')
       .set({
         mfa_complete: true,
+        mfa_verified_at: new Date(Date.now()),
         amr: sql<
           string[]
         >`(SELECT array_agg(DISTINCT m) FROM unnest(amr || ARRAY[${method}, 'mfa']::text[]) AS m)`,
@@ -274,6 +276,7 @@ export class KyselySessionStore implements SessionStore, SessionReader {
         's.last_seen_at',
         's.amr',
         's.created_at as auth_time',
+        's.mfa_verified_at',
         'u.id',
         'u.login',
         'u.display_name',
@@ -301,6 +304,7 @@ export class KyselySessionStore implements SessionStore, SessionReader {
           mfaComplete: r.mfa_complete,
           amr: r.amr,
           authTime: r.auth_time,
+          mfaAt: r.mfa_verified_at,
         }
       : null;
   }

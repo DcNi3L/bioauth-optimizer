@@ -173,9 +173,12 @@ function accessNote(a: RouteAccess): string {
   if (a.public) parts.push('**Доступ:** без входа.');
   else if (a.roles)
     parts.push(
-      `**Доступ:** ${a.roles.map((r) => `${ROLE_NAMES[r] ?? r} (\`${r}\`)`).join(', ')}${a.mfa ? ' · двухфакторный вход' : ''}.`,
+      `**Доступ:** ${a.roles.map((r) => `${ROLE_NAMES[r] ?? r} (\`${r}\`)`).join(', ')}${a.stepUp ? ' · свежая проверка второго фактора (≤ 5 мин)' : a.mfa ? ' · двухфакторный вход' : ''}.`,
     );
-  else parts.push(`**Доступ:** любой вошедший пользователь${a.mfa ? ' · двухфакторный вход' : ''}.`);
+  else
+    parts.push(
+      `**Доступ:** любой вошедший пользователь${a.stepUp ? ' · свежая проверка второго фактора (≤ 5 мин)' : a.mfa ? ' · двухфакторный вход' : ''}.`,
+    );
   if (a.perMinute !== null)
     parts.push(`**Частота:** не более ${a.perMinute} запросов в минуту с одного адреса.`);
   return parts.join(' ');
@@ -329,7 +332,13 @@ export function enrichOpenApi(app: INestApplication, doc: OpenAPIObject, issuer:
 
       if (a) {
         op.security = a.public ? [] : [{ cookieAuth: [] }];
-        op['x-access'] = { public: a.public, roles: a.roles, mfa: a.mfa, perMinute: a.perMinute };
+        op['x-access'] = {
+          public: a.public,
+          roles: a.roles,
+          mfa: a.mfa,
+          stepUp: a.stepUp,
+          perMinute: a.perMinute,
+        };
       }
       const json = body?.content?.['application/json'];
       if (extra?.example !== undefined && json) json.example = extra.example;

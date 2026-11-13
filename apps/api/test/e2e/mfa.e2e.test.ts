@@ -194,6 +194,42 @@ describeDb('API: приложение-аутентификатор (TOTP) и к�
     await s.get(`${API}/admin/users`).expect(403); // роль участника не допускает админку
   });
 
+  it('повторное подтверждение (#41): опасное действие требует второго фактора не старше 5 минут', async () => {
+    at(200);
+    const a = ctx.agent();
+    await loginStaff(a);
+    const setup = await a.post(`${API}/mfa/totp/setup`).expect(200);
+    const sec = base32Decode(setup.body.secret as string);
+    const codeAt = (steps: number) => hotp(sec, totpCounter(base) + steps);
+    await a
+      .post(`${API}/mfa/totp/confirm`)
+      .send({ code: codeAt(200) })
+      .expect(200);
+    const users = await a.get(`${API}/admin/users`).expect(200);
+    const target = (users.body.items ?? users.body).find((u: { login: string }) => u.login === 'subj-totp');
+    const patch = (name: string) => a.patch(`${API}/admin/users/${target.id}`).send({ displayName: name });
+    await patch('Участник 1').expect(200);
+
+    at(200 + 11); // 5 мин 30 с спустя
+    const r = await patch('Участник 2').expect(403);
+    expect(r.body.code).toBe('step-up-required');
+    await mfaGate(a).expect(400); // обычные действия админки по-прежнему доступны
+
+    const events = async () =>
+      (await ctx.pg.query<{ n: number }>('SELECT count(*)::int AS n FROM login_event')).rows[0]!.n;
+    const before = await events();
+    await a
+      .post(`${API}/mfa/totp/verify`)
+      .send({ code: codeAt(211) })
+      .expect(200);
+    expect(await events()).toBe(before); // повторная проверка — не новый вход
+    await patch('Участник 2').expect(200);
+    const audit = await ctx.pg.query(
+      "SELECT details FROM audit_event WHERE action = 'staff.login' ORDER BY seq DESC LIMIT 1",
+    );
+    expect(audit.rows[0].details).toEqual({ factor: 'totp', stepUp: true });
+  });
+
   it('ротация ключа (#50): секреты TOTP перешифрованы активным ключом, содержимое то же', async () => {
     const oldBox = new AesGcmSecretBox(loadConfig({ DATABASE_URL: DB_URL! }));
     const keys = JSON.stringify({

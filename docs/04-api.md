@@ -339,6 +339,11 @@ POST /oidc/token  grant_type=authorization_code&code=…&redirect_uri=…&code_v
 | `POST /keystroke/verify`        | Один ввод фразы → `{accepted, distance, threshold, score}`; 5 отказов подряд — `429` на 5 минут                    |
 | `DELETE /keystroke`             | Удалить ритм набора (отзыв согласия удаляет его тоже)                                                              |
 
+**Повторное подтверждение (step-up).** Смена роли (`PATCH /admin/users/{id}`), изменение и удаление клиента OIDC,
+утверждение и откат политики, удаление passkey сотрудником требуют второго фактора, проверенного не более
+`STEP_UP_MAX_AGE_SEC` (300 с) назад. Иначе — `403` с `code: step-up-required`: повторите `POST /webauthn/staff/verify`,
+`POST /mfa/totp/verify` или `POST /mfa/recovery/verify` и запрос. См. [ADR-0021](adr/0021-step-up.md).
+
 Ритм: `code` — `KeyboardEvent.code` (физическая клавиша, не зависит от раскладки), `down`/`up` — миллисекунды от начала
 ввода. Ошибки `422`: `KEYSTROKE_LENGTH`, `KEYSTROKE_CODES` (другая фраза, исправления), `KEYSTROKE_TIMING`, `KEYSTROKE_ROBOTIC`
 (слишком ровные паузы). Подробности и обоснование — [ADR-0020](adr/0020-totp-recovery-keystroke.md).

@@ -88,12 +88,21 @@ export class MfaService {
     if (!row?.confirmedAt) throw new ValidationError('приложение-аутентификатор не включено', 'code');
     await this.checkCode(user, row, code, true);
     await this.sessions.completeMfa(user.sessionId, 'otp');
-    await this.events.record({ userId: user.id, success: true, method: 'totp', amr: ['pwd', 'otp', 'mfa'] });
+    // Повторная проверка в уже полной сессии (#41) — не новый вход: в статистику входов не попадает.
+    const stepUp = user.mfaComplete;
+    if (!stepUp) {
+      await this.events.record({
+        userId: user.id,
+        success: true,
+        method: 'totp',
+        amr: ['pwd', 'otp', 'mfa'],
+      });
+    }
     await this.audit.record({
       actorId: user.id,
       action: 'staff.login',
       target: user.id,
-      details: { factor: 'totp' },
+      details: stepUp ? { factor: 'totp', stepUp } : { factor: 'totp' },
     });
     return { mfaComplete: true };
   }
