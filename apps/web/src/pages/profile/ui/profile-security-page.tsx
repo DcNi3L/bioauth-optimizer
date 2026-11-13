@@ -3,6 +3,7 @@
 import { useSessions } from '@/entities/account';
 import { useViewer } from '@/entities/viewer';
 import { RevokeOthersButton } from '@/features/account/manage-sessions';
+import { MfaPanel } from '@/features/manage-mfa';
 import { RegisterPasskey } from '@/features/register-passkey';
 import { useT } from '@/shared/i18n';
 import { ApiErrorNotice, Badge, Panel, Skeleton } from '@/shared/ui';
@@ -29,6 +30,9 @@ export function ProfileSecurityPage() {
         }
       >
         <RegisterPasskey />
+      </Panel>
+      <Panel title={t('mfa.title')} description={t('mfa.desc')}>
+        <MfaPanel />
       </Panel>
       <Panel
         title={t('profile.sessions.title')}

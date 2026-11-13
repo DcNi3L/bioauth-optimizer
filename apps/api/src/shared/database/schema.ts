@@ -118,6 +118,26 @@ export interface WebauthnCredentialTable {
   last_used_at: Date | null;
 }
 
+export interface UserTotpTable {
+  user_id: string;
+  secret_enc: Buffer;
+  iv: Buffer;
+  key_id: string;
+  confirmed_at: Date | null;
+  last_counter: ColumnType<string, number | string | undefined, number | string>;
+  failed_attempts: Generated<number>;
+  locked_until: Date | null;
+  created_at: ColumnType<Date, never, never>;
+}
+
+export interface UserRecoveryCodeTable {
+  id: Generated<string>;
+  user_id: string;
+  code_hash: string;
+  used_at: Date | null;
+  created_at: ColumnType<Date, never, never>;
+}
+
 export type PolicyStatusDb = 'proposed' | 'active' | 'retired' | 'rejected';
 
 export interface AuthPolicyTable {
@@ -207,6 +227,8 @@ export interface Database {
   consent: ConsentTable;
   face_template: FaceTemplateTable;
   webauthn_credential: WebauthnCredentialTable;
+  user_totp: UserTotpTable;
+  user_recovery_code: UserRecoveryCodeTable;
   auth_policy: AuthPolicyTable;
   auth_session: AuthSessionTable;
   auth_attempt: AuthAttemptTable;
@@ -246,7 +268,7 @@ export interface AuditEventTable {
 
 // ── Учётные записи и OpenID Connect (миграция 0005) ──
 
-export type LoginMethodDb = 'register' | 'password' | 'face' | 'passkey' | 'oidc';
+export type LoginMethodDb = 'register' | 'password' | 'face' | 'passkey' | 'oidc' | 'totp' | 'recovery';
 
 export interface LoginEventTable {
   id: Generated<string>;

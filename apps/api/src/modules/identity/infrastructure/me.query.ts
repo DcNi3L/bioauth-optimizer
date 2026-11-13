@@ -18,8 +18,19 @@ export class MeQuery {
     return Number(r.n);
   }
 
+  /** Включён ли подтверждённый TOTP: он считается вторым фактором наравне с passkey. */
+  async totpEnabled(userId: string): Promise<boolean> {
+    const r = await this.db
+      .selectFrom('user_totp')
+      .select('user_id')
+      .where('user_id', '=', userId)
+      .where('confirmed_at', 'is not', null)
+      .executeTakeFirst();
+    return r !== undefined;
+  }
+
   async me(user: AuthUser): Promise<MeDto> {
-    const [consent, face, passkeys, account, avatar] = await Promise.all([
+    const [consent, face, passkeys, totp, account, avatar] = await Promise.all([
       this.db
         .selectFrom('consent')
         .select(['text_version', 'granted_at'])
@@ -32,6 +43,7 @@ export class MeQuery {
         .where('user_id', '=', user.id)
         .executeTakeFirst(),
       this.passkeyCount(user.id),
+      this.totpEnabled(user.id),
       this.db
         .selectFrom('app_user')
         .select(['email', 'created_at', 'last_login_at'])
@@ -60,6 +72,7 @@ export class MeQuery {
           }
         : null,
       passkeys,
+      totp,
       email: account.email,
       createdAt: account.created_at.toISOString(),
       lastLoginAt: account.last_login_at?.toISOString() ?? null,

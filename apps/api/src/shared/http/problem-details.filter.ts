@@ -99,7 +99,12 @@ export class ProblemDetailsFilter implements ExceptionFilter {
     if (e instanceof ConflictError)
       return { type: PROBLEM_TYPES.conflict, title: 'Конфликт', status: 409, detail: e.message };
     if (e instanceof UnauthorizedError)
-      return { type: PROBLEM_TYPES.unauthorized, title: 'Нужен вход', status: 401, detail: e.message };
+      return {
+        type: PROBLEM_TYPES.unauthorized,
+        title: e.title ?? 'Нужен вход',
+        status: 401,
+        detail: e.message,
+      };
     if (e instanceof ForbiddenError)
       return { type: PROBLEM_TYPES.forbidden, title: 'Доступ запрещён', status: 403, detail: e.message };
     if (e instanceof UnprocessableError) {

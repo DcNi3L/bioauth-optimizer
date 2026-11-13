@@ -112,8 +112,8 @@ export class PasswordLoginUseCase {
       throw new ForbiddenError('учётная запись отключена администратором');
     }
     await this.users.resetFailures(user.id);
-    const passkeys = await this.me.passkeyCount(user.id);
-    const mfaRequired = passkeys > 0 || this.config.REQUIRE_STAFF_PASSKEY;
+    const [passkeys, totp] = await Promise.all([this.me.passkeyCount(user.id), this.me.totpEnabled(user.id)]);
+    const mfaRequired = passkeys > 0 || totp || this.config.REQUIRE_STAFF_PASSKEY;
     await this.audit.record({
       actorId: user.id,
       action: 'staff.login',

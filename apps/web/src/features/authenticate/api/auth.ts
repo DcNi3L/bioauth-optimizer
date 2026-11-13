@@ -50,7 +50,18 @@ export async function passkeyStep(id: string): Promise<AuthStepResultDto> {
 export async function staffLogin(login: string, password: string) {
   const r = await apiSend<{ mfaRequired: boolean }>('POST', '/identity/login', { login, password });
   const me = await apiGet('/identity/me', meSchema);
-  return { mfaRequired: r.mfaRequired, passkeys: me.passkeys };
+  return { mfaRequired: r.mfaRequired, passkeys: me.passkeys, totp: me.totp };
+}
+
+/** Второй фактор сотрудника: код из приложения-аутентификатора. */
+export function staffTotp(code: string): Promise<void> {
+  return apiSend('POST', '/mfa/totp/verify', { code });
+}
+
+/** Запасной путь: одноразовый код восстановления; возвращает, сколько кодов осталось. */
+export async function staffRecovery(code: string): Promise<number> {
+  const r = await apiSend<{ recoveryCodesLeft: number }>('POST', '/mfa/recovery/verify', { code });
+  return r.recoveryCodesLeft;
 }
 
 export async function staffPasskey(): Promise<void> {

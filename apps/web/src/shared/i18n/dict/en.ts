@@ -88,7 +88,7 @@ export const en: Dict = {
     },
   },
   auth: {
-    passwordAccepted: 'Password accepted. Confirm sign-in with your passkey.',
+    passwordAccepted: 'Password accepted. Confirm sign-in with a second factor.',
     login: 'Login',
     password: 'Password',
     continue: 'Continue',
@@ -116,7 +116,7 @@ export const en: Dict = {
     subtitle: 'Sign in under the active policy: face check with random commands and, if required, a passkey.',
     noAccount: 'No account?',
     register: 'Register',
-    staffIntro: 'Administrator, researcher or auditor sign-in: password, then passkey.',
+    staffIntro: 'Administrator, researcher or auditor sign-in: password, then a passkey or an app code.',
     reasonText: {
       FACE_QUALITY: 'Frames were unclear or the face was outside the outline.',
       NO_MATCH: 'The face did not match the enrolled template.',

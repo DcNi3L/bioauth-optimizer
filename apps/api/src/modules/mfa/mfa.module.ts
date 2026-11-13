@@ -1,0 +1,17 @@
+import { Module } from '@nestjs/common';
+
+import { MfaService } from './application/mfa.service';
+import { MFA_REPOSITORY, SECRET_BOX } from './application/ports';
+import { AesGcmSecretBox } from './infrastructure/aes-gcm-secret-box';
+import { KyselyMfaRepository } from './infrastructure/kysely-mfa.repository';
+import { MfaController } from './presentation/mfa.controller';
+
+@Module({
+  controllers: [MfaController],
+  providers: [
+    { provide: MFA_REPOSITORY, useClass: KyselyMfaRepository },
+    { provide: SECRET_BOX, useClass: AesGcmSecretBox },
+    MfaService,
+  ],
+})
+export class MfaModule {}

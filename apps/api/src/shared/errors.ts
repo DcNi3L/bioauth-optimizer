@@ -36,6 +36,13 @@ export class InternalConsistencyError extends Error {
 /** Нет действующей сессии (HTTP 401). */
 export class UnauthorizedError extends Error {
   override name = 'UnauthorizedError';
+  /** Заголовок для проблем, где «Нужен вход» вводит в заблуждение (например, неверный одноразовый код). */
+  constructor(
+    message: string,
+    readonly title?: string,
+  ) {
+    super(message);
+  }
 }
 
 /** Сессия есть, но прав недостаточно, или запрос с чужого источника (HTTP 403). */

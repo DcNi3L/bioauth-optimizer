@@ -36,11 +36,13 @@ export const meSchema = z.object({
   consent: z.object({ textVersion: z.string(), grantedAt: z.string() }).nullable(),
   face: z.object({ modelVersion: z.string(), samples: z.number().int(), updatedAt: z.string() }).nullable(),
   passkeys: z.number().int(),
+  /** Включено приложение-аутентификатор (TOTP). */
+  totp: z.boolean(),
   email: z.string().nullable(),
   createdAt: z.string(),
   lastLoginAt: z.string().nullable(),
   avatarUrl: z.string().nullable(),
-  /** Способы проверки текущей сессии (RFC 8176): face, hwk (passkey), pwd, mfa. */
+  /** Способы проверки текущей сессии (RFC 8176): face, hwk (passkey), otp (TOTP и коды восстановления), pwd, mfa. */
   amr: z.array(z.string()),
 });
 export type MeDto = z.infer<typeof meSchema>;
@@ -267,7 +269,15 @@ export const userSessionSchema = z.object({
 });
 export type UserSessionDto = z.infer<typeof userSessionSchema>;
 
-export const loginMethodSchema = z.enum(['register', 'password', 'face', 'passkey', 'oidc']);
+export const loginMethodSchema = z.enum([
+  'register',
+  'password',
+  'face',
+  'passkey',
+  'oidc',
+  'totp',
+  'recovery',
+]);
 
 export const loginEventSchema = z.object({
   id: z.uuid(),

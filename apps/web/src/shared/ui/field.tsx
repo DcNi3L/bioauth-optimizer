@@ -1,6 +1,7 @@
 import {
   type InputHTMLAttributes,
   type ReactNode,
+  type Ref,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
   useId,
@@ -48,6 +49,7 @@ export function TextField({
   className,
   ...props
 }: Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> & {
+  ref?: Ref<HTMLInputElement>;
   label: ReactNode;
   hint?: ReactNode;
   error?: string;

@@ -1,0 +1,15 @@
+/* Печать кодов восстановления: на бумаге остаются только сами коды. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .recovery-print,
+  .recovery-print * {
+    visibility: visible;
+  }
+  .recovery-print {
+    position: absolute;
+    inset: 0;
+    padding: 24px;
+  }
+}

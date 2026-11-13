@@ -44,7 +44,7 @@ export interface UserRepository {
 export interface LoginEventInput {
   readonly userId: string;
   readonly success: boolean;
-  readonly method: 'register' | 'password' | 'face' | 'passkey' | 'oidc';
+  readonly method: 'register' | 'password' | 'face' | 'passkey' | 'oidc' | 'totp' | 'recovery';
   readonly amr?: readonly string[];
   readonly reason?: string | null;
   readonly clientId?: string | null;

@@ -13,6 +13,7 @@ import { ExperimentsModule } from './modules/experiments/experiments.module';
 import { FactorCatalogsModule } from './modules/factor-catalogs/factor-catalogs.module';
 import { FactorSelectionModule } from './modules/factor-selection/factor-selection.module';
 import { IdentityModule } from './modules/identity/identity.module';
+import { MfaModule } from './modules/mfa/mfa.module';
 import { OidcModule } from './modules/oidc/oidc.module';
 import { PolicyModule } from './modules/policy/policy.module';
 import { ScoreDatasetsModule } from './modules/score-datasets/score-datasets.module';
@@ -42,6 +43,7 @@ import { LoggingModule } from './shared/logging/logging.module';
     PolicyModule,
     ConsentModule,
     WebAuthnModule,
+    MfaModule,
     EnrollmentModule,
     VerificationModule,
     CalibrationModule,

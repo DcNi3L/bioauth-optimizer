@@ -3,6 +3,7 @@ export { Avatar, initials } from './avatar';
 export { Badge, type BadgeTone } from './badge';
 export { Button } from './button';
 export { Checkbox } from './checkbox';
+export { CodeField } from './code-field';
 export { Dialog } from './dialog';
 export { EChart, type EChartHandle } from './echart';
 export { EmptyState, Skeleton } from './empty-state';
