@@ -58,7 +58,7 @@ jobs:
           for i in $(seq 1 30); do curl -fsS http://localhost:4000/health/live >/dev/null && break; sleep 1; done
           curl -fsS http://localhost:4000/api/openapi.json -o "$RUNNER_TEMP/openapi.json"
       - run: node scripts/build-pages.mjs --out _site --openapi "$RUNNER_TEMP/openapi.json"
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
