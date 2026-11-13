@@ -64,6 +64,7 @@ export function PadTestCapture() {
   return (
     <div className="flex flex-col gap-4">
       <FaceViewport
+        voice={false}
         videoRef={videoRef}
         state={state}
         prompt={

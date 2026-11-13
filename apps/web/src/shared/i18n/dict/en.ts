@@ -30,6 +30,9 @@ export const en: Dict = {
       insecure: 'The camera works only over HTTPS or on localhost.',
       label: 'Camera image',
       enable: 'Turn on camera',
+      voiceOn: 'Read commands aloud',
+      voiceOff: 'Stop reading aloud',
+      noVoice: 'No system voice for this language — the browser will use its default voice',
     },
     issue: {
       NO_FACE: 'No face found — face the camera',

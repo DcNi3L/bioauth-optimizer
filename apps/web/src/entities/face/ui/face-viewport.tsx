@@ -3,8 +3,9 @@
 import type { LivenessCommand } from '@bioauth/contracts';
 import { type ReactNode, type RefObject, useEffect, useState } from 'react';
 
-import { type TKey, useT } from '@/shared/i18n';
+import { type TKey, useI18n, useT } from '@/shared/i18n';
 import type { CameraState } from '@/shared/lib/camera';
+import { useSpeech } from '@/shared/lib/speech';
 
 import { type GuideTone, HeadGuide } from './head-guide';
 
@@ -53,6 +54,7 @@ export function FaceViewport({
   guide,
   overall,
   steps,
+  voice = true,
 }: {
   videoRef: RefObject<HTMLVideoElement | null>;
   state: CameraState;
@@ -60,8 +62,15 @@ export function FaceViewport({
   guide?: ViewportGuide;
   overall?: number;
   steps?: readonly ViewportStep[];
+  /** Кнопка озвучки подсказок (#42); выключите для экранов без команд. */
+  voice?: boolean;
 }) {
   const t = useT();
+  const { locale } = useI18n();
+  const speech = useSpeech(locale);
+  const spoken = state === 'ready' && typeof prompt === 'string' ? prompt : null;
+  const { announce } = speech;
+  useEffect(() => announce(spoken), [announce, spoken]);
   const overlay = STATE_KEY[state];
   const [aspect, setAspect] = useState(4 / 3);
   useEffect(() => {
@@ -107,6 +116,40 @@ export function FaceViewport({
               {prompt}
             </p>
           </div>
+        )}
+        {voice && speech.supported && state === 'ready' && (
+          <button
+            type="button"
+            onClick={speech.toggle}
+            aria-pressed={speech.enabled}
+            aria-label={speech.enabled ? t('face.camera.voiceOff') : t('face.camera.voiceOn')}
+            title={
+              speech.enabled && !speech.hasVoice
+                ? t('face.camera.noVoice')
+                : speech.enabled
+                  ? t('face.camera.voiceOff')
+                  : t('face.camera.voiceOn')
+            }
+            className={`absolute bottom-4 right-3 flex size-10 items-center justify-center rounded-full shadow backdrop-blur transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+              speech.enabled ? 'bg-white/90 text-[#0b1118]' : 'bg-black/55 text-white'
+            }`}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="size-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden
+            >
+              <path d="M11 5 6 9H3v6h3l5 4z" strokeLinejoin="round" />
+              {speech.enabled ? (
+                <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" strokeLinecap="round" />
+              ) : (
+                <path d="m16 9 5 6m0-6-5 6" strokeLinecap="round" />
+              )}
+            </svg>
+          </button>
         )}
         {overlay && (
           <p className="absolute inset-0 flex items-center justify-center px-8 text-center text-sm text-white/90">
