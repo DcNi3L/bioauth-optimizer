@@ -1,3 +1,5 @@
+# Обновления зависимостей. Мажорные версии, которые требуют перевода на ESM или ждут поддержки плагинов, перечислены
+# в ignore с причиной; cooldown согласован с minimumReleaseAge в pnpm-workspace.yaml.
 version: 2
 updates:
   - package-ecosystem: npm
