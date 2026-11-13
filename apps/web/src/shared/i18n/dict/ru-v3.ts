@@ -83,8 +83,9 @@ export const ruV3 = {
     oidc: 'через приложение',
     totp: 'код из приложения',
     recovery: 'код восстановления',
+    keystroke: 'ритм набора',
   },
-  amr: { face: 'лицо', hwk: 'passkey', otp: 'код', pwd: 'пароль', mfa: '2FA' },
+  amr: { face: 'лицо', hwk: 'passkey', otp: 'код', pwd: 'пароль', mfa: '2FA', kbd: 'ритм набора' },
   time: {
     justNow: 'только что',
     minutes: '{n} мин назад',
@@ -158,6 +159,9 @@ export const ruV3 = {
       ariaErrors: 'График ошибок FAR, FRR и стоимости E в зависимости от порога',
     },
     factors: {
+      toPolicy: 'Предложить политику входа с этим составом',
+      toPolicyHint:
+        'Состав из поддерживаемых шагов (лицо, passkey, код из приложения, ритм набора) можно превратить в предложение политики; включит его администратор.',
       title: 'Состав факторов',
       subtitle:
         'Целочисленная задача (2)–(3) статьи СРО1: FAR = ∏FARᵢ, FRR = 1 − ∏(1 − FRRᵢ), задержка и стоимость складываются.',
@@ -286,6 +290,7 @@ export const ruV3 = {
       factorsDesc: 'FRR и время по журналу попыток; FAR passkey — заявленный производителем.',
       modalityFace: 'Лицо (сходство)',
       modalityPad: 'PAD («живость»)',
+      modalityKeystroke: 'Ритм набора (1 − d/4)',
       modalityFingerprint: 'Отпечаток',
       sourceEnroll: 'регистрация',
       sourceLogin: 'входы',
@@ -309,6 +314,7 @@ export const ruV3 = {
       factorsEmpty: 'Попыток входа ещё нет — измерять нечего.',
     },
     calibration: {
+      tauKd: 'τ_kd (ритм набора)',
       roleNotice:
         'Калибровку запускают администратор и исследователь; аудитор видит результаты в обзоре и журнале.',
       title: 'Калибровка порога',
@@ -463,6 +469,8 @@ export const ruV3 = {
       statusRetired: 'выведена',
       statusRejected: 'отклонена',
       stepFace: 'лицо: τ_face {face}, τ_pad {pad}, команд {n}',
+      stepKeystroke: 'ритм набора: τ_kd {kd}',
+      stepTotp: 'код из приложения',
       stepUncalibrated: '(не откалибровано)',
       noteLabel: 'Комментарий к решению',
       approve: 'Утвердить v{n}',
@@ -474,6 +482,16 @@ export const ruV3 = {
       arrfr:
         'Правила биометрической проверки АРРФР требуют не менее трёх случайных команд — меньше допустимо только для испытаний.',
       passkeyStep: 'Второй шаг — passkey',
+      step1: 'Шаг 1',
+      step2: 'Шаг 2',
+      noStep: '— нет —',
+      factorFace: 'Лицо + «живость»',
+      factorPasskey: 'Passkey',
+      factorTotp: 'Код из приложения',
+      factorKeystroke: 'Ритм набора',
+      tauKd: 'Порог ритма τ_kd',
+      tauKdHint: 'Расстояние 0,2–4; меньше — строже. По умолчанию 1,1.',
+      noCamera: 'Камера для входа по этой политике не нужна.',
       rationale: 'Обоснование',
       proposed: 'Предложена версия {version}. Её должен утвердить администратор.',
       propose: 'Предложить политику',
@@ -490,6 +508,8 @@ export const ruV3 = {
       cancel: 'отмена',
       face: 'лицо',
       passkey: 'passkey',
+      totp: 'код из приложения',
+      keystroke: 'ритм набора',
       attempts: 'Попыток',
       rejectShare: 'Доля отказов',
       p95: 'p95 времени',

@@ -1,4 +1,4 @@
-import type { AttemptDto, CalibrationDataDto, DriftAlertDto } from '@bioauth/contracts';
+import type { AttemptDto, CalibrationDataDto, DriftAlertDto, PolicyFactor } from '@bioauth/contracts';
 
 import type { ModalityDb, SampleKindDb } from '../../../shared/database/schema';
 
@@ -11,7 +11,7 @@ export interface Period {
 }
 
 export interface AttemptFilter extends Period {
-  readonly factor: 'face' | 'passkey' | null;
+  readonly factor: PolicyFactor | null;
   readonly outcome: 'accept' | 'reject' | 'error' | 'cancel' | null;
   readonly limit: number;
   /** Курсор с точностью до микросекунд (timestamptz), иначе записи одной миллисекунды теряются. */
@@ -19,7 +19,7 @@ export interface AttemptFilter extends Period {
 }
 
 export interface FactorAttemptStats {
-  readonly factor: 'face' | 'passkey';
+  readonly factor: PolicyFactor;
   readonly total: number;
   readonly accepted: number;
   readonly rejected: number;
@@ -53,8 +53,12 @@ export interface CalibrationQuery {
   }>;
   attempts(filter: AttemptFilter): Promise<(Omit<AttemptDto, 'at'> & { at: Date; cursorAt: string })[]>;
   attemptStats(period: Period): Promise<FactorAttemptStats[]>;
-  attemptDurations(factor: 'face' | 'passkey', period: Period): Promise<number[]>;
+  attemptDurations(factor: PolicyFactor, period: Period): Promise<number[]>;
   thresholdExperiment(id: string): Promise<ExperimentSummary | null>;
+  /** Коды оптимального состава из эксперимента FACTOR_SELECTION; null — нет такого эксперимента или нет оптимума. */
+  selectionOptimum(
+    id: string,
+  ): Promise<{ codes: string[]; costs: { cFA: number; cFR: number } | null } | null>;
   /** Версия модели с наибольшим числом genuine-оценок лица за период. */
   dominantFaceModel(period: Period): Promise<string | null>;
 }

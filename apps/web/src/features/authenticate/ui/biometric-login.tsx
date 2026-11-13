@@ -4,16 +4,24 @@ import type { AuthSessionDto, AuthStepResultDto, LivenessCommand } from '@bioaut
 import { useRef, useState } from 'react';
 
 import { FaceViewport, type ViewportGuide, type ViewportStep } from '@/entities/face';
+import { RhythmField } from '@/entities/keystroke';
 import { useRefreshViewer } from '@/entities/viewer';
 import { ApiError } from '@/shared/api';
 import { type TKey, useI18n } from '@/shared/i18n';
 import { grabPair, sleep, useCamera } from '@/shared/lib/camera';
-import { ApiErrorNotice, Button, Notice, TextField } from '@/shared/ui';
+import { ApiErrorNotice, Button, CodeField, Notice, TextField } from '@/shared/ui';
 
-import { passkeyStep, posePreview, startSession, submitFace } from '../api/auth';
+import {
+  passkeyStep,
+  posePreview,
+  startSession,
+  submitFace,
+  submitKeystrokeStep,
+  submitTotpStep,
+} from '../api/auth';
 import { CaptureAborted, guidedCapture, type GuideState } from '../model/guided-capture';
 
-type Phase = 'login' | 'face' | 'passkey' | 'done' | 'failed';
+type Phase = 'login' | 'face' | 'passkey' | 'totp' | 'keystroke' | 'done' | 'failed';
 
 const ALIGN_KEY: Record<string, TKey> = {
   closer: 'face.guide.alignCloser',
@@ -72,7 +80,10 @@ function present(
   return { text: t('face.guide.checking'), guide: { ...base, command: null, progress: 1, tone: 'ok' } };
 }
 
-/** Вход субъекта по активной политике (UC-4): лицо с управляемыми командами, затем passkey, если он в политике. */
+/**
+ * Вход субъекта по активной политике (UC-4): шаги в порядке политики — лицо с управляемыми командами, passkey,
+ * код из приложения или ритм набора (#48).
+ */
 export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
   const { t, locale } = useI18n();
   const { videoRef, state, start, stop } = useCamera();
@@ -87,6 +98,8 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [code, setCode] = useState('');
+  const [round, setRound] = useState(0);
 
   function nextPhase(s: AuthSessionDto, r: AuthStepResultDto | null) {
     if (r?.outcome === 'accepted') {
@@ -103,7 +116,10 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
     }
     if (r?.commands) setCommands(r.commands);
     const step = s.steps[r?.currentStep ?? 0];
-    setPhase(step?.factor === 'passkey' ? 'passkey' : 'face');
+    if (step?.factor !== 'face') stop();
+    setCode('');
+    setRound((x) => x + 1);
+    setPhase(step?.factor ?? 'face');
   }
 
   async function begin() {
@@ -176,6 +192,22 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
       nextPhase(session, r);
     } catch (err) {
       setError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function runStep(fn: () => Promise<AuthStepResultDto>) {
+    if (!session) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fn();
+      setResult(r);
+      nextPhase(session, r);
+    } catch (err) {
+      setError(err);
+      setRound((x) => x + 1);
     } finally {
       setBusy(false);
     }
@@ -283,9 +315,64 @@ export function BiometricLogin({ onSuccess }: { onSuccess?: () => void }) {
         </div>
       )}
 
+      {phase !== 'face' && result?.outcome === 'continue' && (
+        <Notice tone="success">
+          {session?.steps[result.currentStep - 1]?.factor === 'face'
+            ? t('auth.faceAccepted')
+            : t('auth.stepAccepted')}
+        </Notice>
+      )}
+
+      {phase === 'totp' && session && (
+        <form
+          className="flex flex-col gap-3 sm:max-w-sm"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void runStep(() => submitTotpStep(session.sessionId, code));
+          }}
+        >
+          <p className="text-sm">{t('auth.totpIntro')}</p>
+          <CodeField
+            key={round}
+            label={t('mfa.codeLabel')}
+            hint={t('mfa.codeHint')}
+            value={code}
+            onChange={setCode}
+            focusOnMount
+          />
+          <div className="flex gap-2">
+            <Button type="submit" busy={busy} disabled={code.length !== 6}>
+              {t('auth.totpSubmit')}
+            </Button>
+            <Button variant="secondary" onClick={reset} disabled={busy}>
+              {t('common.cancel')}
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {phase === 'keystroke' && session && (
+        <div className="flex flex-col gap-3 sm:max-w-lg">
+          <p className="text-sm">{t('auth.keystrokeIntro')}</p>
+          <RhythmField
+            phrase={(() => {
+              const s = session.steps.find((x) => x.factor === 'keystroke');
+              return s?.factor === 'keystroke' ? s.phrase : '';
+            })()}
+            disabled={busy}
+            resetKey={round}
+            onSample={(sample) => void runStep(() => submitKeystrokeStep(session.sessionId, sample))}
+          />
+          <div>
+            <Button variant="secondary" onClick={reset} disabled={busy}>
+              {t('common.cancel')}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {phase === 'passkey' && (
         <div className="flex flex-col gap-3">
-          {result?.outcome === 'continue' && <Notice tone="success">{t('auth.faceAccepted')}</Notice>}
           <p className="text-sm">{t('auth.passkeyIntro')}</p>
           <div className="flex gap-2">
             <Button onClick={() => void runPasskey()} busy={busy}>

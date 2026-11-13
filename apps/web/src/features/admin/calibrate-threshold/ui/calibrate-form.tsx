@@ -56,6 +56,7 @@ export function CalibrateForm({
         options={[
           { value: 'face', label: t('algo.calibration.tauFace') },
           { value: 'pad', label: t('algo.calibration.tauPad') },
+          { value: 'keystroke', label: t('algo.calibration.tauKd') },
         ]}
       />
       <SelectField
@@ -64,7 +65,7 @@ export function CalibrateForm({
         onChange={(e) => setModelVersion(e.target.value)}
         hint={
           current
-            ? t(modality === 'face' ? 'algo.calibration.countsFace' : 'algo.calibration.countsPad', {
+            ? t(modality === 'pad' ? 'algo.calibration.countsPad' : 'algo.calibration.countsFace', {
                 pos: current.positives,
                 neg: current.negatives,
               })

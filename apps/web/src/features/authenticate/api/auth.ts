@@ -5,6 +5,7 @@ import {
   authSessionSchema,
   type AuthStepResultDto,
   authStepResultSchema,
+  type KeystrokeSample,
   meSchema,
   type PosePreviewDto,
   posePreviewSchema,
@@ -23,6 +24,14 @@ export const posePreview = (
   id: string,
   frame: { image: string; width: number; height: number },
 ): Promise<PosePreviewDto> => apiSend('POST', `/auth/sessions/${id}/pose`, frame, posePreviewSchema);
+
+/** Шаг «код из приложения» (#48). */
+export const submitTotpStep = (id: string, code: string): Promise<AuthStepResultDto> =>
+  apiSend('POST', `/auth/sessions/${id}/totp`, { code }, authStepResultSchema);
+
+/** Шаг «ритм набора» (#48): один ввод фразы. */
+export const submitKeystrokeStep = (id: string, sample: KeystrokeSample): Promise<AuthStepResultDto> =>
+  apiSend('POST', `/auth/sessions/${id}/keystroke`, sample, authStepResultSchema);
 
 export const submitFace = (id: string, body: SubmitFaceRequest): Promise<AuthStepResultDto> =>
   apiSend('POST', `/auth/sessions/${id}/face`, body, authStepResultSchema);

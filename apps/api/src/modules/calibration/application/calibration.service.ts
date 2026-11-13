@@ -2,6 +2,7 @@ import type {
   CalibrateResponseDto,
   CalibrationOverviewDto,
   FaceStep,
+  KeystrokeStep,
   MeasuredFactorsDto,
   PolicyStep,
   thresholdOptimizeRequestSchema,
@@ -14,6 +15,7 @@ import { canonicalJson, sha256Hex } from '../../../shared/canonical-json';
 import { APP_CONFIG, type AppConfig } from '../../../shared/config/env';
 import { NotFoundError, UnprocessableError } from '../../../shared/errors';
 import { CreateFactorCatalogUseCase } from '../../factor-catalogs/application/factor-catalog.use-cases';
+import { DEFAULT_THRESHOLD as DEFAULT_KD_THRESHOLD, KEYSTROKE_MODEL } from '../../keystroke/domain/keystroke';
 import { PolicyService } from '../../policy/application/policy.use-cases';
 import { POLICY_READER, type PolicyReader } from '../../policy/application/ports';
 import {
@@ -32,10 +34,15 @@ import { confirmedRate, pointAt, quantile, wilson } from './stats';
 
 type ThresholdCommand = z.output<typeof thresholdOptimizeRequestSchema>;
 
+const MODALITY_NAMES = { face: 'лица', pad: 'PAD', keystroke: 'ритма набора' } as const;
+/** Порог расстояния ритма τ_kd ↔ порог оценки 1 − d/4 (оценка растёт с похожестью, как у лица). */
+export const kdToScore = (tauKd: number): number => 1 - tauKd / 4;
+export const scoreToKd = (tau: number): number => Math.min(4, Math.max(0.2, 4 * (1 - tau)));
+
 export const MIN_SAMPLES = 5;
 
 export interface CalibrateCommand {
-  readonly modality: 'face' | 'pad';
+  readonly modality: 'face' | 'pad' | 'keystroke';
   readonly modelVersion: string;
   readonly from: string | null;
   readonly to: string | null;
@@ -73,6 +80,10 @@ export class CalibrationService {
     return steps.find((s): s is FaceStep => s.factor === 'face');
   }
 
+  private static keystroke(steps: readonly PolicyStep[]): KeystrokeStep | undefined {
+    return steps.find((s): s is KeystrokeStep => s.factor === 'keystroke');
+  }
+
   async overview(): Promise<CalibrationOverviewDto> {
     const [data, policy, drift] = await Promise.all([
       this.query.overview(),
@@ -87,6 +98,7 @@ export class CalibrationService {
         version: policy.version,
         tauFace: face?.tauFace ?? null,
         tauPad: face?.tauPad ?? null,
+        tauKd: CalibrationService.keystroke(policy.steps)?.tauKd ?? null,
         calibrated: face?.calibrated ?? false,
         costs: policy.costs,
       },
@@ -97,9 +109,9 @@ export class CalibrationService {
   async calibrate(cmd: CalibrateCommand): Promise<CalibrateResponseDto> {
     const p = period(cmd.from, cmd.to);
     const [modality, pos, neg] =
-      cmd.modality === 'face'
-        ? (['face', 'genuine', 'impostor'] as const)
-        : (['pad', 'bonafide', 'attack'] as const);
+      cmd.modality === 'pad'
+        ? (['pad', 'bonafide', 'attack'] as const)
+        : ([cmd.modality, 'genuine', 'impostor'] as const);
     const [positives, negatives] = await Promise.all([
       this.query.scores(modality, cmd.modelVersion, pos, p),
       this.query.scores(modality, cmd.modelVersion, neg, p),
@@ -125,7 +137,7 @@ export class CalibrationService {
       }),
     );
     const datasetId = await this.datasets.saveIfAbsent({
-      name: `Калибровка ${modality === 'face' ? 'лица' : 'PAD'} · ${cmd.modelVersion}`.slice(0, 200),
+      name: `Калибровка ${MODALITY_NAMES[modality]} · ${cmd.modelVersion}`.slice(0, 200),
       originalFilename: `calibration-${modality}.scores`,
       sha256: sha,
       genuine: positives,
@@ -140,7 +152,10 @@ export class CalibrationService {
     const threshold = await this.optimizeThreshold.execute(command);
 
     const face = CalibrationService.face(policy.steps);
-    const currentTau = modality === 'face' ? face?.tauFace : face?.tauPad;
+    const kd = CalibrationService.keystroke(policy.steps);
+    // Порог ритма хранится как расстояние τ_kd; в шкале оценок (1 − d/4) он равен 1 − τ_kd/4.
+    const currentTau =
+      modality === 'face' ? face?.tauFace : modality === 'pad' ? face?.tauPad : kd && kdToScore(kd.tauKd);
     const current = currentTau === undefined ? null : pointAt(positives, negatives, currentTau, costs);
     const tau = threshold.optimal.tau ?? currentTau ?? 0;
     const at = pointAt(positives, negatives, tau, costs);
@@ -171,11 +186,20 @@ export class CalibrationService {
   /** Предложение политики: пороги из экспериментов калибровки подставляются в шаги активной политики. */
   async propose(
     user: AuthUser,
-    cmd: { faceExperimentId: string | null; padExperimentId: string | null; rationale: string | null },
+    cmd: {
+      faceExperimentId: string | null;
+      padExperimentId: string | null;
+      keystrokeExperimentId?: string | null;
+      rationale: string | null;
+    },
   ) {
     const policy = await this.policies.active();
     const face = CalibrationService.face(policy.steps);
-    if (!face) throw new UnprocessableError('в активной политике нет шага «лицо»', 'NO_FACE_STEP');
+    const kdStep = CalibrationService.keystroke(policy.steps);
+    if (!face && (cmd.faceExperimentId || cmd.padExperimentId))
+      throw new UnprocessableError('в активной политике нет шага «лицо»', 'NO_FACE_STEP');
+    if (!kdStep && cmd.keystrokeExperimentId)
+      throw new UnprocessableError('в активной политике нет шага «ритм набора»', 'NO_KEYSTROKE_STEP');
     const load = async (id: string | null) => {
       if (!id) return null;
       const e = await this.query.thresholdExperiment(id);
@@ -188,22 +212,75 @@ export class CalibrationService {
       }
       return e;
     };
-    const [fe, pe] = await Promise.all([load(cmd.faceExperimentId), load(cmd.padExperimentId)]);
-    const next: FaceStep = {
+    const [fe, pe, ke] = await Promise.all([
+      load(cmd.faceExperimentId),
+      load(cmd.padExperimentId),
+      load(cmd.keystrokeExperimentId ?? null),
+    ]);
+    const next: FaceStep | undefined = face && {
       ...face,
       tauFace: fe?.optimalTau ?? face.tauFace,
       tauPad: pe?.optimalTau ?? face.tauPad,
-      calibrated: true,
+      calibrated: face.calibrated || !!fe || !!pe,
+    };
+    const nextKd: KeystrokeStep | undefined = kdStep && {
+      ...kdStep,
+      tauKd:
+        ke?.optimalTau === null || ke?.optimalTau === undefined ? kdStep.tauKd : scoreToKd(ke.optimalTau),
+      calibrated: kdStep.calibrated || !!ke,
     };
     const parts = [
-      fe && `τ_face ${fmt(face.tauFace)} → ${fmt(next.tauFace)}`,
-      pe && `τ_pad ${fmt(face.tauPad)} → ${fmt(next.tauPad)}`,
+      fe && face && next && `τ_face ${fmt(face.tauFace)} → ${fmt(next.tauFace)}`,
+      pe && face && next && `τ_pad ${fmt(face.tauPad)} → ${fmt(next.tauPad)}`,
+      ke && kdStep && nextKd && `τ_kd ${fmt(kdStep.tauKd)} → ${fmt(nextKd.tauKd)}`,
     ].filter(Boolean);
     return this.policyService.propose(user, {
-      steps: policy.steps.map((s) => (s.factor === 'face' ? next : s)),
-      costs: fe?.costs ?? pe?.costs ?? policy.costs,
+      steps: policy.steps.map((s) =>
+        s.factor === 'face' && next ? next : s.factor === 'keystroke' && nextKd ? nextKd : s,
+      ),
+      costs: fe?.costs ?? pe?.costs ?? ke?.costs ?? policy.costs,
       rationale: cmd.rationale ?? `Калибровка по накопленным оценкам: ${parts.join(', ')}`,
-      experimentId: fe?.id ?? pe?.id ?? null,
+      experimentId: fe?.id ?? pe?.id ?? ke?.id ?? null,
+    });
+  }
+
+  /**
+   * Предложение политики по решению оптимизатора состава факторов (#48): FACE → шаг «лицо» (пороги активной
+   * политики или начальные), KEYSTROKE → «ритм набора» (τ_kd активной политики или 1,1), PASSKEY и TOTP —
+   * без параметров. Порядок шагов: сначала биометрия, затем владение. Утверждает администратор.
+   */
+  async proposeFromSelection(user: AuthUser, cmd: { experimentId: string; rationale: string | null }) {
+    const opt = await this.query.selectionOptimum(cmd.experimentId);
+    if (!opt) throw new NotFoundError('эксперимент выбора факторов с оптимальным решением не найден');
+    const policy = await this.policies.active();
+    const face = CalibrationService.face(policy.steps);
+    const kd = CalibrationService.keystroke(policy.steps);
+    const byCode: Record<string, PolicyStep> = {
+      FACE: face ?? { factor: 'face', tauFace: 0.363, tauPad: 0.5, commands: 3, calibrated: false },
+      KEYSTROKE: kd ?? { factor: 'keystroke', tauKd: DEFAULT_KD_THRESHOLD, calibrated: false },
+      PASSKEY: { factor: 'passkey' },
+      TOTP: { factor: 'totp' },
+    };
+    const unknown = opt.codes.filter((c) => !(c in byCode));
+    if (unknown.length) {
+      throw new UnprocessableError(
+        `факторы ${unknown.join(', ')} нельзя использовать как шаги входа: поддерживаются ${Object.keys(byCode).join(', ')}`,
+        'UNSUPPORTED_FACTOR',
+      );
+    }
+    if (opt.codes.length > 2) {
+      throw new UnprocessableError(
+        `оптимум содержит ${opt.codes.length} фактора, политика допускает не более двух шагов`,
+        'TOO_MANY_STEPS',
+      );
+    }
+    const order = ['FACE', 'KEYSTROKE', 'PASSKEY', 'TOTP'];
+    const steps = [...opt.codes].sort((a, b) => order.indexOf(a) - order.indexOf(b)).map((c) => byCode[c]!);
+    return this.policyService.propose(user, {
+      steps,
+      costs: opt.costs ?? policy.costs,
+      rationale: cmd.rationale ?? `Оптимальный состав факторов: ${opt.codes.join(' + ')}`,
+      experimentId: cmd.experimentId,
     });
   }
 
@@ -266,6 +343,55 @@ export class CalibrationService {
       });
     } else {
       warnings.push('Нет попыток passkey: FRR и задержка фактора пока не измерены.');
+    }
+
+    // Код из приложения: FAR — вероятность угадать 6 цифр с окном ±1 шаг (3·10⁻⁶ за попытку), FRR и задержка — измерены.
+    const otp = stats.find((s) => s.factor === 'totp');
+    if (otp && otp.total > 0) {
+      const fails = otp.rejected + otp.cancelled;
+      factors.push({
+        code: 'TOTP',
+        name: 'Код из приложения-аутентификатора (TOTP)',
+        far: 3e-6,
+        frr: Math.min(fails / otp.total, 0.999),
+        latencyMs: otp.p50Ms ?? 0,
+        cost: 1,
+        hasPad: false,
+        provenance: 'declared',
+        attempts: otp.total,
+        frrInterval: wilson(fails, otp.total),
+        latencyP95Ms: otp.p95Ms,
+        sources: { far: 'declared', frr: 'measured', latency: 'measured' },
+        confirmedFar: null,
+      });
+    }
+
+    // Ритм набора: как лицо — FAR и FRR по genuine/impostor-оценкам при пороге политики (или пороге по умолчанию).
+    const [kGen, kImp, kDur] = await Promise.all([
+      this.query.scores('keystroke', KEYSTROKE_MODEL, 'genuine', p),
+      this.query.scores('keystroke', KEYSTROKE_MODEL, 'impostor', p),
+      this.query.attemptDurations('keystroke', p),
+    ]);
+    if (kGen.length > 0 && kImp.length > 0) {
+      const tau = kdToScore(CalibrationService.keystroke(policy.steps)?.tauKd ?? DEFAULT_KD_THRESHOLD);
+      const at = pointAt(kGen, kImp, tau, policy.costs);
+      if (kImp.length < 3 / Math.max(at.far, 1e-9))
+        warnings.push('FAR ритма набора подтверждён не полностью: мало impostor-сравнений.');
+      factors.push({
+        code: 'KEYSTROKE',
+        name: 'Ритм набора фразы',
+        far: Math.min(Math.max(confirmedRate(at.falseAccepts, kImp.length), 1e-9), 0.999),
+        frr: Math.min(at.frr, 0.999),
+        latencyMs: quantile(kDur, 0.5) ?? 0,
+        cost: 0.5,
+        hasPad: false,
+        provenance: 'measured',
+        attempts: kGen.length,
+        frrInterval: wilson(Math.round(at.frr * kGen.length), kGen.length),
+        latencyP95Ms: quantile(kDur, 0.95),
+        sources: { far: 'measured', frr: 'measured', latency: 'measured' },
+        confirmedFar: confirmedRate(at.falseAccepts, kImp.length),
+      });
     }
     return { from, to, factors, warnings };
   }

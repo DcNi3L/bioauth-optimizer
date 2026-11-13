@@ -79,4 +79,23 @@ export class KyselyKeystrokeRepository implements KeystrokeRepository {
       .where('user_id', '=', userId)
       .execute();
   }
+
+  async sampleOthers(userId: string, phrase: string, limit: number): Promise<KeystrokeRow[]> {
+    const rows = await this.db
+      .selectFrom('keystroke_template')
+      .selectAll()
+      .where('user_id', '!=', userId)
+      .where('phrase', '=', phrase)
+      .orderBy(sql`random()`)
+      .limit(limit)
+      .execute();
+    return rows.map((r) => ({
+      userId: r.user_id,
+      sealed: { ciphertext: r.ciphertext, iv: r.iv, keyId: r.key_id },
+      samples: r.samples,
+      phrase: r.phrase,
+      lockedUntil: r.locked_until,
+      updatedAt: r.updated_at,
+    }));
+  }
 }

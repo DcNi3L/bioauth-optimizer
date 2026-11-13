@@ -18,4 +18,6 @@ export interface KeystrokeRepository {
   delete(userId: string): Promise<boolean>;
   registerFailure(userId: string, threshold: number, lockUntil: Date): Promise<{ lockedUntil: Date | null }>;
   resetFailures(userId: string): Promise<void>;
+  /** До `limit` случайных шаблонов других пользователей с той же фразой — для impostor-оценок (#48). */
+  sampleOthers(userId: string, phrase: string, limit: number): Promise<KeystrokeRow[]>;
 }

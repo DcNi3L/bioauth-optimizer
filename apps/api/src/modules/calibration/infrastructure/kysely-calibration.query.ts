@@ -2,6 +2,7 @@ import type {
   AttemptDto,
   CalibrationDataDto,
   DriftAlertDto,
+  PolicyFactor,
   thresholdOptimizeRequestSchema,
   z,
 } from '@bioauth/contracts';
@@ -203,7 +204,7 @@ export class KyselyCalibrationQuery implements CalibrationQuery {
     }));
   }
 
-  async attemptDurations(factor: 'face' | 'passkey', p: Period): Promise<number[]> {
+  async attemptDurations(factor: PolicyFactor, p: Period): Promise<number[]> {
     let q = this.db.selectFrom('auth_attempt').select('duration_ms').where('factor', '=', factor);
     if (p.from) q = q.where('created_at', '>=', p.from);
     if (p.to) q = q.where('created_at', '<', p.to);
@@ -225,6 +226,22 @@ export class KyselyCalibrationQuery implements CalibrationQuery {
       optimalTau: result.optimal?.tau ?? null,
       frr: result.optimal?.frr ?? null,
       costs: input.costs,
+    };
+  }
+
+  async selectionOptimum(id: string) {
+    const r = await this.db
+      .selectFrom('experiment')
+      .select(['input', 'result'])
+      .where('id', '=', id)
+      .where('type', '=', 'FACTOR_SELECTION')
+      .executeTakeFirst();
+    const codes = (r?.result as { optimum?: { codes?: string[] } | null } | undefined)?.optimum?.codes;
+    if (!codes) return null;
+    const w = (r?.input as { costs?: { cFA?: number; cFR?: number } } | undefined)?.costs;
+    return {
+      codes,
+      costs: typeof w?.cFA === 'number' && typeof w.cFR === 'number' ? { cFA: w.cFA, cFR: w.cFR } : null,
     };
   }
 

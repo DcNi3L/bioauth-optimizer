@@ -13,5 +13,6 @@ import { KeystrokeController } from './presentation/keystroke.controller';
     { provide: SECRET_BOX, useClass: AesGcmSecretBox },
     KeystrokeService,
   ],
+  exports: [KeystrokeService],
 })
 export class KeystrokeModule {}

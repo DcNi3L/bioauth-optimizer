@@ -13,7 +13,9 @@ import {
   type PadSampleRequest,
   padSampleRequestSchema,
   padSampleResponseSchema,
+  POLICY_FACTORS,
   proposeFromCalibrationSchema,
+  proposeFromSelectionSchema,
   protocolReportSchema,
   z,
 } from '@bioauth/contracts';
@@ -95,6 +97,22 @@ export class CalibrationController {
     body: z.output<typeof proposeFromCalibrationSchema>,
   ) {
     return this.calibration.propose(user, body);
+  }
+
+  @Post('propose-from-selection')
+  @HttpCode(201)
+  @Roles('admin', 'researcher')
+  @RequireMfa()
+  @ApiOperation({
+    summary: 'Предложить политику по оптимальному составу факторов (каталог v3.3: лицо, passkey, TOTP, ритм)',
+  })
+  @ApiZodBody(proposeFromSelectionSchema)
+  proposeFromSelection(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(proposeFromSelectionSchema))
+    body: z.output<typeof proposeFromSelectionSchema>,
+  ) {
+    return this.calibration.proposeFromSelection(user, body);
   }
 
   @Get('factors')
@@ -200,7 +218,7 @@ export class PadTestController {
 }
 
 const attemptsQuery = z.object({
-  factor: z.enum(['face', 'passkey']).optional(),
+  factor: z.enum(POLICY_FACTORS).optional(),
   outcome: z.enum(['accept', 'reject', 'error', 'cancel']).optional(),
   from: z.iso.datetime({ offset: true }).optional(),
   to: z.iso.datetime({ offset: true }).optional(),

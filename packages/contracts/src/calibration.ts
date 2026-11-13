@@ -3,17 +3,18 @@ import { z } from 'zod';
 import { factorCatalogSchema } from './catalogs';
 import { costsSchema, farMaxSchema } from './common';
 import { factorSchema } from './factor-selection';
+import { POLICY_FACTORS } from './identity';
 import { thresholdOptimizeResponseSchema } from './threshold';
 
 /** v2.2: замкнутый контур калибровки (docs/10 §10.7), испытание PAD (§10.11), дрейф, журнал попыток. */
 
-export const calibrationModalitySchema = z.enum(['face', 'pad']);
+export const calibrationModalitySchema = z.enum(['face', 'pad', 'keystroke']);
 export type CalibrationModality = z.infer<typeof calibrationModalitySchema>;
 
 const isoDate = z.iso.datetime({ offset: true });
 
 export const calibrationDataSchema = z.object({
-  modality: z.enum(['face', 'fingerprint', 'pad']),
+  modality: z.enum(['face', 'fingerprint', 'pad', 'keystroke']),
   modelVersion: z.string(),
   positives: z.number().int(),
   negatives: z.number().int(),
@@ -45,6 +46,8 @@ export const calibrationOverviewSchema = z.object({
     version: z.number().int(),
     tauFace: z.number().nullable(),
     tauPad: z.number().nullable(),
+    /** Порог ритма набора, если он есть в политике (#48). */
+    tauKd: z.number().nullable(),
     calibrated: z.boolean(),
     costs: costsSchema,
   }),
@@ -91,11 +94,21 @@ export const proposeFromCalibrationSchema = z
   .strictObject({
     faceExperimentId: z.uuid().nullable().default(null),
     padExperimentId: z.uuid().nullable().default(null),
+    keystrokeExperimentId: z.uuid().nullable().default(null),
     rationale: z.string().trim().max(2000).nullable().default(null),
   })
-  .refine((v) => v.faceExperimentId !== null || v.padExperimentId !== null, {
-    error: 'нужен хотя бы один эксперимент калибровки',
-  });
+  .refine(
+    (v) => v.faceExperimentId !== null || v.padExperimentId !== null || v.keystrokeExperimentId !== null,
+    {
+      error: 'нужен хотя бы один эксперимент калибровки',
+    },
+  );
+
+/** Политика из решения оптимизатора состава факторов (#48): коды FACE, PASSKEY, TOTP, KEYSTROKE → шаги. */
+export const proposeFromSelectionSchema = z.strictObject({
+  experimentId: z.uuid(),
+  rationale: z.string().trim().max(2000).nullable().default(null),
+});
 
 export const measuredFactorSchema = factorSchema.extend({
   attempts: z.number().int(),
@@ -173,7 +186,7 @@ export const attemptSchema = z.object({
   id: z.uuid(),
   at: z.string(),
   login: z.string().nullable(),
-  factor: z.enum(['face', 'passkey']),
+  factor: z.enum(POLICY_FACTORS),
   outcome: z.enum(['accept', 'reject', 'error', 'cancel']),
   reason: z.string().nullable(),
   /** Оценки скрыты для роли «аудитор» (минимизация данных). */
@@ -186,7 +199,7 @@ export const attemptSchema = z.object({
 export type AttemptDto = z.infer<typeof attemptSchema>;
 
 export const attemptStatsSchema = z.object({
-  factor: z.enum(['face', 'passkey']),
+  factor: z.enum(POLICY_FACTORS),
   total: z.number().int(),
   accepted: z.number().int(),
   rejected: z.number().int(),

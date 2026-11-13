@@ -80,12 +80,12 @@ export class KyselyAuthSessionRepository implements AuthSessionRepository {
       .execute();
   }
 
-  async acceptedFaceAttempt(sessionId: string) {
+  async acceptedAttempt(sessionId: string, factor: 'face' | 'keystroke') {
     const r = await this.db
       .selectFrom('auth_attempt')
       .select(['id', 'score', 'model_version'])
       .where('session_id', '=', sessionId)
-      .where('factor', '=', 'face')
+      .where('factor', '=', factor)
       .where('outcome', '=', 'accept')
       .orderBy('created_at', 'desc')
       .limit(1)

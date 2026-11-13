@@ -19,6 +19,9 @@ export interface KeystrokeTemplate {
   readonly std: number[];
 }
 
+/** Версия признаков и детектора — метка оценок для калибровки (как версия модели лица). */
+export const KEYSTROKE_MODEL = 'keystroke-sm-v1';
+
 /** Отсечка нормированного отклонения одного признака. */
 export const CLIP = 4;
 /**

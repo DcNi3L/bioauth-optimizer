@@ -96,7 +96,23 @@ export const faceStepSchema = z.strictObject({
   calibrated: z.boolean(),
 });
 export const passkeyStepSchema = z.strictObject({ factor: z.literal('passkey') });
-export const policyStepSchema = z.discriminatedUnion('factor', [faceStepSchema, passkeyStepSchema]);
+/** v3.3 (#48): код из приложения-аутентификатора как шаг политики. */
+export const totpStepSchema = z.strictObject({ factor: z.literal('totp') });
+/** v3.3 (#48): ритм набора фразы; τ_kd — порог расстояния (меньше — строже), калибруется по оценкам 1 − d/4. */
+export const keystrokeStepSchema = z.strictObject({
+  factor: z.literal('keystroke'),
+  tauKd: finite('τ_kd').min(0.2).max(4),
+  calibrated: z.boolean(),
+});
+export const policyStepSchema = z.discriminatedUnion('factor', [
+  faceStepSchema,
+  passkeyStepSchema,
+  totpStepSchema,
+  keystrokeStepSchema,
+]);
+export type KeystrokeStep = z.infer<typeof keystrokeStepSchema>;
+export const POLICY_FACTORS = ['face', 'passkey', 'totp', 'keystroke'] as const;
+export type PolicyFactor = (typeof POLICY_FACTORS)[number];
 export type PolicyStep = z.infer<typeof policyStepSchema>;
 export type FaceStep = z.infer<typeof faceStepSchema>;
 
@@ -133,6 +149,8 @@ export const startAuthRequestSchema = z.strictObject({ login: loginSchema });
 export const authStepSchema = z.discriminatedUnion('factor', [
   z.object({ factor: z.literal('face'), commands: z.array(livenessCommandSchema) }),
   z.object({ factor: z.literal('passkey') }),
+  z.object({ factor: z.literal('totp') }),
+  z.object({ factor: z.literal('keystroke'), phrase: z.string() }),
 ]);
 export type AuthStepDto = z.infer<typeof authStepSchema>;
 
@@ -199,6 +217,10 @@ export const authRejectReasonSchema = z.enum([
   'LIVENESS_COMMANDS',
   'IDENTITY_SWITCH',
   'PASSKEY_FAILED',
+  'TOTP_FAILED',
+  'KEYSTROKE_NO_MATCH',
+  'KEYSTROKE_INPUT',
+  'NOT_ENROLLED',
   'SESSION_EXPIRED',
   'LOCKED',
 ]);
@@ -215,6 +237,11 @@ export const authStepResultSchema = z.object({
   commands: z.array(livenessCommandSchema).nullable(),
 });
 export type AuthStepResultDto = z.infer<typeof authStepResultSchema>;
+
+export const submitTotpStepSchema = z.strictObject({
+  code: z.string().regex(/^\d{6}$/, { error: 'шесть цифр' }),
+});
+export type SubmitTotpStep = z.infer<typeof submitTotpStepSchema>;
 
 export const webauthnResponseSchema = z.looseObject({ id: z.string(), type: z.literal('public-key') });
 
@@ -284,6 +311,7 @@ export const loginMethodSchema = z.enum([
   'oidc',
   'totp',
   'recovery',
+  'keystroke',
 ]);
 
 export const loginEventSchema = z.object({

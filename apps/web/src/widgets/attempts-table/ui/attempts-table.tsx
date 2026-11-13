@@ -13,10 +13,12 @@ const OUTCOME_KEY = {
   error: 'algo.attempts.error',
   cancel: 'algo.attempts.cancel',
 } as const satisfies Record<string, TKey>;
-const FACTOR_KEY = { face: 'algo.attempts.face', passkey: 'algo.attempts.passkey' } as const satisfies Record<
-  string,
-  TKey
->;
+const FACTOR_KEY = {
+  face: 'algo.attempts.face',
+  passkey: 'algo.attempts.passkey',
+  totp: 'algo.attempts.totp',
+  keystroke: 'algo.attempts.keystroke',
+} as const satisfies Record<string, TKey>;
 
 /** Журнал попыток (UC-9): фильтры, сводка по факторам за выборку, постраничная подгрузка по курсору. */
 export function AttemptsTable() {
@@ -37,6 +39,8 @@ export function AttemptsTable() {
           <option value="">{t('algo.attempts.all')}</option>
           <option value="face">{t('algo.attempts.face')}</option>
           <option value="passkey">{t('algo.attempts.passkey')}</option>
+          <option value="totp">{t('algo.attempts.totp')}</option>
+          <option value="keystroke">{t('algo.attempts.keystroke')}</option>
         </SelectField>
         <SelectField
           label={t('algo.attempts.outcome')}

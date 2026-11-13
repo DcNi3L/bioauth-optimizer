@@ -12,7 +12,18 @@ export const STATUS_TONE: Record<AuthPolicyDto['status'], string> = {
 const n = (x: number) => x.toLocaleString('ru-RU', { maximumFractionDigits: 4 });
 
 export function describeStep(t: TFn, s: PolicyStep): string {
-  if (s.factor === 'passkey') return 'passkey';
-  const base = t('algo.policies.stepFace', { face: n(s.tauFace), pad: n(s.tauPad), n: s.commands });
-  return s.calibrated ? base : `${base} ${t('algo.policies.stepUncalibrated')}`;
+  switch (s.factor) {
+    case 'passkey':
+      return 'passkey';
+    case 'totp':
+      return t('algo.policies.stepTotp');
+    case 'keystroke': {
+      const base = t('algo.policies.stepKeystroke', { kd: n(s.tauKd) });
+      return s.calibrated ? base : `${base} ${t('algo.policies.stepUncalibrated')}`;
+    }
+    case 'face': {
+      const base = t('algo.policies.stepFace', { face: n(s.tauFace), pad: n(s.tauPad), n: s.commands });
+      return s.calibrated ? base : `${base} ${t('algo.policies.stepUncalibrated')}`;
+    }
+  }
 }

@@ -9,6 +9,7 @@ import { formatDateTime } from '@/shared/lib';
 const MODALITY: Record<CalibrationDataDto['modality'], TKey> = {
   face: 'algo.measurements.modalityFace',
   pad: 'algo.measurements.modalityPad',
+  keystroke: 'algo.measurements.modalityKeystroke',
   fingerprint: 'algo.measurements.modalityFingerprint',
 };
 

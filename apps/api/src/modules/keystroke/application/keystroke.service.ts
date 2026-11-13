@@ -102,6 +102,56 @@ export class KeystrokeService {
     return { accepted, distance: round3(d), threshold: DEFAULT_THRESHOLD, score: round3(scoreOf(d)) };
   }
 
+  /**
+   * Шаг политики входа (#48): оценка ввода без собственной блокировки шаблона — неудачи считает сессия входа.
+   * `impostorScores` — оценки этого ввода против шаблонов других людей с той же фразой (для калибровки τ_kd).
+   */
+  async matchFactor(
+    userId: string,
+    sample: KeystrokeSample,
+    tauKd: number,
+    impostorLimit: number,
+  ): Promise<
+    | { kind: 'not-enrolled' }
+    | { kind: 'input'; message: string }
+    | {
+        kind: 'scored';
+        accepted: boolean;
+        distance: number;
+        score: number;
+        impostorScores: () => Promise<number[]>;
+      }
+  > {
+    const row = await this.repo.get(userId);
+    if (!row) return { kind: 'not-enrolled' };
+    let x: number[];
+    try {
+      x = extractFeatures(sample.events, row.phrase);
+    } catch (err) {
+      if (err instanceof SampleError) return { kind: 'input', message: err.message };
+      throw err;
+    }
+    const d = distance(parseTemplate(this.box.open(PURPOSE, userId, row.sealed)), x);
+    return {
+      kind: 'scored',
+      accepted: d <= tauKd,
+      distance: d,
+      score: scoreOf(d),
+      impostorScores: async () => {
+        if (impostorLimit === 0) return [];
+        const others = await this.repo.sampleOthers(userId, row.phrase, impostorLimit);
+        return others.map((o) =>
+          scoreOf(distance(parseTemplate(this.box.open(PURPOSE, o.userId, o.sealed)), x)),
+        );
+      },
+    };
+  }
+
+  /** Фраза пользователя для шага входа; null — ритм не зарегистрирован. */
+  async phraseOf(userId: string): Promise<string | null> {
+    return (await this.repo.get(userId))?.phrase ?? null;
+  }
+
   async remove(user: AuthUser): Promise<void> {
     if (!(await this.repo.delete(user.id))) throw new NotFoundError('ритм набора не зарегистрирован');
     await this.audit.record({ actorId: user.id, action: 'keystroke.deleted', target: user.id });

@@ -3,6 +3,8 @@ import {
   authSessionSchema,
   type AuthStepResultDto,
   authStepResultSchema,
+  type KeystrokeSample,
+  keystrokeSampleSchema,
   type PosePreviewDto,
   type PosePreviewRequest,
   posePreviewRequestSchema,
@@ -10,6 +12,8 @@ import {
   startAuthRequestSchema,
   type SubmitFaceRequest,
   submitFaceRequestSchema,
+  type SubmitTotpStep,
+  submitTotpStepSchema,
   webauthnResponseSchema,
   z,
 } from '@bioauth/contracts';
@@ -111,5 +115,36 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthStepResultDto> {
     return this.respond(res, await this.auth.passkeyCancel(id, body.durationMs));
+  }
+
+  @Post(':id/totp')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Шаг «код из приложения» (#48): шесть цифр; тот же код повторно не принимается',
+  })
+  @ApiZodBody(submitTotpStepSchema)
+  @ApiZodOk(authStepResultSchema)
+  async totp(
+    @Param('id', UuidPipe) id: string,
+    @Body(new ZodValidationPipe(submitTotpStepSchema)) body: SubmitTotpStep,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthStepResultDto> {
+    return this.respond(res, await this.auth.submitTotp(id, body.code));
+  }
+
+  @Post(':id/keystroke')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Шаг «ритм набора» (#48): один ввод фразы — нажатия клавиш с моментами нажатия и отпускания',
+  })
+  @ApiZodBody(keystrokeSampleSchema)
+  @ApiZodOk(authStepResultSchema)
+  async keystroke(
+    @Param('id', UuidPipe) id: string,
+    @Body(new ZodValidationPipe(keystrokeSampleSchema)) body: KeystrokeSample,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthStepResultDto> {
+    return this.respond(res, await this.auth.submitKeystroke(id, body));
   }
 }

@@ -187,7 +187,7 @@ export interface AuthSessionTable {
   completed_at: Date | null;
 }
 
-export type FactorDb = 'face' | 'passkey';
+export type FactorDb = 'face' | 'passkey' | 'totp' | 'keystroke';
 export type AttemptOutcomeDb = 'accept' | 'reject' | 'error' | 'cancel';
 
 export interface AuthAttemptTable {
@@ -206,7 +206,7 @@ export interface AuthAttemptTable {
   created_at: ColumnType<Date, Date | undefined, never>;
 }
 
-export type ModalityDb = 'face' | 'fingerprint' | 'pad';
+export type ModalityDb = 'face' | 'fingerprint' | 'pad' | 'keystroke';
 export type SampleKindDb = 'genuine' | 'impostor' | 'attack' | 'bonafide';
 export type SampleSourceDb = 'enroll' | 'login' | 'cross' | 'pad_test' | 'batch';
 
@@ -283,7 +283,15 @@ export interface AuditEventTable {
 
 // ── Учётные записи и OpenID Connect (миграция 0005) ──
 
-export type LoginMethodDb = 'register' | 'password' | 'face' | 'passkey' | 'oidc' | 'totp' | 'recovery';
+export type LoginMethodDb =
+  | 'register'
+  | 'password'
+  | 'face'
+  | 'passkey'
+  | 'oidc'
+  | 'totp'
+  | 'recovery'
+  | 'keystroke';
 
 export interface LoginEventTable {
   id: Generated<string>;

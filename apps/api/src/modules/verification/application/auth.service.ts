@@ -6,10 +6,14 @@ import type {
   AuthStepDto,
   AuthStepResultDto,
   FaceStep,
+  KeystrokeSample,
+  KeystrokeStep,
   LivenessCommand,
+  PolicyFactor,
   PolicyStep,
   SubmitFaceRequest,
 } from '@bioauth/contracts';
+import { KEYSTROKE_PHRASE } from '@bioauth/contracts';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { APP_CONFIG, type AppConfig } from '../../../shared/config/env';
@@ -32,6 +36,9 @@ import { BackgroundTasks } from '../../biometrics/infrastructure/background-task
 import { USER_REPOSITORY, type UserRepository } from '../../identity/application/ports';
 import { LOGIN_EVENTS, type LoginEvents } from '../../identity/application/ports';
 import { type IssuedSession, SessionIssuer } from '../../identity/application/session-issuer';
+import { KeystrokeService } from '../../keystroke/application/keystroke.service';
+import { KEYSTROKE_MODEL } from '../../keystroke/domain/keystroke';
+import { MfaService } from '../../mfa/application/mfa.service';
 import { type ActivePolicy, POLICY_READER, type PolicyReader } from '../../policy/application/ports';
 import {
   type CredentialRepository,
@@ -49,6 +56,9 @@ export const USER_LOCK_MS = 15 * 60_000;
 /** Кадров-подсказок позы на одну сессию входа (~4 в секунду в течение 2 минут). */
 export const MAX_POSE_CHECKS = 500;
 export const SESSION_TTL_MS = 3 * 60_000;
+
+/** RFC 8176: face — лицо, hwk — ключ на устройстве, otp — одноразовый код; kbd — ритм набора (нестандартное). */
+const AMR: Record<PolicyFactor, string> = { face: 'face', passkey: 'hwk', totp: 'otp', keystroke: 'kbd' };
 
 export interface StepOutcome {
   readonly result: AuthStepResultDto;
@@ -93,6 +103,8 @@ export class AuthService {
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     private readonly issuer: SessionIssuer,
     private readonly background: BackgroundTasks,
+    private readonly mfa: MfaService,
+    private readonly keystroke: KeystrokeService,
   ) {}
 
   // ── начало ──
@@ -117,7 +129,7 @@ export class AuthService {
     return {
       sessionId: id,
       expiresAt: expiresAt.toISOString(),
-      steps: policy.steps.map((s) => this.stepDto(s, commands)),
+      steps: await Promise.all(policy.steps.map((s) => this.stepDto(s, commands, userId))),
       currentStep: 0,
       attemptsLeft: MAX_SESSION_FAILURES,
       policyVersion: policy.version,
@@ -226,7 +238,7 @@ export class AuthService {
       durationMs: Date.now() - started,
     });
     // Вход по лицу, подтверждённый вторым фактором, — источник genuine-оценок (docs/10 §10.7).
-    const face = await this.sessions.acceptedFaceAttempt(session.id);
+    const face = await this.sessions.acceptedAttempt(session.id, 'face');
     if (face) {
       await this.samples.add([
         {
@@ -258,17 +270,103 @@ export class AuthService {
     return this.fail(session, policy, 'passkey', 'PASSKEY_FAILED', { recorded: true, countsForLock: false });
   }
 
+  // ── шаг «код из приложения» (#48) ──
+
+  async submitTotp(sessionId: string, code: string): Promise<StepOutcome> {
+    const started = Date.now();
+    const { session, policy } = await this.current(sessionId, 'totp');
+    const r = session.userId ? await this.mfa.checkFactor(session.userId, code) : 'not-enrolled';
+    const durationMs = Date.now() - started;
+    if (r !== 'ok') {
+      return this.fail(session, policy, 'totp', r === 'not-enrolled' ? 'NOT_ENROLLED' : 'TOTP_FAILED', {
+        durationMs,
+        // Блокировка самого TOTP (5 кодов) уже сработала — сессия входа завершается.
+        ...(r === 'locked' ? { final: true } : {}),
+      });
+    }
+    await this.attempts.add({
+      userId: session.userId,
+      policyId: policy.id,
+      sessionId: session.id,
+      factor: 'totp',
+      outcome: 'accept',
+      durationMs,
+    });
+    return this.advance(session, policy, {});
+  }
+
+  // ── шаг «ритм набора» (#48) ──
+
+  async submitKeystroke(sessionId: string, sample: KeystrokeSample): Promise<StepOutcome> {
+    const started = Date.now();
+    const { session, policy, step } = await this.current(sessionId, 'keystroke');
+    const tauKd = (step as KeystrokeStep).tauKd;
+    const r = session.userId
+      ? await this.keystroke.matchFactor(session.userId, sample, tauKd, this.config.CROSS_IMPOSTOR_LIMIT)
+      : ({ kind: 'not-enrolled' } as const);
+    const durationMs = Date.now() - started;
+    if (r.kind === 'not-enrolled')
+      return this.fail(session, policy, 'keystroke', 'NOT_ENROLLED', { durationMs });
+    // Опечатка или исправление — не попытка подделки: в блокировку не засчитывается.
+    if (r.kind === 'input') {
+      return this.fail(session, policy, 'keystroke', 'KEYSTROKE_INPUT', { durationMs, countsForLock: false });
+    }
+    const attemptId = await this.attempts.add({
+      userId: session.userId,
+      policyId: policy.id,
+      sessionId: session.id,
+      factor: 'keystroke',
+      outcome: r.accepted ? 'accept' : 'reject',
+      score: r.score,
+      durationMs,
+      rejectReason: r.accepted ? undefined : 'KEYSTROKE_NO_MATCH',
+      modelVersion: KEYSTROKE_MODEL,
+    });
+    // Impostor-оценки: этот ввод против шаблонов других людей с той же фразой (как перекрёстные оценки лица).
+    this.background.run('keystroke-impostor', async () => {
+      const scores = await r.impostorScores();
+      await this.samples.add(
+        scores.map((score) => ({
+          attemptId,
+          modality: 'keystroke' as const,
+          kind: 'impostor' as const,
+          score,
+          modelVersion: KEYSTROKE_MODEL,
+          source: 'cross' as const,
+        })),
+      );
+    });
+    if (!r.accepted) return this.fail(session, policy, 'keystroke', 'KEYSTROKE_NO_MATCH', { recorded: true });
+    return this.advance(session, policy, {});
+  }
+
   // ── общие шаги автомата ──
 
   private faceStep(policy: ActivePolicy): FaceStep | undefined {
     return policy.steps.find((s): s is FaceStep => s.factor === 'face');
   }
 
-  private stepDto(s: PolicyStep, commands: LivenessCommand[]): AuthStepDto {
-    return s.factor === 'face' ? { factor: 'face', commands } : { factor: 'passkey' };
+  private async stepDto(
+    s: PolicyStep,
+    commands: LivenessCommand[],
+    userId: string | null,
+  ): Promise<AuthStepDto> {
+    switch (s.factor) {
+      case 'face':
+        return { factor: 'face', commands };
+      case 'keystroke':
+        // Для неизвестного логина — фраза по умолчанию: ответ не выдаёт, зарегистрирован ли ритм.
+        return {
+          factor: 'keystroke',
+          phrase: (userId && (await this.keystroke.phraseOf(userId))) ?? KEYSTROKE_PHRASE,
+        };
+      case 'passkey':
+      case 'totp':
+        return { factor: s.factor };
+    }
   }
 
-  private async current(sessionId: string, factor: PolicyStep['factor']) {
+  private async current(sessionId: string, factor: PolicyFactor) {
     const session = await this.sessions.find(sessionId);
     if (!session) throw new NotFoundError('сессия входа не найдена');
     if (session.state !== 'pending') throw new ConflictError('сессия входа уже завершена');
@@ -307,18 +405,35 @@ export class AuthService {
     };
     if (!done || !session.userId) return { result, session: null };
     await this.users.resetFailures(session.userId);
-    const amr: string[] = [...new Set(policy.steps.map((s) => (s.factor === 'face' ? 'face' : 'hwk')))];
+    const amr: string[] = [...new Set(policy.steps.map((s) => AMR[s.factor]))];
     if (amr.length > 1) amr.push('mfa');
-    const method = policy.steps.some((s) => s.factor === 'face') ? 'face' : 'passkey';
-    return { result, session: await this.issuer.issue(session.userId, true, { method, amr }) };
+    // Ритм набора, подтверждённый другим фактором, — genuine-оценка для калибровки τ_kd.
+    if (policy.steps.length > 1) {
+      const kd = await this.sessions.acceptedAttempt(session.id, 'keystroke');
+      if (kd) {
+        await this.samples.add([
+          {
+            attemptId: kd.id,
+            userId: session.userId,
+            modality: 'keystroke',
+            kind: 'genuine',
+            score: kd.score,
+            modelVersion: KEYSTROKE_MODEL,
+            source: 'login',
+          },
+        ]);
+      }
+    }
+    const first = policy.steps.find((s) => s.factor === 'face') ?? policy.steps[0]!;
+    return { result, session: await this.issuer.issue(session.userId, true, { method: first.factor, amr }) };
   }
 
   private async fail(
     session: AuthSessionRecord,
     policy: ActivePolicy,
-    factor: 'face' | 'passkey',
+    factor: PolicyFactor,
     reason: AuthRejectReason,
-    opts: { durationMs?: number; recorded?: boolean; countsForLock?: boolean },
+    opts: { durationMs?: number; recorded?: boolean; countsForLock?: boolean; final?: boolean },
   ): Promise<StepOutcome> {
     if (!opts.recorded) {
       await this.attempts.add({
@@ -336,7 +451,7 @@ export class AuthService {
         userId: session.userId,
         success: false,
         method: factor,
-        amr: [factor === 'face' ? 'face' : 'hwk'],
+        amr: [AMR[factor]],
         reason,
       });
     }
@@ -360,7 +475,7 @@ export class AuthService {
         }
       }
     }
-    const final = lockedUntil !== null || failures >= MAX_SESSION_FAILURES;
+    const final = lockedUntil !== null || failures >= MAX_SESSION_FAILURES || opts.final === true;
     // Повтор — с новыми командами: записанное видео прошлой попытки не подойдёт.
     const commands = !final && factor === 'face' ? randomCommands(session.commands.length) : null;
     const updated = await this.sessions.update(session.id, session, {

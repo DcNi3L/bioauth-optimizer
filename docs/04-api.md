@@ -339,6 +339,12 @@ POST /oidc/token  grant_type=authorization_code&code=…&redirect_uri=…&code_v
 | `POST /keystroke/verify`        | Один ввод фразы → `{accepted, distance, threshold, score}`; 5 отказов подряд — `429` на 5 минут                    |
 | `DELETE /keystroke`             | Удалить ритм набора (отзыв согласия удаляет его тоже)                                                              |
 
+**Шаги политики TOTP и ритм набора (ADR-0022).** `POST /auth/sessions/{id}/totp` `{code}` и
+`POST /auth/sessions/{id}/keystroke` `{events}` — шаги входа по политике; в ответе `AuthStepResult` с причинами
+`TOTP_FAILED`, `KEYSTROKE_NO_MATCH`, `KEYSTROKE_INPUT` (не считается в блокировку), `NOT_ENROLLED`. Калибровка порога
+ритма — `POST /calibration/threshold {modality: "keystroke"}`, предложение — `POST /calibration/propose
+{keystrokeExperimentId}`; политика из решения оптимизатора — `POST /calibration/propose-from-selection {experimentId}`.
+
 **Повторное подтверждение (step-up).** Смена роли (`PATCH /admin/users/{id}`), изменение и удаление клиента OIDC,
 утверждение и откат политики, удаление passkey сотрудником требуют второго фактора, проверенного не более
 `STEP_UP_MAX_AGE_SEC` (300 с) назад. Иначе — `403` с `code: step-up-required`: повторите `POST /webauthn/staff/verify`,

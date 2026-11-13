@@ -37,8 +37,21 @@ export function useProposePolicy() {
 export function useProposeFromCalibration() {
   const invalidate = useInvalidate();
   return useMutation({
-    mutationFn: (v: { faceExperimentId: string | null; padExperimentId: string | null }) =>
-      apiSend('POST', '/calibration/propose', v, authPolicySchema),
+    mutationFn: (v: {
+      faceExperimentId: string | null;
+      padExperimentId: string | null;
+      keystrokeExperimentId?: string | null;
+    }) => apiSend('POST', '/calibration/propose', v, authPolicySchema),
+    onSuccess: invalidate,
+  });
+}
+
+/** Политика по решению оптимизатора состава факторов (#48). */
+export function useProposeFromSelection() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: (experimentId: string) =>
+      apiSend('POST', '/calibration/propose-from-selection', { experimentId }, authPolicySchema),
     onSuccess: invalidate,
   });
 }

@@ -7,6 +7,7 @@ import {
 } from '@bioauth/contracts';
 import { useState } from 'react';
 
+import { RhythmField } from '@/entities/keystroke';
 import { ApiError } from '@/shared/api';
 import { useT } from '@/shared/i18n';
 import { ApiErrorNotice, Badge, Button, Notice, Skeleton } from '@/shared/ui';
@@ -17,7 +18,6 @@ import {
   useKeystrokeStatus,
   useKeystrokeVerify,
 } from '../api/keystroke';
-import { RhythmField } from './rhythm-field';
 
 type Mode = 'idle' | 'enroll' | 'test';
 

@@ -1,12 +1,12 @@
 'use client';
 
-import { attemptsPageSchema } from '@bioauth/contracts';
+import { attemptsPageSchema, type PolicyFactor } from '@bioauth/contracts';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { apiGet } from '@/shared/api';
 
 export interface AttemptFilter {
-  factor: 'face' | 'passkey' | '';
+  factor: PolicyFactor | '';
   outcome: 'accept' | 'reject' | 'error' | 'cancel' | '';
 }
 

@@ -86,6 +86,10 @@ export const en: Dict = {
       LIVENESS_COMMANDS: 'Commands not performed',
       IDENTITY_SWITCH: 'A different person appeared',
       PASSKEY_FAILED: 'Passkey not confirmed',
+      TOTP_FAILED: 'Code rejected',
+      KEYSTROKE_NO_MATCH: 'Rhythm did not match',
+      KEYSTROKE_INPUT: 'Phrase mistyped',
+      NOT_ENROLLED: 'Method not set up',
       SESSION_EXPIRED: 'Time is up',
       LOCKED: 'Sign-in locked',
     },
@@ -105,6 +109,11 @@ export const en: Dict = {
     faceIntro: 'Step 1. Fit your face into the head outline and follow the on-screen commands: {list}.',
     tips: 'Light your face well, remove glasses with glare, keep the device at eye level.',
     faceAccepted: 'Face confirmed.',
+    stepAccepted: 'Step passed.',
+    totpIntro: 'Enter the six-digit code from your authenticator app.',
+    totpSubmit: 'Confirm code',
+    keystrokeIntro:
+      'Type the phrase at your usual pace — the rhythm of key presses is checked, not just the text.',
     passkeyIntro:
       'Step 2. Confirm sign-in with a passkey on this device: fingerprint, Face ID or Windows Hello.',
     passkeyConfirm: 'Confirm passkey',
@@ -116,7 +125,8 @@ export const en: Dict = {
     tabBiometric: 'Biometric',
     tabStaff: 'Staff',
     title: 'Sign in',
-    subtitle: 'Sign in under the active policy: face check with random commands and, if required, a passkey.',
+    subtitle:
+      'Sign in under the active policy: its steps — face with random commands, passkey, app code or typing rhythm.',
     noAccount: 'No account?',
     register: 'Register',
     staffIntro: 'Administrator, researcher or auditor sign-in: password, then a passkey or an app code.',
@@ -127,6 +137,13 @@ export const en: Dict = {
       LIVENESS_COMMANDS: 'Commands were not fully performed — repeat the head movements.',
       IDENTITY_SWITCH: 'A different person appeared during the check.',
       PASSKEY_FAILED: 'The passkey was not confirmed on the device.',
+      TOTP_FAILED: 'The app code was rejected. Enter the current code — it changes every 30 seconds.',
+      KEYSTROKE_NO_MATCH:
+        'The typing rhythm did not match the enrolled one. Type the phrase at your usual pace.',
+      KEYSTROKE_INPUT:
+        'The phrase was mistyped. Type it again without corrections — this attempt does not count towards the lockout.',
+      NOT_ENROLLED:
+        'This sign-in method is not set up for the account. Set it up in your profile or sign in another way.',
       SESSION_EXPIRED: 'The sign-in session expired — start over.',
       LOCKED: 'Too many failed attempts.',
     },

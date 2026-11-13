@@ -12,7 +12,7 @@ export const methodLabel = (t: TFn, m: LoginEventDto['method']) => t(`method.${m
 
 /** amr (RFC 8176) на языке интерфейса; неизвестные значения показываются как есть. */
 export function amrLabel(t: TFn, amr: string): string {
-  return ['face', 'hwk', 'pwd', 'mfa'].includes(amr) ? t(`amr.${amr}` as TKey) : amr;
+  return ['face', 'hwk', 'otp', 'kbd', 'pwd', 'mfa'].includes(amr) ? t(`amr.${amr}` as TKey) : amr;
 }
 
 /** Причина отказа: коды проверки лица переведены в словаре, остальные (BAD_CREDENTIALS…) — как есть. */

@@ -8,6 +8,7 @@ import type {
 import Link from 'next/link';
 
 import { useExperiment } from '@/entities/experiment';
+import { ProposeFromSelection } from '@/features/admin/manage-policy';
 import { ExportButtons } from '@/features/export-result';
 import { useT } from '@/shared/i18n';
 import { formatDateTime } from '@/shared/lib';
@@ -79,6 +80,9 @@ export function ExperimentDetailPage({ id }: { id: string }) {
                     ]),
                   )}
                 />
+                {(e.result as FactorSelectionResponse).optimum && (
+                  <ProposeFromSelection experimentId={e.id} />
+                )}
               </Panel>
               <Panel title={t('algo.factors.rankingTitle')}>
                 <FactorRankingChart ranking={(e.result as FactorSelectionResponse).ranking} />

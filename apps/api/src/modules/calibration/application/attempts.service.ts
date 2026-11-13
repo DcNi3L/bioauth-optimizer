@@ -1,4 +1,4 @@
-import type { AttemptsPageDto } from '@bioauth/contracts';
+import type { AttemptsPageDto, PolicyFactor } from '@bioauth/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { AuthUser } from '../../../shared/auth/auth';
@@ -13,7 +13,7 @@ export class AttemptsService {
   async page(
     user: AuthUser,
     q: {
-      factor?: 'face' | 'passkey';
+      factor?: PolicyFactor;
       outcome?: 'accept' | 'reject' | 'error' | 'cancel';
       from?: string;
       to?: string;

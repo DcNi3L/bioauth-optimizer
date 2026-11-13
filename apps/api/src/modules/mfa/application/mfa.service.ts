@@ -155,6 +155,20 @@ export class MfaService {
 
   // ── внутреннее ──
 
+  /**
+   * Шаг политики входа (#48): тот же код, та же защита от повтора и блокировка после 5 неверных кодов,
+   * но без сессии сотрудника — результат возвращается сессии входа.
+   */
+  async checkFactor(userId: string, code: string): Promise<'ok' | 'invalid' | 'locked' | 'not-enrolled'> {
+    const row = await this.repo.getTotp(userId);
+    if (!row?.confirmedAt) return 'not-enrolled';
+    if (row.lockedUntil && row.lockedUntil.getTime() > this.now()) return 'locked';
+    const counter = verifyTotp(this.box.open('totp', userId, row.sealed), code, this.now(), row.lastCounter);
+    if (counter !== null && (await this.repo.acceptCounter(userId, counter))) return 'ok';
+    const r = await this.repo.registerFailure(userId, MAX_FAILURES, new Date(this.now() + LOCK_MS));
+    return r.lockedUntil ? 'locked' : 'invalid';
+  }
+
   private assertNotLocked(row: TotpRow): void {
     if (row.lockedUntil && row.lockedUntil.getTime() > this.now())
       throw new TooManyAttemptsError(

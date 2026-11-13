@@ -13,7 +13,6 @@ export function AdminPoliciesPage() {
   const viewer = useViewer().data;
   const policies = usePolicies();
   const active = policies.data?.find((p) => p.status === 'active');
-  const face = active?.steps.find((s) => s.factor === 'face');
   const canPropose = viewer?.role === 'admin' || viewer?.role === 'researcher';
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
@@ -23,14 +22,10 @@ export function AdminPoliciesPage() {
           {policies.data && <PolicyList policies={policies.data} canDecide={viewer?.role === 'admin'} />}
         </div>
       </Panel>
-      {canPropose && active && face?.factor === 'face' && (
+      {canPropose && active && (
         <Panel title={t('algo.policies.manualTitle')} description={t('algo.policies.manualDesc')}>
           <div className="px-5 py-4">
-            <ProposePolicyForm
-              face={face}
-              costs={active.costs}
-              passkey={active.steps.some((s) => s.factor === 'passkey')}
-            />
+            <ProposePolicyForm steps={active.steps} costs={active.costs} />
           </div>
         </Panel>
       )}

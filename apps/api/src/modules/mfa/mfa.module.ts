@@ -13,5 +13,6 @@ import { MfaController } from './presentation/mfa.controller';
     { provide: SECRET_BOX, useClass: AesGcmSecretBox },
     MfaService,
   ],
+  exports: [MfaService],
 })
 export class MfaModule {}

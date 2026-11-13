@@ -109,12 +109,19 @@ export function AdminCalibrationPage() {
                       propose.mutate({
                         faceExperimentId: result.modality === 'face' ? experimentId : null,
                         padExperimentId: result.modality === 'pad' ? experimentId : null,
+                        keystrokeExperimentId: result.modality === 'keystroke' ? experimentId : null,
                       })
                     }
                   >
                     {t('algo.calibration.proposeButton', {
-                      which: result.modality === 'face' ? 'face' : 'pad',
-                      tau: formatNumber(result.threshold.optimal.tau, 4),
+                      which: result.modality === 'keystroke' ? 'kd' : result.modality,
+                      // Порог ритма в политике — расстояние τ_kd = 4·(1 − τ) (оценка ритма = 1 − d/4).
+                      tau: formatNumber(
+                        result.modality === 'keystroke' && result.threshold.optimal.tau !== null
+                          ? 4 * (1 - result.threshold.optimal.tau)
+                          : result.threshold.optimal.tau,
+                        4,
+                      ),
                     })}
                   </Button>
                 </div>

@@ -3,6 +3,7 @@
 import type { FactorSelectionResponse } from '@bioauth/contracts';
 import { useRef, useState } from 'react';
 
+import { ProposeFromSelection } from '@/features/admin/manage-policy';
 import { CatalogPicker, SaveCatalogForm } from '@/features/edit-factor-catalog';
 import { ExportButtons } from '@/features/export-result';
 import { LoadExampleButton } from '@/features/load-article-example';
@@ -129,7 +130,10 @@ export function FactorsPage() {
           {result && (
             <>
               <Panel title={t('algo.result')}>
-                <FactorSelectionSummary result={result} factorNames={names} />
+                <div className="flex flex-col gap-4">
+                  <FactorSelectionSummary result={result} factorNames={names} />
+                  {result.optimum && <ProposeFromSelection experimentId={result.experimentId} />}
+                </div>
               </Panel>
               <Panel
                 title={t('algo.factors.rankingTitle')}

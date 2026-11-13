@@ -79,8 +79,9 @@ export const enV3: DictV3 = {
     oidc: 'via app',
     totp: 'app code',
     recovery: 'recovery code',
+    keystroke: 'typing rhythm',
   },
-  amr: { face: 'face', hwk: 'passkey', otp: 'code', pwd: 'password', mfa: '2FA' },
+  amr: { face: 'face', hwk: 'passkey', otp: 'code', pwd: 'password', mfa: '2FA', kbd: 'typing rhythm' },
   time: { justNow: 'just now', minutes: '{n} min ago', hours: '{n} h ago', days: '{n} d ago' },
   algo: {
     title: 'Algorithm',
@@ -149,6 +150,9 @@ export const enV3: DictV3 = {
       ariaErrors: 'FAR, FRR and cost E vs threshold',
     },
     factors: {
+      toPolicy: 'Propose a sign-in policy with this set',
+      toPolicyHint:
+        'A set of supported steps (face, passkey, app code, typing rhythm) can become a policy proposal; an administrator activates it.',
       title: 'Factor set',
       subtitle:
         'Integer problem (2)–(3) from the SRO1 paper: FAR = ∏FARᵢ, FRR = 1 − ∏(1 − FRRᵢ), latency and cost add up.',
@@ -276,6 +280,7 @@ export const enV3: DictV3 = {
       factorsDesc: 'FRR and time come from the attempt log; passkey FAR is the vendor claim.',
       modalityFace: 'Face (similarity)',
       modalityPad: 'PAD (liveness)',
+      modalityKeystroke: 'Typing rhythm (1 − d/4)',
       modalityFingerprint: 'Fingerprint',
       sourceEnroll: 'enrollment',
       sourceLogin: 'sign-ins',
@@ -299,6 +304,7 @@ export const enV3: DictV3 = {
       factorsEmpty: 'No sign-in attempts yet — nothing to measure.',
     },
     calibration: {
+      tauKd: 'τ_kd (typing rhythm)',
       roleNotice:
         'Administrators and researchers run calibration; auditors see results in the overview and the log.',
       title: 'Threshold calibration',
@@ -456,6 +462,8 @@ export const enV3: DictV3 = {
       statusRetired: 'retired',
       statusRejected: 'rejected',
       stepFace: 'face: τ_face {face}, τ_pad {pad}, commands {n}',
+      stepKeystroke: 'typing rhythm: τ_kd {kd}',
+      stepTotp: 'app code',
       stepUncalibrated: '(not calibrated)',
       noteLabel: 'Decision comment',
       approve: 'Approve v{n}',
@@ -467,6 +475,16 @@ export const enV3: DictV3 = {
       arrfr:
         'ARDFM biometric rules require at least three random commands — fewer is allowed only for trials.',
       passkeyStep: 'Second step — passkey',
+      step1: 'Step 1',
+      step2: 'Step 2',
+      noStep: '— none —',
+      factorFace: 'Face + liveness',
+      factorPasskey: 'Passkey',
+      factorTotp: 'App code',
+      factorKeystroke: 'Typing rhythm',
+      tauKd: 'Rhythm threshold τ_kd',
+      tauKdHint: 'Distance 0.2–4; lower is stricter. Default 1.1.',
+      noCamera: 'Signing in under this policy does not need a camera.',
       rationale: 'Rationale',
       proposed: 'Version {version} proposed. An administrator must approve it.',
       propose: 'Propose a policy',
@@ -483,6 +501,8 @@ export const enV3: DictV3 = {
       cancel: 'cancel',
       face: 'face',
       passkey: 'passkey',
+      totp: 'app code',
+      keystroke: 'typing rhythm',
       attempts: 'Attempts',
       rejectShare: 'Reject share',
       p95: 'p95 time',

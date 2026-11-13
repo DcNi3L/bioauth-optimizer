@@ -1,5 +1,7 @@
 import type { Role } from '@bioauth/contracts';
 
+import type { LoginMethodDb } from '../../../shared/database/schema';
+
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 export const SESSION_STORE = Symbol('SESSION_STORE');
 export const PASSWORD_HASHER = Symbol('PASSWORD_HASHER');
@@ -44,7 +46,7 @@ export interface UserRepository {
 export interface LoginEventInput {
   readonly userId: string;
   readonly success: boolean;
-  readonly method: 'register' | 'password' | 'face' | 'passkey' | 'oidc' | 'totp' | 'recovery';
+  readonly method: LoginMethodDb;
   readonly amr?: readonly string[];
   readonly reason?: string | null;
   readonly clientId?: string | null;

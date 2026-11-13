@@ -43,5 +43,9 @@ export interface AuthSessionRepository {
   ): Promise<boolean>;
   setChallenge(id: string, challenge: string | null): Promise<void>;
   /** Последняя принятая попытка по лицу в сессии — её оценка становится genuine после второго фактора. */
-  acceptedFaceAttempt(sessionId: string): Promise<{ id: string; score: number; modelVersion: string } | null>;
+  /** Последняя принятая попытка фактора с оценкой в этой сессии входа. */
+  acceptedAttempt(
+    sessionId: string,
+    factor: 'face' | 'keystroke',
+  ): Promise<{ id: string; score: number; modelVersion: string } | null>;
 }
