@@ -5,6 +5,20 @@
 
 ## [Unreleased]
 
+## [3.3.0] — 2026-11-13
+
+Вход без камеры (код из приложения, ритм набора, QR с телефона), повторное подтверждение опасных действий,
+наблюдаемость и публикация. Ядро оптимизации не менялось (1.0.0).
+
+### Изменено
+
+- **Зависимости (PR Dependabot #51–#64).** Next.js 16, nestjs-pino 5 (с pino-http 11), Jest 30, Prettier 3.9 и ещё
+  20 минорных обновлений, FastAPI, NumPy и ruff, новые версии GitHub Actions. Образы и CI переведены на Node.js 24 LTS
+  вместо предложенного Node.js 25: в 25 нет corepack, а нечётные версии не получают долгой поддержки.
+- **Не обновлено, нужен перевод API на ESM:** NestJS 12 и @nestjs/swagger 12 (PR #62 закрыт), kysely 0.29 — эти
+  пакеты распространяются только как ESM. Dependabot настроен их не предлагать. Исключения глобального префикса
+  записаны в синтаксисе path-to-regexp 8 — предупреждения при запуске исчезли.
+
 ### Исправлено
 
 - `PATCH /admin/oauth-clients/{id}` без поля `redirectUris`, `description` или `firstParty` стирал их значения по
@@ -217,7 +231,8 @@
 - Интерфейс на Next.js (FSD): порог, состав факторов, история, экспорт JSON/CSV/PNG.
 - Тесты: золотые тесты статьи СРО1, эталоны SciPy, property-тесты, e2e; CI GitHub Actions; Docker Compose.
 
-[Unreleased]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.1.2...v3.2.0
 [3.1.2]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.1.1...v3.1.2
 [3.1.1]: https://github.com/DcNi3L/bioauth-optimizer/compare/v3.1.0...v3.1.1
