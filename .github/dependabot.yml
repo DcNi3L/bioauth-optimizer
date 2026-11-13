@@ -8,6 +8,10 @@ updates:
       minor-and-patch:
         update-types: [minor, patch]
     commit-message: { prefix: "chore(deps)" }
+    # Версия предлагается, только когда ей не меньше трёх дней: pnpm (minimumReleaseAge) не ставит свежие версии,
+    # и обновление без паузы падало бы с ERR_PNPM_NO_MATURE_MATCHING_VERSION.
+    cooldown:
+      default-days: 3
     ignore:
       # kysely 0.29 — только ESM: API на CommonJS (NestJS) и Jest 30 его не загружают без перевода проекта на ESM.
       - dependency-name: kysely
@@ -31,14 +35,20 @@ updates:
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     commit-message: { prefix: "chore(deps)" }
+    cooldown:
+      default-days: 3
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
     commit-message: { prefix: "chore(ci)" }
+    cooldown:
+      default-days: 3
   - package-ecosystem: docker
     directory: /docker
     schedule: { interval: monthly }
     commit-message: { prefix: "chore(docker)" }
+    cooldown:
+      default-days: 3
     ignore:
       # Нечётные версии Node.js не получают LTS и в 25 убран corepack, которым образы ставят pnpm.
       - dependency-name: node
