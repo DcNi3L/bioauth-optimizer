@@ -28,7 +28,7 @@
     "@simplewebauthn/server": "14.0.3",
     "kysely": "0.28.19",
     "multer": "2.4.0",
-    "nestjs-pino": "4.6.1",
+    "nestjs-pino": "5.3.1",
     "pg": "8.23.1",
     "pino": "10.4.0",
     "pino-http": "10.5.0",
