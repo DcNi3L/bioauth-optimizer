@@ -16,7 +16,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={`${fill ? 'flex w-full' : 'inline-flex'} rounded-md border border-rule bg-paper p-0.5`}
+      className={`${fill ? 'flex w-full' : 'inline-flex max-w-full flex-wrap'} rounded-md border border-rule bg-paper p-0.5`}
     >
       {options.map((o) => (
         <button

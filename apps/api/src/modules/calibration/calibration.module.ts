@@ -10,6 +10,7 @@ import { AttemptsService } from './application/attempts.service';
 import { BatchJobsService } from './application/batch-jobs.service';
 import { CalibrationService } from './application/calibration.service';
 import { DriftService } from './application/drift.service';
+import { KeystrokeBatchService } from './application/keystroke-batch.service';
 import { PadTestService } from './application/pad-test.service';
 import { CALIBRATION_QUERY, DRIFT_ALERTS } from './application/ports';
 import { ProtocolReportService } from './application/protocol-report.service';
@@ -54,6 +55,7 @@ import {
     DriftService,
     AttemptsService,
     BatchJobsService,
+    KeystrokeBatchService,
     ProtocolReportService,
   ],
 })

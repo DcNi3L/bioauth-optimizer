@@ -15,6 +15,8 @@ SERVICE ?=
 # База из docker-compose.yml опубликована на 127.0.0.1:55432 (редкий порт, чтобы не мешать локальному PostgreSQL).
 DB_PORT           ?= 55432
 DATABASE_URL      ?= postgresql://bioauth:bioauth@localhost:$(DB_PORT)/bioauth
+# Администратор, от имени которого make calibrate предлагает и утверждает политику.
+CALIBRATE_AS      ?= admin
 TEST_DATABASE_URL ?= postgresql://bioauth:bioauth@localhost:$(DB_PORT)/bioauth_test
 
 WEB_URL     ?= http://localhost:3000
@@ -229,6 +231,17 @@ smoke: up health test-e2e ## Поднять систему, проверить �
 .PHONY: urls
 urls: ## Адреса интерфейса и API
 	@printf "  Интерфейс  $(CYAN)%s$(RESET)\n  API (Scalar) $(CYAN)%s/api/docs$(RESET)\n" "$(WEB_URL)" "$(API_URL)"
+
+.PHONY: calibrate
+calibrate: ## Полная калибровка в запущенной системе (make up): лицо — ORL, ритм — CMU, PAD — по испытаниям
+	$(call log,"калибровка: лицо (AT&T ORL), ритм набора (CMU), PAD по испытаниям UC-8")
+	@$(COMPOSE) exec -T -e CALIBRATION_CACHE=/tmp/bioauth-calibration api \
+		node dist/modules/calibration/calibrate.cli.js --as $(CALIBRATE_AS) --approve
+
+.PHONY: calibrate-local
+calibrate-local: deps ## То же для make dev: API из исходников, БД — DATABASE_URL, bio-engine — apps/api/.env
+	@$(PNPM) --filter @bioauth/api build >/dev/null
+	@DATABASE_URL="$(DATABASE_URL)" $(PNPM) --filter @bioauth/api calibrate --as $(CALIBRATE_AS) --approve
 
 .PHONY: demo
 demo: ## Загрузить демонстрационный каталог из 10 факторов в запущенный API
