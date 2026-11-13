@@ -19,10 +19,10 @@
   "dependencies": {
     "@bioauth/contracts": "workspace:*",
     "@bioauth/optimization-core": "workspace:*",
-    "@nestjs/common": "11.2.8",
-    "@nestjs/core": "11.2.8",
-    "@nestjs/platform-express": "11.2.8",
-    "@nestjs/swagger": "11.4.7",
+    "@nestjs/common": "11.2.9",
+    "@nestjs/core": "11.2.9",
+    "@nestjs/platform-express": "11.2.9",
+    "@nestjs/swagger": "11.4.8",
     "@nestjs/throttler": "6.7.1",
     "@scalar/api-reference": "1.78.0",
     "@simplewebauthn/server": "14.1.0",
@@ -39,7 +39,7 @@
   "devDependencies": {
     "@bioauth/config": "workspace:*",
     "@nestjs/cli": "11.0.24",
-    "@nestjs/testing": "11.2.8",
+    "@nestjs/testing": "11.2.9",
     "@types/express": "5.0.6",
     "@types/jest": "30.0.0",
     "@types/multer": "2.3.0",

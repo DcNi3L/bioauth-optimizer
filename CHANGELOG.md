@@ -25,6 +25,7 @@
     фрагмент адреса) теперь читается через `useSyncExternalStore` (`shared/lib/browser`), а не через `setState` в
     эффекте; сброс состояния при смене страницы и ключа — во время отрисовки; колбэки опроса — `useEffectEvent`;
   - `prom-client` заменён своим преемником `@prometheus-io/client` (тот же API, старый пакет объявлен устаревшим);
+  - lucide-react 1.72 (из 0.x), NestJS 11.2.9 и @nestjs/swagger 11.4.8 — патчи внутри 11-й версии;
   - onnxruntime 1.31 в bio-engine.
 - **Остаются на прежних версиях** (Dependabot настроен их не предлагать): ESLint 10 — его ещё не поддерживают
   eslint-plugin-react и jsx-a11y; TypeScript 7 — не поддерживают typescript-eslint и ts-jest; @types/node — по
