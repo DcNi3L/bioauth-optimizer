@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Интерфейс (Next.js, output: standalone).
 
-FROM node:24-alpine AS base
+FROM node:25-alpine AS base
 RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 # Git-хуки husky в образе не нужны (и .git в контексте сборки нет).
 ENV HUSKY=0
@@ -24,7 +24,7 @@ RUN pnpm install --frozen-lockfile
 COPY --from=pruner /repo/out/full/ .
 RUN pnpm turbo run build --filter=@bioauth/web...
 
-FROM node:24-alpine AS runner
+FROM node:25-alpine AS runner
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 WORKDIR /app
 COPY --from=builder --chown=node:node /repo/apps/web/.next/standalone ./
