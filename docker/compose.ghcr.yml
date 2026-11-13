@@ -1,0 +1,14 @@
+# Запуск из готовых образов GHCR вместо локальной сборки (#45):
+#   BIOAUTH_VERSION=3.3.0 docker compose -f docker-compose.yml -f docker/compose.ghcr.yml up -d
+# Образы публикует .github/workflows/release-images.yml по тегу v*. Для приватного репозитория сначала
+#   echo $GITHUB_TOKEN | docker login ghcr.io -u <логин> --password-stdin
+services:
+  api:
+    image: ghcr.io/dcni3l/bioauth-optimizer-api:${BIOAUTH_VERSION:-latest}
+    pull_policy: always
+  web:
+    image: ghcr.io/dcni3l/bioauth-optimizer-web:${BIOAUTH_VERSION:-latest}
+    pull_policy: always
+  bio-engine:
+    image: ghcr.io/dcni3l/bioauth-optimizer-bio-engine:${BIOAUTH_VERSION:-latest}
+    pull_policy: always

@@ -7,6 +7,9 @@
 
 ### Добавлено
 
+- **Образы GHCR и сайт документации (#45).** По тегу `v*` публикуются образы `api`, `web`, `bio-engine`
+  (amd64 и arm64); `docker/compose.ghcr.yml` запускает систему из них. Workflow `pages.yml` собирает `docs/` и
+  статический справочник API для GitHub Pages (`scripts/build-pages.mjs`).
 - **Метрики Prometheus и расширенная готовность (#44).** `GET /metrics` (токен `METRICS_TOKEN`): HTTP-запросы и
   задержки по шаблону маршрута, входы по способам, исходы шагов и отказы PAD, открытые уведомления о дрейфе FRR,
   сессии, ресурсы процесса. `GET /health/ready` сообщает последнюю миграцию и состояние bio-engine (`degraded` вместо

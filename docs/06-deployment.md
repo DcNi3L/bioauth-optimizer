@@ -165,3 +165,24 @@ docker compose --profile monitoring up -d
 | `BioAuthLoginFailures`  | более 50 неудачных входов за 15 минут                           |
 
 Пороги — отправные точки; доставку оповещений (Alertmanager, почта, Telegram) настраивают отдельно.
+
+## 6.7. Готовые образы и сайт документации
+
+**Образы GHCR.** По тегу `v*` workflow `release-images.yml` собирает и публикует `api`, `web` и `bio-engine` для
+`linux/amd64` и `linux/arm64` (Apple Silicon):
+`ghcr.io/dcni3l/bioauth-optimizer-{api,web,bio-engine}:<версия>` и `:latest`. Запуск без локальной сборки:
+
+```bash
+BIOAUTH_VERSION=3.3.0 docker compose -f docker-compose.yml -f docker/compose.ghcr.yml up -d
+```
+
+Образ `web` собран с адресом API `http://api:4000` (сеть compose). Для другого адреса соберите `web` локально.
+
+**GitHub Pages.** Workflow `pages.yml` публикует `docs/` в HTML и справочник API (Scalar) со спецификацией, снятой с
+запущенного в CI API. Сайт статический: запросы из справочника не отправляются — сервер работает только из образов или
+compose. Включение: Settings → Pages → Source: **GitHub Actions**. Локальная сборка сайта:
+
+```bash
+curl -s http://localhost:4000/api/openapi.json -o /tmp/openapi.json
+node scripts/build-pages.mjs --out _site --openapi /tmp/openapi.json
+```

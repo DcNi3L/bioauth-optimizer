@@ -1,0 +1,74 @@
+name: Документация на GitHub Pages
+
+# Сайт: docs/ в HTML и справочник API (Scalar) со статической спецификацией. Серверная часть на Pages не работает —
+# приложение запускается из образов GHCR (release-images.yml) или docker compose.
+on:
+  push:
+    branches: [main]
+    paths:
+      [
+        "docs/**",
+        "apps/api/src/**",
+        "packages/contracts/src/**",
+        "scripts/build-pages.mjs",
+        ".github/workflows/pages.yml",
+      ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: bioauth
+          POSTGRES_USER: bioauth
+          POSTGRES_PASSWORD: bioauth
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U bioauth -d bioauth"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://bioauth:bioauth@localhost:5432/bioauth
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@bioauth/api...
+      - name: Спецификация OpenAPI с запущенного API
+        working-directory: apps/api
+        run: |
+          pnpm migrate
+          LOG_LEVEL=warn node dist/main.js &
+          for i in $(seq 1 30); do curl -fsS http://localhost:4000/health/live >/dev/null && break; sleep 1; done
+          curl -fsS http://localhost:4000/api/openapi.json -o "$RUNNER_TEMP/openapi.json"
+      - run: node scripts/build-pages.mjs --out _site --openapi "$RUNNER_TEMP/openapi.json"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
