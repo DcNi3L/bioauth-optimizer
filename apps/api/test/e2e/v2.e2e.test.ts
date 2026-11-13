@@ -41,7 +41,7 @@ describeDb('API v2 e2e: биометрия и вход (PostgreSQL)', () => {
     const a = agent();
     await a.post('/api/v1/identity/subjects').send({ login, displayName: login }).expect(201);
     if (opts.consent ?? true) {
-      await a.post('/api/v1/consent').send({ textVersion: 'v1', accepted: true }).expect(204);
+      await a.post('/api/v1/consent').send({ textVersion: 'v2', accepted: true }).expect(204);
     }
     if (opts.enroll ?? true) {
       await a
@@ -135,7 +135,7 @@ describeDb('API v2 e2e: биометрия и вход (PostgreSQL)', () => {
     await a
       .post('/api/v1/consent')
       .set('Origin', 'https://evil.example')
-      .send({ textVersion: 'v1', accepted: true })
+      .send({ textVersion: 'v2', accepted: true })
       .expect(403);
   });
 

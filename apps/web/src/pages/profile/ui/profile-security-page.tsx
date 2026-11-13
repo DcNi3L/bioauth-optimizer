@@ -3,6 +3,7 @@
 import { useSessions } from '@/entities/account';
 import { useViewer } from '@/entities/viewer';
 import { RevokeOthersButton } from '@/features/account/manage-sessions';
+import { ConsentUpdate } from '@/features/give-consent';
 import { KeystrokePanel } from '@/features/manage-keystroke';
 import { MfaPanel } from '@/features/manage-mfa';
 import { RegisterPasskey } from '@/features/register-passkey';
@@ -35,6 +36,7 @@ export function ProfileSecurityPage() {
       <Panel title={t('mfa.title')} description={t('mfa.desc')}>
         <MfaPanel />
       </Panel>
+      <ConsentUpdate me={me} />
       <Panel title={t('keystroke.title')} description={t('keystroke.desc')}>
         <KeystrokePanel />
       </Panel>

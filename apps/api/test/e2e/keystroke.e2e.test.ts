@@ -31,6 +31,40 @@ describeDb('API: динамика набора текста (PostgreSQL)', () =>
     expect(r.body.detail).toMatch(/согласие/);
   });
 
+  it('согласие v1 не покрывает ритм набора (#49): 403 consent-outdated, после v2 — регистрация, лицо сохранено', async () => {
+    const c = ctx.agent();
+    await registerSubject(c, 'old-consent', true);
+    const { rows } = await ctx.pg.query<{ id: string }>(
+      "SELECT id FROM app_user WHERE login = 'old-consent'",
+    );
+    const id = rows[0]!.id;
+    // Имитация согласия, выданного до выхода v2.
+    await ctx.pg.query("UPDATE consent SET text_version = 'v1' WHERE user_id = $1", [id]);
+    const me1 = await c.get(`${API}/identity/me`).expect(200);
+    expect(me1.body.consent).toMatchObject({ textVersion: 'v1', current: false });
+    const r = await c.post(`${API}/keystroke/enroll`).send({ samples: samples() }).expect(403);
+    expect(r.body.code).toBe('consent-outdated');
+    await c.post(`${API}/consent`).send({ textVersion: 'v1', accepted: true }).expect(400);
+    await c.post(`${API}/consent`).send({ textVersion: 'v2', accepted: true }).expect(204);
+    await c.post(`${API}/consent`).send({ textVersion: 'v2', accepted: true }).expect(409);
+    const me2 = await c.get(`${API}/identity/me`).expect(200);
+    expect(me2.body.consent).toMatchObject({ textVersion: 'v2', current: true });
+    expect(me2.body.face).not.toBeNull(); // замена редакции не удаляет биометрию
+    await c.post(`${API}/keystroke/enroll`).send({ samples: samples() }).expect(201);
+    const hist = await ctx.pg.query<{ text_version: string; revoked: boolean }>(
+      'SELECT text_version, revoked_at IS NOT NULL AS revoked FROM consent WHERE user_id = $1 ORDER BY granted_at',
+      [id],
+    );
+    expect(hist.rows).toEqual([
+      { text_version: 'v1', revoked: true },
+      { text_version: 'v2', revoked: false },
+    ]);
+    const audit = await ctx.pg.query(
+      "SELECT details FROM audit_event WHERE action = 'consent.granted' ORDER BY seq DESC LIMIT 1",
+    );
+    expect(audit.rows[0].details).toEqual({ textVersion: 'v2', supersedes: 'v1' });
+  });
+
   it('регистрация: нужны 5 повторов; неверная фраза и «робот» отклоняются понятной ошибкой', async () => {
     await a
       .post(`${API}/keystroke/enroll`)
@@ -74,8 +108,8 @@ describeDb('API: динамика набора текста (PostgreSQL)', () =>
 
   it('шаблон в базе зашифрован и не содержит читаемых признаков', async () => {
     const { rows } = await ctx.pg.query<{ ciphertext: Buffer }>('SELECT ciphertext FROM keystroke_template');
-    expect(rows).toHaveLength(1);
-    expect(rows[0]!.ciphertext.toString('utf8')).not.toContain('mean');
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) expect(r.ciphertext.toString('utf8')).not.toContain('mean');
   });
 
   it('пять отказов подряд — блокировка на 5 минут (429)', async () => {

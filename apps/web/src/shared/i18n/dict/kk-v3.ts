@@ -575,6 +575,10 @@ export const kkV3: DictV3 = {
     consent: 'Келісім',
     consentYes: '{date} берілді, редакция {v}',
     consentNo: 'берілмеген',
+    consentOutdatedTitle: 'Келісімді жаңарту керек',
+    consentOutdated:
+      '{v} редакциясы қолданыста. Жаңа редакция мәтін теру ырғағын қосады; онсыз бұл фактор қолжетімсіз. Бет пен passkey жұмыс істей береді.',
+    consentReview: 'Жаңа редакцияны оқу',
     face: 'Бет үлгісі',
     faceYes: '{date} тіркелді, кадр саны: {n}',
     faceNo: 'жоқ',

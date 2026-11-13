@@ -105,8 +105,15 @@ export class ProblemDetailsFilter implements ExceptionFilter {
         status: 401,
         detail: e.message,
       };
-    if (e instanceof ForbiddenError)
-      return { type: PROBLEM_TYPES.forbidden, title: 'Доступ запрещён', status: 403, detail: e.message };
+    if (e instanceof ForbiddenError) {
+      return {
+        type: PROBLEM_TYPES.forbidden,
+        title: 'Доступ запрещён',
+        status: 403,
+        detail: e.message,
+        ...(e.code === 'forbidden' ? {} : { extra: { code: e.code } }),
+      };
+    }
     if (e instanceof UnprocessableError) {
       return {
         type: PROBLEM_TYPES.unprocessable,

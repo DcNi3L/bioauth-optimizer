@@ -573,6 +573,10 @@ export const enV3: DictV3 = {
     consent: 'Consent',
     consentYes: 'given {date}, version {v}',
     consentNo: 'not given',
+    consentOutdatedTitle: 'Consent needs an update',
+    consentOutdated:
+      'Version {v} is in effect. The new version adds typing rhythm; without it this factor is unavailable. Face and passkey keep working.',
+    consentReview: 'Read the new version',
     face: 'Face template',
     faceYes: 'enrolled {date}, frames: {n}',
     faceNo: 'none',

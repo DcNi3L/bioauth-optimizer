@@ -17,6 +17,21 @@ export class KyselyConsentRepository implements ConsentRepository {
     return (r.numInsertedOrUpdatedRows ?? 0n) > 0n;
   }
 
+  async supersede(userId: string, from: string, to: string): Promise<boolean> {
+    return this.db.transaction().execute(async (trx) => {
+      const r = await trx
+        .updateTable('consent')
+        .set({ revoked_at: new Date() })
+        .where('user_id', '=', userId)
+        .where('revoked_at', 'is', null)
+        .where('text_version', '=', from)
+        .executeTakeFirst();
+      if (r.numUpdatedRows === 0n) return false;
+      await trx.insertInto('consent').values({ user_id: userId, text_version: to }).execute();
+      return true;
+    });
+  }
+
   async revoke(userId: string): Promise<boolean> {
     const r = await this.db
       .updateTable('consent')

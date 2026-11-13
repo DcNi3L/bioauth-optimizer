@@ -55,7 +55,7 @@ export class KeystrokeService {
   }
 
   async enroll(user: AuthUser, samples: readonly KeystrokeSample[]) {
-    await this.consent.require(user.id);
+    await this.consent.require(user.id, 'keystroke');
     const vectors = samples.map((s, i) => this.features(s, KEYSTROKE_PHRASE, i + 1));
     const template = buildTemplate(vectors);
     await this.repo.save(

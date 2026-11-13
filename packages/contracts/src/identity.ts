@@ -33,7 +33,14 @@ export const meSchema = z.object({
   displayName: z.string(),
   role: roleSchema,
   mfaComplete: z.boolean(),
-  consent: z.object({ textVersion: z.string(), grantedAt: z.string() }).nullable(),
+  consent: z
+    .object({
+      textVersion: z.string(),
+      grantedAt: z.string(),
+      /** false — действует старая редакция; новые виды данных (ритм набора) требуют повторного согласия. */
+      current: z.boolean(),
+    })
+    .nullable(),
   face: z.object({ modelVersion: z.string(), samples: z.number().int(), updatedAt: z.string() }).nullable(),
   passkeys: z.number().int(),
   /** Включено приложение-аутентификатор (TOTP). */

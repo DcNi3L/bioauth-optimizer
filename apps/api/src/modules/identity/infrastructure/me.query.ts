@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { AuthUser } from '../../../shared/auth/auth';
 import { type Db, KYSELY } from '../../../shared/database/kysely';
+import { CURRENT_CONSENT_VERSION } from '../../consent/application/consent-texts';
 
 /** Сторона чтения: профиль текущего пользователя (согласие, шаблон, число passkey) одним запросом в БД на таблицу. */
 @Injectable()
@@ -62,7 +63,11 @@ export class MeQuery {
       role: user.role,
       mfaComplete: user.mfaComplete,
       consent: consent
-        ? { textVersion: consent.text_version, grantedAt: consent.granted_at.toISOString() }
+        ? {
+            textVersion: consent.text_version,
+            grantedAt: consent.granted_at.toISOString(),
+            current: consent.text_version === CURRENT_CONSENT_VERSION,
+          }
         : null,
       face: face
         ? {

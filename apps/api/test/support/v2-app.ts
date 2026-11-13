@@ -68,7 +68,7 @@ export async function createV2App(dbUrl: string, env: Record<string, string> = {
 
 export async function registerSubject(a: Agent, login: string, enroll = true): Promise<void> {
   await a.post('/api/v1/identity/subjects').send({ login, displayName: login }).expect(201);
-  await a.post('/api/v1/consent').send({ textVersion: 'v1', accepted: true }).expect(204);
+  await a.post('/api/v1/consent').send({ textVersion: 'v2', accepted: true }).expect(204);
   if (enroll) {
     await a
       .post('/api/v1/enrollment/face')

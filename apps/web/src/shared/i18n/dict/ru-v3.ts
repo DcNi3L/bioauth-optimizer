@@ -580,6 +580,10 @@ export const ruV3 = {
     consent: 'Согласие',
     consentYes: 'дано {date}, редакция {v}',
     consentNo: 'не дано',
+    consentOutdatedTitle: 'Согласие нужно обновить',
+    consentOutdated:
+      'Действует редакция {v}. Новая редакция добавляет ритм набора текста; без неё этот фактор недоступен. Лицо и passkey продолжают работать.',
+    consentReview: 'Прочитать новую редакцию',
     face: 'Шаблон лица',
     faceYes: 'зарегистрирован {date}, кадров: {n}',
     faceNo: 'нет',

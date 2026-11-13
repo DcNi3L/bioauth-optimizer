@@ -6,7 +6,7 @@ import { amrLabel } from '@/entities/account';
 import { isStaff, useViewer } from '@/entities/viewer';
 import { ProfileForm } from '@/features/account/edit-profile';
 import { useDeleteFace } from '@/features/capture-face';
-import { useRevokeConsent } from '@/features/give-consent';
+import { ConsentUpdate, useRevokeConsent } from '@/features/give-consent';
 import { useT } from '@/shared/i18n';
 import { useFormat } from '@/shared/lib';
 import { ApiErrorNotice, Badge, Button, Notice, Panel } from '@/shared/ui';
@@ -39,6 +39,7 @@ export function ProfileOverviewPage() {
             </Link>
           </Notice>
         )}
+        <ConsentUpdate me={me} />
         <Panel title={t('profile.personal')} description={t('profile.personalDesc')}>
           <ProfileForm key={`${me.displayName}|${me.email ?? ''}`} me={me} />
         </Panel>

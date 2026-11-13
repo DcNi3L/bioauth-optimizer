@@ -214,40 +214,40 @@ v2 закрыт по умолчанию: глобальная проверка �
 Эндпоинты v1 из §4.1 остаются открытыми (`@Public`). Для запросов с cookie, меняющих состояние, проверяется заголовок
 `Origin` (защита от CSRF). Полные схемы — в справочнике Scalar (`/api/docs`).
 
-| Метод        | Путь                                        | Доступ                     | Назначение                                                             |
-| ------------ | ------------------------------------------- | -------------------------- | ---------------------------------------------------------------------- |
-| POST         | `/identity/subjects`                        | открыт                     | Регистрация субъекта (логин, имя) — сразу открывает сессию             |
-| POST         | `/identity/login`                           | открыт                     | Вход сотрудника по паролю (первый фактор)                              |
-| POST         | `/identity/logout`                          | открыт                     | Выход                                                                  |
-| GET          | `/identity/viewer`                          | —                          | То же для интерфейса: `{ user: … \| null }` без ошибки 401             |
-| GET          | `/identity/me`                              | сессия                     | Текущий пользователь: роль, согласие, шаблон, passkey, MFA             |
-| GET          | `/consent/text`                             | открыт                     | Текст согласия на обработку биометрии                                  |
-| POST, DELETE | `/consent`                                  | сессия                     | Дать согласие / отозвать (удаляет биометрию)                           |
-| POST, DELETE | `/enrollment/face`                          | субъект, согласие          | Регистрация лица по 5 кадрам / удаление шаблона                        |
-| POST         | `/webauthn/register/options`, `/verify`     | сессия                     | Регистрация passkey                                                    |
-| GET, DELETE  | `/webauthn/credentials[/:id]`               | сессия                     | Свои passkey                                                           |
-| POST         | `/webauthn/staff/options`, `/verify`        | сотрудник                  | Второй фактор сотрудника                                               |
-| POST         | `/auth/sessions`                            | открыт                     | Начать вход субъекта: шаги политики, nonce, случайные команды          |
-| POST         | `/auth/sessions/:id/face`                   | открыт                     | Кадры лица: нейтральные + по шагам команд → решение                    |
-| POST         | `/auth/sessions/:id/passkey/*`              | открыт                     | Второй шаг: options / verify / cancel                                  |
-| GET          | `/policies[/:id]`                           | admin, researcher, auditor | Версии политики                                                        |
-| POST         | `/policies`                                 | admin, researcher + MFA    | Предложить версию                                                      |
-| POST         | `/policies/:id/approve` `reject` `rollback` | admin + MFA                | Решение (утверждает не автор предложения)                              |
-| GET          | `/audit/events`, `/audit/verify`            | admin, auditor             | Журнал аудита; проверка цепочки хэшей                                  |
-| GET          | `/audit/export`                             | admin, auditor             | Выгрузка CSV/JSON (`from`, `to`, `action`), заголовки проверки цепочки |
-| GET          | `/calibration/overview`                     | admin, researcher, auditor | Накопленные оценки по версиям моделей, действующая политика, дрейф     |
-| POST         | `/calibration/threshold`                    | admin, researcher          | Калибровка τ_face / τ_pad ядром v1 + проверка достаточности            |
-| POST         | `/calibration/propose`                      | admin, researcher + MFA    | Политика из экспериментов калибровки                                   |
-| GET          | `/calibration/factors`                      | admin, researcher, auditor | Измеренные характеристики факторов                                     |
-| POST         | `/calibration/factors/catalog`              | admin, researcher          | Каталог факторов из измерений для решателя v1                          |
-| GET          | `/calibration/report`                       | admin, researcher, auditor | Протокол §10.11: «до/после калибровки» с интервалами                   |
-| POST         | `/calibration/drift/check`                  | admin, researcher          | Проверить дрейф FRR сейчас (обычно по расписанию)                      |
-| POST         | `/calibration/drift/:id/acknowledge`        | admin                      | Принять уведомление о дрейфе                                           |
-| POST, GET    | `/calibration/batch[/:id]`                  | admin, researcher          | Пакетный режим: zip → набор оценок (фоновая задача)                    |
-| GET, DELETE  | `/calibration/batch/:id/csv`, `/:id`        | admin, researcher          | CSV оценок / отмена задачи                                             |
-| POST         | `/pad-test/samples`                         | admin, researcher          | Испытание PAD: подлинное предъявление или атака                        |
-| GET          | `/pad-test/report?threshold=`               | admin, researcher, auditor | APCER по видам атак, BPCER                                             |
-| GET          | `/attempts`                                 | admin, researcher, auditor | Журнал попыток (keyset-пагинация); аудитору оценки не показываются     |
+| Метод        | Путь                                        | Доступ                     | Назначение                                                                    |
+| ------------ | ------------------------------------------- | -------------------------- | ----------------------------------------------------------------------------- |
+| POST         | `/identity/subjects`                        | открыт                     | Регистрация субъекта (логин, имя) — сразу открывает сессию                    |
+| POST         | `/identity/login`                           | открыт                     | Вход сотрудника по паролю (первый фактор)                                     |
+| POST         | `/identity/logout`                          | открыт                     | Выход                                                                         |
+| GET          | `/identity/viewer`                          | —                          | То же для интерфейса: `{ user: … \| null }` без ошибки 401                    |
+| GET          | `/identity/me`                              | сессия                     | Текущий пользователь: роль, согласие, шаблон, passkey, MFA                    |
+| GET          | `/consent/text`                             | открыт                     | Текст согласия на обработку биометрии                                         |
+| POST, DELETE | `/consent`                                  | сессия                     | Дать согласие (новая редакция заменяет старую) / отозвать (удаляет биометрию) |
+| POST, DELETE | `/enrollment/face`                          | субъект, согласие          | Регистрация лица по 5 кадрам / удаление шаблона                               |
+| POST         | `/webauthn/register/options`, `/verify`     | сессия                     | Регистрация passkey                                                           |
+| GET, DELETE  | `/webauthn/credentials[/:id]`               | сессия                     | Свои passkey                                                                  |
+| POST         | `/webauthn/staff/options`, `/verify`        | сотрудник                  | Второй фактор сотрудника                                                      |
+| POST         | `/auth/sessions`                            | открыт                     | Начать вход субъекта: шаги политики, nonce, случайные команды                 |
+| POST         | `/auth/sessions/:id/face`                   | открыт                     | Кадры лица: нейтральные + по шагам команд → решение                           |
+| POST         | `/auth/sessions/:id/passkey/*`              | открыт                     | Второй шаг: options / verify / cancel                                         |
+| GET          | `/policies[/:id]`                           | admin, researcher, auditor | Версии политики                                                               |
+| POST         | `/policies`                                 | admin, researcher + MFA    | Предложить версию                                                             |
+| POST         | `/policies/:id/approve` `reject` `rollback` | admin + MFA                | Решение (утверждает не автор предложения)                                     |
+| GET          | `/audit/events`, `/audit/verify`            | admin, auditor             | Журнал аудита; проверка цепочки хэшей                                         |
+| GET          | `/audit/export`                             | admin, auditor             | Выгрузка CSV/JSON (`from`, `to`, `action`), заголовки проверки цепочки        |
+| GET          | `/calibration/overview`                     | admin, researcher, auditor | Накопленные оценки по версиям моделей, действующая политика, дрейф            |
+| POST         | `/calibration/threshold`                    | admin, researcher          | Калибровка τ_face / τ_pad ядром v1 + проверка достаточности                   |
+| POST         | `/calibration/propose`                      | admin, researcher + MFA    | Политика из экспериментов калибровки                                          |
+| GET          | `/calibration/factors`                      | admin, researcher, auditor | Измеренные характеристики факторов                                            |
+| POST         | `/calibration/factors/catalog`              | admin, researcher          | Каталог факторов из измерений для решателя v1                                 |
+| GET          | `/calibration/report`                       | admin, researcher, auditor | Протокол §10.11: «до/после калибровки» с интервалами                          |
+| POST         | `/calibration/drift/check`                  | admin, researcher          | Проверить дрейф FRR сейчас (обычно по расписанию)                             |
+| POST         | `/calibration/drift/:id/acknowledge`        | admin                      | Принять уведомление о дрейфе                                                  |
+| POST, GET    | `/calibration/batch[/:id]`                  | admin, researcher          | Пакетный режим: zip → набор оценок (фоновая задача)                           |
+| GET, DELETE  | `/calibration/batch/:id/csv`, `/:id`        | admin, researcher          | CSV оценок / отмена задачи                                                    |
+| POST         | `/pad-test/samples`                         | admin, researcher          | Испытание PAD: подлинное предъявление или атака                               |
+| GET          | `/pad-test/report?threshold=`               | admin, researcher, auditor | APCER по видам атак, BPCER                                                    |
+| GET          | `/attempts`                                 | admin, researcher, auditor | Журнал попыток (keyset-пагинация); аудитору оценки не показываются            |
 
 Внутренний сервис bio-engine (`/v1/face/*`, `/v1/batch/face`) доступен только из сети docker compose по общему
 секрету `X-Bio-Secret`; его контракт описан в `services/bio-engine/README.md` и `packages/contracts/src/bio-engine.ts`.
@@ -335,7 +335,7 @@ POST /oidc/token  grant_type=authorization_code&code=…&redirect_uri=…&code_v
 | `POST /mfa/recovery/verify`     | `{code}` — вход по коду восстановления; код гасится, в ответе — сколько кодов осталось                             |
 | `POST /mfa/recovery/regenerate` | `{code}` — новый набор кодов (нужен код из приложения); прежние аннулируются                                       |
 | `GET /keystroke`                | Зарегистрирован ли ритм, число повторов, фраза, сколько повторов нужно                                             |
-| `POST /keystroke/enroll`        | `{samples: [{events: [{code, down, up}]}]}` — не менее 5 повторов; нужно согласие (`403 consent-required`)         |
+| `POST /keystroke/enroll`        | `{samples: [{events: [{code, down, up}]}]}` — не менее 5 повторов; нужно согласие v2 (`403 consent-outdated`)      |
 | `POST /keystroke/verify`        | Один ввод фразы → `{accepted, distance, threshold, score}`; 5 отказов подряд — `429` на 5 минут                    |
 | `DELETE /keystroke`             | Удалить ритм набора (отзыв согласия удаляет его тоже)                                                              |
 
