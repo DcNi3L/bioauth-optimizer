@@ -12,6 +12,9 @@ updates:
       # kysely 0.29 — только ESM: API на CommonJS (NestJS) и Jest 30 его не загружают без перевода проекта на ESM.
       - dependency-name: kysely
         versions: [">=0.29.0"]
+      # 1.6.28 требует TypeScript 6; проект пока на TypeScript 5.9.
+      - dependency-name: "@vitest/eslint-plugin"
+        versions: [">=1.6.28"]
   - package-ecosystem: pip
     directory: /services/bio-engine
     schedule: { interval: weekly, day: monday }

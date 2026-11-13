@@ -11,3 +11,7 @@ onlyBuiltDependencies:
   - prisma
   - sharp
   - unrs-resolver
+
+# webpack из @nestjs/cli старше, чем требует schema-utils 4.8 — поднимаем до совместимой версии.
+overrides:
+  webpack: ^5.112.2
