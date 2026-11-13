@@ -60,9 +60,19 @@ export interface ChainVerification {
   readonly brokenAt: number | null;
 }
 
+export interface AuditExportFilter {
+  readonly from?: Date;
+  readonly to?: Date;
+  readonly action?: string;
+  /** Не более стольких записей (старые первыми). */
+  readonly limit: number;
+}
+
 export interface AuditLog {
   record(event: AuditEventInput): Promise<void>;
   list(limit: number, beforeSeq?: number): Promise<AuditEventView[]>;
+  /** Записи по порядку возрастания seq для выгрузки. */
+  export(filter: AuditExportFilter): Promise<AuditEventView[]>;
   verify(): Promise<ChainVerification>;
 }
 

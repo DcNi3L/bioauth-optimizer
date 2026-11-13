@@ -5,6 +5,7 @@ import { type Db, KYSELY } from '../../../shared/database/kysely';
 import {
   type AuditEventInput,
   type AuditEventView,
+  type AuditExportFilter,
   type AuditLog,
   chainHash,
   type ChainVerification,
@@ -55,6 +56,23 @@ export class KyselyAuditLog implements AuditLog {
   async list(limit: number, beforeSeq?: number): Promise<AuditEventView[]> {
     let q = this.db.selectFrom('audit_event').selectAll().orderBy('seq', 'desc').limit(limit);
     if (beforeSeq !== undefined) q = q.where('seq', '<', String(beforeSeq));
+    const rows = await q.execute();
+    return rows.map((r) => ({
+      seq: Number(r.seq),
+      at: r.at.toISOString(),
+      actorId: r.actor_id,
+      action: r.action,
+      target: r.target,
+      details: r.details as Record<string, unknown>,
+      hash: r.hash,
+    }));
+  }
+
+  async export(filter: AuditExportFilter): Promise<AuditEventView[]> {
+    let q = this.db.selectFrom('audit_event').selectAll().orderBy('seq', 'asc').limit(filter.limit);
+    if (filter.from) q = q.where('at', '>=', filter.from);
+    if (filter.to) q = q.where('at', '<', filter.to);
+    if (filter.action) q = q.where('action', '=', filter.action);
     const rows = await q.execute();
     return rows.map((r) => ({
       seq: Number(r.seq),

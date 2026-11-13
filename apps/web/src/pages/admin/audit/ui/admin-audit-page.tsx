@@ -2,6 +2,7 @@
 
 import { useAuditEvents, useAuditVerification } from '@/entities/audit';
 import { useViewer } from '@/entities/viewer';
+import { API_BASE } from '@/shared/config';
 import { useT } from '@/shared/i18n';
 import { formatDateTime } from '@/shared/lib';
 import { ApiErrorNotice, Button, Notice, Panel } from '@/shared/ui';
@@ -21,9 +22,20 @@ export function AdminAuditPage() {
       title={t('algo.audit.title')}
       description={t('algo.audit.desc')}
       actions={
-        <Button variant="secondary" busy={verify.isFetching} onClick={() => void verify.refetch()}>
-          {t('algo.audit.verify')}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" busy={verify.isFetching} onClick={() => void verify.refetch()}>
+            {t('algo.audit.verify')}
+          </Button>
+          {(['csv', 'json'] as const).map((f) => (
+            <Button
+              key={f}
+              variant="secondary"
+              onClick={() => window.location.assign(`${API_BASE}/audit/export?format=${f}`)}
+            >
+              {t(f === 'csv' ? 'algo.audit.exportCsv' : 'algo.audit.exportJson')}
+            </Button>
+          ))}
+        </div>
       }
     >
       <div className="flex flex-col gap-4 px-5 py-4">

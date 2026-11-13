@@ -1,6 +1,7 @@
 import type { BioLivenessResponse, BioVerifyResponse, FaceStep } from '@bioauth/contracts';
 
 import { chainHash, GENESIS_HASH } from '../../src/modules/audit/application/audit-log';
+import { csvCell, toCsv } from '../../src/modules/audit/presentation/audit.controller';
 import type { FaceTemplateRepository, StoredTemplate } from '../../src/modules/biometrics/application/ports';
 import { rekeyTemplates } from '../../src/modules/biometrics/application/rekey';
 import { AesGcmTemplateCipher } from '../../src/modules/biometrics/infrastructure/aes-gcm-template-cipher';
@@ -211,5 +212,24 @@ describe('пароли сотрудников (scrypt)', () => {
     await expect(h.verify('wrong', a)).resolves.toBe(false);
     await expect(h.verify('x', 'garbage')).resolves.toBe(false);
     expect(await h.hash('correct horse battery')).not.toBe(a);
+  });
+});
+
+describe('экспорт аудита в CSV', () => {
+  it('экранирует кавычки, запятые и переводы строк', () => {
+    expect(csvCell('a,b')).toBe('"a,b"');
+    expect(csvCell('say "hi"')).toBe('"say ""hi"""');
+    expect(csvCell(null)).toBe('');
+    expect(csvCell({ k: 1 })).toBe('"{""k"":1}"');
+  });
+  it('нейтрализует формулы (CSV-инъекция)', () => {
+    for (const v of ['=1+1', '+cmd', '-2', '@SUM(A1)']) expect(csvCell(v).startsWith("'")).toBe(true);
+    expect(csvCell('ok')).toBe('ok');
+  });
+  it('заголовок и строки', () => {
+    const out = toCsv([
+      { seq: 1, at: 't', actorId: null, action: 'a.b', target: null, details: {}, hash: 'h' },
+    ]);
+    expect(out).toBe('seq,at,actorId,action,target,details,hash\n1,t,,a.b,,{},h\n');
   });
 });

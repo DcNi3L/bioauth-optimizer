@@ -514,6 +514,8 @@ export const kkV3: DictV3 = {
       colDetails: 'Толығырақ',
       colHash: 'Хэш',
       older: 'Ертерек жазбалар',
+      exportCsv: 'CSV жүктеу',
+      exportJson: 'JSON жүктеу',
     },
     chrome: {
       uploadPending: 'Жүктелуде…',

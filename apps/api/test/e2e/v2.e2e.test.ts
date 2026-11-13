@@ -488,6 +488,21 @@ describeDb('API v2 e2e: биометрия и вход (PostgreSQL)', () => {
       brokenAt: null,
     });
 
+    const json = await auditor.get('/api/v1/audit/export?format=json&action=consent.granted').expect(200);
+    expect(json.headers['x-audit-chain-ok']).toBe('true');
+    expect(json.headers['content-disposition']).toMatch(/audit-\d{4}-\d{2}-\d{2}\.json/);
+    expect(json.body.length).toBeGreaterThan(0);
+    expect(json.body.every((e: { action: string }) => e.action === 'consent.granted')).toBe(true);
+    const seqs = json.body.map((e: { seq: number }) => e.seq);
+    expect(seqs).toEqual([...seqs].sort((a: number, b: number) => a - b));
+    const csv = await auditor.get('/api/v1/audit/export?format=csv').expect(200);
+    expect(csv.headers['content-type']).toMatch(/text\/csv/);
+    expect(csv.text.startsWith('﻿seq,at,actorId,action,target,details,hash\n')).toBe(true);
+    const none = await auditor.get('/api/v1/audit/export?to=2000-01-01T00:00:00Z').expect(200);
+    expect(none.body).toEqual([]);
+    await auditor.get('/api/v1/audit/export?format=xml').expect(400);
+    await auditor.get('/api/v1/audit/export?from=вчера').expect(400);
+
     await expect(pg.query("UPDATE audit_event SET action = 'x.y.z'")).rejects.toThrow(/только дополняется/);
     await expect(pg.query('DELETE FROM audit_event')).rejects.toThrow(/только дополняется/);
     await pg.query(

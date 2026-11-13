@@ -519,6 +519,8 @@ export const ruV3 = {
       colDetails: 'Подробности',
       colHash: 'Хэш',
       older: 'Более ранние записи',
+      exportCsv: 'Выгрузить CSV',
+      exportJson: 'Выгрузить JSON',
     },
     chrome: {
       uploadPending: 'Загружаю…',

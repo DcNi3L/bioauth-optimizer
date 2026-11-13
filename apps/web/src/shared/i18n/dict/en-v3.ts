@@ -512,6 +512,8 @@ export const enV3: DictV3 = {
       colDetails: 'Details',
       colHash: 'Hash',
       older: 'Older records',
+      exportCsv: 'Export CSV',
+      exportJson: 'Export JSON',
     },
     chrome: {
       uploadPending: 'Uploading…',
