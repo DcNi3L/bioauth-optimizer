@@ -42,8 +42,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://bioauth:bioauth@localhost:5432/bioauth
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 24
