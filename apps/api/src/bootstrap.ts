@@ -79,10 +79,10 @@ export function configureApp(nest: INestApplication): INestApplication {
   app.use(requestContextMiddleware);
   app.setGlobalPrefix('api/v1', {
     exclude: [
-      { path: 'health/(.*)', method: RequestMethod.GET },
+      { path: 'health/{*path}', method: RequestMethod.GET },
       { path: 'metrics', method: RequestMethod.GET },
-      { path: '.well-known/(.*)', method: RequestMethod.ALL },
-      { path: 'oidc/(.*)', method: RequestMethod.ALL },
+      { path: '.well-known/{*path}', method: RequestMethod.ALL },
+      { path: 'oidc/{*path}', method: RequestMethod.ALL },
     ],
   });
   // Конечные точки OIDC (токены, userinfo, JWKS) вызываются приложениями с других адресов и без cookie;

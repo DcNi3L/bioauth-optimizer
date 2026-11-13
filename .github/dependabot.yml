@@ -12,6 +12,9 @@ updates:
       # kysely 0.29 — только ESM: API на CommonJS (NestJS) и Jest 30 его не загружают без перевода проекта на ESM.
       - dependency-name: kysely
         versions: [">=0.29.0"]
+      # NestJS 12 (и @nestjs/swagger 12, @nestjs/cli 12) — только ESM: нужен перевод API на ESM.
+      - dependency-name: "@nestjs/*"
+        update-types: ["version-update:semver-major"]
       # 1.6.28 требует TypeScript 6; проект пока на TypeScript 5.9.
       - dependency-name: "@vitest/eslint-plugin"
         versions: [">=1.6.28"]
