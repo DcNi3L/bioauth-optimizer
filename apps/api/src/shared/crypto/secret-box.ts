@@ -14,6 +14,7 @@ export interface SealedSecret {
 
 /** Шифрование небольших секретов пользователя: назначение и пользователь входят в AAD и не позволяют «пересадить» шифротекст. */
 export interface SecretBox {
+  readonly activeKeyId: string;
   seal(purpose: string, userId: string, data: Buffer): SealedSecret;
   open(purpose: string, userId: string, sealed: SealedSecret): Buffer;
 }
@@ -24,7 +25,7 @@ const TAG_LEN = 16;
 @Injectable()
 export class AesGcmSecretBox implements SecretBox {
   private readonly keys: Record<string, Buffer>;
-  private readonly activeKeyId: string;
+  readonly activeKeyId: string;
 
   constructor(@Inject(APP_CONFIG) config: AppConfig) {
     this.keys = config.TEMPLATE_KEYS;

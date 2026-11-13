@@ -1,4 +1,8 @@
 import { base32Decode, hotp, totpCounter } from '../../src/modules/mfa/domain/totp';
+import { loadConfig } from '../../src/shared/config/env';
+import { keystrokeSecretStore, rekeySecrets, totpSecretStore } from '../../src/shared/crypto/rekey-secrets';
+import { AesGcmSecretBox } from '../../src/shared/crypto/secret-box';
+import { createDb } from '../../src/shared/database/kysely';
 import { type Agent, createV2App, loginStaff, registerSubject, type V2App } from '../support/v2-app';
 
 const DB_URL = process.env.TEST_DATABASE_URL;
@@ -188,5 +192,33 @@ describeDb('API: приложение-аутентификатор (TOTP) и к�
       .expect(200);
     expect(ok.body.enabled).toBe(true);
     await s.get(`${API}/admin/users`).expect(403); // роль участника не допускает админку
+  });
+
+  it('ротация ключа (#50): секреты TOTP перешифрованы активным ключом, содержимое то же', async () => {
+    const oldBox = new AesGcmSecretBox(loadConfig({ DATABASE_URL: DB_URL! }));
+    const keys = JSON.stringify({
+      dev: Buffer.alloc(32, 7).toString('base64'),
+      k2: Buffer.alloc(32, 9).toString('base64'),
+    });
+    const newBox = new AesGcmSecretBox(
+      loadConfig({ DATABASE_URL: DB_URL!, TEMPLATE_KEYS: keys, TEMPLATE_ACTIVE_KEY: 'k2' }),
+    );
+    const db = createDb(DB_URL!, 1);
+    try {
+      const stores = [totpSecretStore(db), keystrokeSecretStore(db)];
+      const before = await stores[0]!.all();
+      expect(before.length).toBeGreaterThan(0);
+      const plain = new Map(before.map((r) => [r.userId, oldBox.open('totp', r.userId, r.sealed)]));
+      const r = await rekeySecrets(stores, newBox);
+      expect(r.totp).toEqual({ checked: before.length, rekeyed: before.length, skipped: 0 });
+      expect(r.keystroke).toEqual({ checked: 0, rekeyed: 0, skipped: 0 });
+      for (const row of await stores[0]!.all()) {
+        expect(row.sealed.keyId).toBe('k2');
+        expect(newBox.open('totp', row.userId, row.sealed).equals(plain.get(row.userId)!)).toBe(true);
+      }
+      expect((await rekeySecrets(stores, newBox)).totp!.rekeyed).toBe(0); // повторный прогон ничего не меняет
+    } finally {
+      await db.destroy();
+    }
   });
 });

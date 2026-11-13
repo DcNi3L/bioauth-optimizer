@@ -7,6 +7,8 @@
 
 ### Добавлено
 
+- **Ротация ключа для TOTP и ритма набора (#50).** `pnpm --filter @bioauth/api rekey` перешифровывает также
+  `user_totp` и `keystroke_template`; после прогона старый ключ можно удалить из `TEMPLATE_KEYS`.
 - **Выгрузка журнала аудита (#43).** `GET /audit/export?format=csv|json&from=&to=&action=` (admin, auditor): записи по
   возрастанию номера, до 10 000 за запрос, в заголовках `X-Audit-Chain-OK` / `X-Audit-Chain-Events` — результат проверки
   цепочки на момент выгрузки. CSV с BOM для Excel и защитой от формул (`=`, `+`, `-`, `@`). Кнопки на странице журнала.
