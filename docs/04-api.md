@@ -345,6 +345,10 @@ POST /oidc/token  grant_type=authorization_code&code=…&redirect_uri=…&code_v
 ритма — `POST /calibration/threshold {modality: "keystroke"}`, предложение — `POST /calibration/propose
 {keystrokeExperimentId}`; политика из решения оптимизатора — `POST /calibration/propose-from-selection {experimentId}`.
 
+**Вход с другого устройства (ADR-0023).** `POST /cross-device` (компьютер: QR-адрес, число, секрет опроса; 2 мин) →
+`POST /cross-device/{id}/details|approve|deny` (телефон, сессия, `{key, number}`) → `POST /cross-device/{id}/status` и
+`/complete` (компьютер, `{pollSecret}`; сессия выдаётся один раз). Ошибки: `422 NUMBER_MISMATCH`, `403 reauth-required`.
+
 **Повторное подтверждение (step-up).** Смена роли (`PATCH /admin/users/{id}`), изменение и удаление клиента OIDC,
 утверждение и откат политики, удаление passkey сотрудником требуют второго фактора, проверенного не более
 `STEP_UP_MAX_AGE_SEC` (300 с) назад. Иначе — `403` с `code: step-up-required`: повторите `POST /webauthn/staff/verify`,

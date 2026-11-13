@@ -225,6 +225,7 @@ export interface ScoreSampleTable {
 
 export interface Database {
   login_event: LoginEventTable;
+  cross_device_request: CrossDeviceRequestTable;
   user_avatar: UserAvatarTable;
   oauth_client: OauthClientTable;
   oauth_request: OauthRequestTable;
@@ -291,7 +292,24 @@ export type LoginMethodDb =
   | 'oidc'
   | 'totp'
   | 'recovery'
-  | 'keystroke';
+  | 'keystroke'
+  | 'cross_device';
+
+export interface CrossDeviceRequestTable {
+  id: Generated<string>;
+  poll_hash: string;
+  approve_hash: string;
+  match_number: number;
+  status: Generated<'pending' | 'approved' | 'denied' | 'consumed'>;
+  user_id: string | null;
+  amr: Generated<string[]>;
+  mfa: Generated<boolean>;
+  ip: string | null;
+  user_agent: string | null;
+  created_at: ColumnType<Date, never, never>;
+  expires_at: Date;
+  decided_at: Date | null;
+}
 
 export interface LoginEventTable {
   id: Generated<string>;

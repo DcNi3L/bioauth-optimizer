@@ -7,10 +7,11 @@ import { useState } from 'react';
 
 import { useOauthRequest } from '@/entities/oauth-client';
 import { BiometricLogin, StaffLogin } from '@/features/authenticate';
+import { CrossDeviceLogin } from '@/features/cross-device';
 import { useT } from '@/shared/i18n';
 import { Notice, Panel, Segmented } from '@/shared/ui';
 
-type Mode = 'subject' | 'staff';
+type Mode = 'subject' | 'phone' | 'staff';
 
 /**
  * Вход. С параметром ?oauth=<id> — это вход для стороннего приложения (OpenID Connect): после успеха
@@ -49,7 +50,7 @@ export function LoginPage() {
       {oauth && request.isError && <Notice tone="caution">{t('oauth.expired')}</Notice>}
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl">{t('auth.title')}</h1>
-        <p className="text-graphite">{mode === 'subject' ? t('auth.subtitle') : t('auth.staffIntro')}</p>
+        <p className="text-graphite">{mode === 'staff' ? t('auth.staffIntro') : t('auth.subtitle')}</p>
       </header>
       <Segmented<Mode>
         label={t('auth.title')}
@@ -57,11 +58,18 @@ export function LoginPage() {
         onChange={setMode}
         options={[
           { value: 'subject', label: t('auth.tabBiometric') },
+          { value: 'phone', label: t('auth.tabPhone') },
           { value: 'staff', label: t('auth.tabStaff') },
         ]}
       />
       <Panel>
-        {mode === 'subject' ? <BiometricLogin onSuccess={() => done()} /> : <StaffLogin onSuccess={done} />}
+        {mode === 'subject' ? (
+          <BiometricLogin onSuccess={() => done()} />
+        ) : mode === 'phone' ? (
+          <CrossDeviceLogin onSuccess={() => done()} />
+        ) : (
+          <StaffLogin onSuccess={done} />
+        )}
       </Panel>
       <div className="text-graphite flex flex-wrap items-center justify-between gap-3 text-sm">
         <p>

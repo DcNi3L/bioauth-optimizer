@@ -124,6 +124,7 @@ export const en: Dict = {
     restart: 'Start over',
     tabBiometric: 'Biometric',
     tabStaff: 'Staff',
+    tabPhone: 'With phone',
     title: 'Sign in',
     subtitle:
       'Sign in under the active policy: its steps — face with random commands, passkey, app code or typing rhythm.',

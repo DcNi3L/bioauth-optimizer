@@ -312,6 +312,7 @@ export const loginMethodSchema = z.enum([
   'totp',
   'recovery',
   'keystroke',
+  'cross_device',
 ]);
 
 export const loginEventSchema = z.object({
@@ -326,3 +327,42 @@ export const loginEventSchema = z.object({
   clientId: z.string().nullable(),
 });
 export type LoginEventDto = z.infer<typeof loginEventSchema>;
+
+// ── v3.3 (#40): вход на компьютере с подтверждением на телефоне по QR-коду ──
+
+export const crossDeviceStartSchema = z.object({
+  requestId: z.uuid(),
+  /** Секрет опроса: остаётся на компьютере, в QR-код не попадает. */
+  pollSecret: z.string(),
+  /** Адрес для телефона (в QR-коде): содержит одноразовый ключ подтверждения. */
+  approveUrl: z.string(),
+  /** Число, которое нужно выбрать на телефоне. */
+  number: z.number().int(),
+  expiresAt: z.string(),
+});
+export type CrossDeviceStartDto = z.infer<typeof crossDeviceStartSchema>;
+
+export const crossDeviceStatusSchema = z.object({
+  status: z.enum(['pending', 'approved', 'denied', 'expired', 'consumed']),
+});
+export type CrossDeviceStatusDto = z.infer<typeof crossDeviceStatusSchema>;
+
+export const crossDevicePollSchema = z.strictObject({ pollSecret: z.string().min(16).max(128) });
+
+/** Что видит телефон: откуда запрошен вход и три числа на выбор. */
+export const crossDeviceDetailsSchema = z.object({
+  requestId: z.uuid(),
+  userAgent: z.string().nullable(),
+  ip: z.string().nullable(),
+  createdAt: z.string(),
+  expiresAt: z.string(),
+  choices: z.array(z.number().int()).length(3),
+  /** Нужна свежая проверка на телефоне (вход или passkey не позднее 5 минут назад). */
+  needsReauth: z.boolean(),
+});
+export type CrossDeviceDetailsDto = z.infer<typeof crossDeviceDetailsSchema>;
+
+export const crossDeviceDecisionSchema = z.strictObject({
+  key: z.string().min(16).max(128),
+  number: z.number().int().min(10).max(99).optional(),
+});

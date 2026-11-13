@@ -854,6 +854,38 @@ export const enV3: DictV3 = {
     source:
       'Methods from the SRO1 paper “Multi-criteria optimisation of biometric authentication parameters” (D. K. Mekenbaev, Turan University).',
   },
+  crossDevice: {
+    intro:
+      'Sign in on this computer with a phone where you are already signed in to BioAuth: scan the QR code and pick the number from this screen on the phone.',
+    show: 'Show QR code',
+    qrAlt: 'QR code for signing in with a phone',
+    scan: 'Scan the code with your phone camera. On the phone, pick this number:',
+    numberLabel: 'Number to match',
+    expires: 'The code is valid for {s} more s',
+    waiting: 'Waiting for confirmation on the phone…',
+    approved: 'Confirmed on the phone — signing in.',
+    denied: 'Sign-in was declined on the phone.',
+    expired: 'Time is up — show a new code.',
+    again: 'New code',
+    loginFirstTitle: 'Sign in on this phone first',
+    loginFirst:
+      'A computer sign-in can only be confirmed from an open session. Sign in and scan the code again.',
+    doneApproved: 'Done: the computer will sign in within a couple of seconds.',
+    doneDenied:
+      'Request declined. If you did not start this sign-in, change your password or end unknown sessions in your profile.',
+    warning:
+      'Confirm only if you started signing in on a computer just now. Support staff never ask you to scan codes.',
+    device: 'Device',
+    address: 'Address',
+    requested: 'Requested',
+    reauth: 'A fresh check on this phone is required to confirm.',
+    reauthLogin: 'Sign in again on the phone (with face or passkey) and scan the code again.',
+    pick: 'Pick the number shown on the computer screen:',
+    deny: 'Not me — decline',
+    approveTitle: 'Sign-in on another device',
+    approveIntro: 'Someone asked to sign in to your account on a computer.',
+    badLink: 'The link is incomplete. Scan the QR code on the computer again.',
+  },
   stepUp: {
     title: 'Confirm it’s you',
     desc: 'This action changes roles, keys or the sign-in policy: confirm your second factor. The confirmation lasts 5 minutes.',

@@ -7,6 +7,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { BiometricsModule } from './modules/biometrics/biometrics.module';
 import { CalibrationModule } from './modules/calibration/calibration.module';
 import { ConsentModule } from './modules/consent/consent.module';
+import { CrossDeviceModule } from './modules/cross-device/cross-device.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { ExamplesModule } from './modules/examples/examples.module';
 import { ExperimentsModule } from './modules/experiments/experiments.module';
@@ -47,6 +48,7 @@ import { HttpMetricsInterceptor, Metrics, MetricsController } from './shared/met
     WebAuthnModule,
     MfaModule,
     KeystrokeModule,
+    CrossDeviceModule,
     EnrollmentModule,
     VerificationModule,
     CalibrationModule,
