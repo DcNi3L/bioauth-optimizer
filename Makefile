@@ -59,6 +59,16 @@ install: ## Установить зависимости по lockfile (и git-х
 	$(call log,"Установка зависимостей")
 	@$(PNPM) install --frozen-lockfile
 
+# После git pull lockfile мог измениться: цели сборки и проверки сначала доустанавливают зависимости, иначе ESLint и tsc
+# видят старые пакеты (например, fast-check 3 вместо 4) и падают с непонятными ошибками типов.
+node_modules/.pnpm/lock.yaml: pnpm-lock.yaml
+	$(call log,"pnpm-lock.yaml изменился — обновляю зависимости")
+	@$(PNPM) install --frozen-lockfile
+	@touch $@
+
+.PHONY: deps
+deps: node_modules/.pnpm/lock.yaml ## Доустановить зависимости, если lockfile новее node_modules
+
 .PHONY: setup
 setup: doctor install build ## Первая настройка: окружение, зависимости, сборка пакетов
 	@printf "$(GREEN)Готово.$(RESET) Дальше: make db && make migrate && make dev\n"
@@ -67,7 +77,7 @@ setup: doctor install build ## Первая настройка: окружени
 ##@ Разработка
 
 .PHONY: dev
-dev: ## Запустить api (:4000) и web (:3000) в режиме разработки
+dev: deps ## Запустить api (:4000) и web (:3000) в режиме разработки
 	@DATABASE_URL="$(DATABASE_URL)" $(PNPM) dev
 
 .PHONY: db
@@ -84,30 +94,30 @@ migrate: ## Применить SQL-миграции и seed каталога С�
 	@DATABASE_URL="$(DATABASE_URL)" $(PNPM) --filter @bioauth/api migrate
 
 .PHONY: build
-build: ## Собрать все пакеты (turbo, с кэшем)
+build: deps ## Собрать все пакеты (turbo, с кэшем)
 	@$(PNPM) build
 
 # ─────────────────────────────────────────────────────────────────────────────
 ##@ Качество кода
 
 .PHONY: format
-format: ## Отформатировать весь репозиторий (Prettier)
+format: deps ## Отформатировать весь репозиторий (Prettier)
 	@$(PNPM) format
 
 .PHONY: format-check
-format-check: ## Проверить форматирование без изменений
+format-check: deps ## Проверить форматирование без изменений
 	@$(PNPM) format:check
 
 .PHONY: lint
-lint: ## ESLint (strict + проверка типов) и steiger (FSD)
+lint: deps ## ESLint (strict + проверка типов) и steiger (FSD)
 	@$(PNPM) lint
 
 .PHONY: lint-fix
-lint-fix: ## ESLint с автоисправлением
+lint-fix: deps ## ESLint с автоисправлением
 	@$(PNPM) lint:fix
 
 .PHONY: typecheck
-typecheck: ## Проверка типов TypeScript во всех пакетах
+typecheck: deps ## Проверка типов TypeScript во всех пакетах
 	@$(PNPM) typecheck
 
 .PHONY: fix
@@ -121,20 +131,20 @@ commitlint: ## Проверить сообщения коммитов относ
 ##@ Тесты
 
 .PHONY: test
-test: ## Все тесты; e2e API — на TEST_DATABASE_URL (make db)
+test: deps ## Все тесты; e2e API — на TEST_DATABASE_URL (make db)
 	@TEST_DATABASE_URL="$(TEST_DATABASE_URL)" $(PNPM) test
 
 .PHONY: test-core
-test-core: ## Тесты вычислительного ядра (золотые и property)
+test-core: deps ## Тесты вычислительного ядра (золотые и property)
 	@$(PNPM) --filter @bioauth/optimization-core test
 
 .PHONY: test-api
-test-api: ## Тесты API (unit + e2e на PostgreSQL)
+test-api: deps ## Тесты API (unit + e2e на PostgreSQL)
 	@$(PNPM) --filter @bioauth/optimization-core --filter @bioauth/contracts build >/dev/null
 	@TEST_DATABASE_URL="$(TEST_DATABASE_URL)" $(PNPM) --filter @bioauth/api test
 
 .PHONY: test-web
-test-web: ## Unit-тесты фронтенда
+test-web: deps ## Unit-тесты фронтенда
 	@$(PNPM) --filter @bioauth/web test
 
 .PHONY: test-e2e
