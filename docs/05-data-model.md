@@ -178,3 +178,11 @@ CREATE INDEX experiment_dataset_idx      ON experiment (score_dataset_id);
 - `login_event.method` допускает `totp` и `recovery`.
 - `keystroke_template` — зашифрованный шаблон ритма (`ciphertext`, `iv`, `key_id`), число повторов, фраза (`^[a-z ]{8,64}$`),
   счётчик отказов и блокировка. Удаляется в одной транзакции с шаблоном лица при отзыве согласия.
+
+## 5.9. Схема v3.4 (миграция 0012)
+
+- `tenant_settings` — одна строка (первичный ключ `id boolean` с проверкой `id = true`): `product_name`,
+  `accent_color` (`^#[0-9a-f]{6}$`), `logo_url` (только `https://`), `login_title`, `login_subtitle`, `support_url`,
+  `privacy_url`, `terms_url`, `allow_signup`, `allow_cross_device`, `updated_at`, `updated_by` (→ `app_user`,
+  `ON DELETE SET NULL`). Ограничения длины и формата продублированы в базе, чтобы неверное значение не попало и в
+  обход API.

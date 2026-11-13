@@ -370,3 +370,16 @@ POST /oidc/token  grant_type=authorization_code&code=…&redirect_uri=…&code_v
 Ритм: `code` — `KeyboardEvent.code` (физическая клавиша, не зависит от раскладки), `down`/`up` — миллисекунды от начала
 ввода. Ошибки `422`: `KEYSTROKE_LENGTH`, `KEYSTROKE_CODES` (другая фраза, исправления), `KEYSTROKE_TIMING`, `KEYSTROKE_ROBOTIC`
 (слишком ровные паузы). Подробности и обоснование — [ADR-0020](adr/0020-totp-recovery-keystroke.md).
+
+## 4.9. API v3.4: настройки тенанта и выгрузка пользователей
+
+| Метод и путь                   | Доступ          | Назначение                                                                                    |
+| ------------------------------ | --------------- | --------------------------------------------------------------------------------------------- |
+| `GET /tenant/settings`         | открыт          | Брендинг страницы входа и параметры входа (их читает страница входа до входа)                 |
+| `PATCH /admin/tenant/settings` | admin + step-up | Изменить любые поля; пустая строка сбрасывает необязательное поле; аудит `tenant.updated`     |
+| `GET /admin/users/export`      | admin, auditor  | `format=csv\|json` и фильтры списка (`q`, `role`, `status`); до 10 000 записей; без биометрии |
+
+Поля настроек: `productName` (1–40), `accentColor` (`#rrggbb` или null), `logoUrl` (только `https://`),
+`loginTitle` (≤ 80), `loginSubtitle` (≤ 200), `supportUrl` (`http(s)://` или `mailto:`), `privacyUrl`, `termsUrl`,
+`allowSignup`, `allowCrossDevice`. Выключенные способы проверяет сервер: `POST /identity/subjects` и
+`POST /cross-device` отвечают `403`. См. [ADR-0026](adr/0026-universal-login-and-tenant-settings.md).

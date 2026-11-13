@@ -1,7 +1,7 @@
 {
   "name": "bioauth-optimizer",
   "private": true,
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "BioAuth Optimizer — оптимизация порога и состава факторов биометрической аутентификации",
   "author": "Daniel Mekenbaev <donniekun03@gmail.com>",
   "license": "UNLICENSED",
