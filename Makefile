@@ -232,6 +232,25 @@ smoke: up health test-e2e ## Поднять систему, проверить �
 urls: ## Адреса интерфейса и API
 	@printf "  Интерфейс  $(CYAN)%s$(RESET)\n  API (Scalar) $(CYAN)%s/api/docs$(RESET)\n" "$(WEB_URL)" "$(API_URL)"
 
+.PHONY: secrets
+secrets: ## Заменить демонстрационные секреты настоящими (.env) и применить их к системе: пароли, ключи, токены
+	@node scripts/secrets.mjs
+	@if grep -qx POSTGRES_PASSWORD .env.rotated; then \
+		$(COMPOSE) up -d --wait db >/dev/null && \
+		grep '^POSTGRES_PASSWORD=' .env | cut -d= -f2- | \
+			sed "s/.*/ALTER USER bioauth PASSWORD '&';/" | $(COMPOSE) exec -T db psql -q -U bioauth -d bioauth && \
+		echo "  пароль базы данных изменён"; fi
+	@if [ -s .env.rotated ]; then $(COMPOSE) up -d --wait >/dev/null && echo "  контейнеры перезапущены с новыми секретами"; fi
+	@if grep -qx ADMIN_PASSWORD .env.rotated; then \
+		$(COMPOSE) exec -T api sh -c 'node dist/modules/identity/staff.cli.js --login "$$ADMIN_LOGIN" --reset-password' >/dev/null && \
+		echo "  пароль администратора: $$(grep '^ADMIN_PASSWORD=' .env | cut -d= -f2-)  (сохранён в .env; сеансы завершены)"; fi
+	@if grep -qx TEMPLATE_KEYS .env.rotated; then \
+		$(COMPOSE) exec -T api node dist/modules/biometrics/rekey.cli.js >/dev/null && \
+		echo "  шаблоны лица, ритма и секреты TOTP перешифрованы новым ключом" && \
+		node scripts/secrets.mjs --drop-dev >/dev/null && $(COMPOSE) up -d --wait >/dev/null && \
+		echo "  ключ разработки dev удалён из TEMPLATE_KEYS"; fi
+	@rm -f .env.rotated
+
 .PHONY: calibrate
 calibrate: ## Полная калибровка в запущенной системе (make up): лицо — ORL, ритм — CMU, PAD — по испытаниям
 	$(call log,"калибровка: лицо (AT&T ORL) · ритм набора (CMU) · PAD по испытаниям UC-8")

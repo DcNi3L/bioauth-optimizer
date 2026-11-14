@@ -193,3 +193,22 @@ compose. Включение: Settings → Pages → Source: **GitHub Actions**. 
 curl -s http://localhost:4000/api/openapi.json -o /tmp/openapi.json
 node scripts/build-pages.mjs --out _site --openapi /tmp/openapi.json
 ```
+
+## 6.8. Секреты: `make secrets`
+
+Демонстрационные значения (`bioauth`, `change-me-admin-123`, `dev-bio-secret-change-me`, ключ шаблонов «dev»)
+годятся только для первого знакомства. `make secrets` заменяет их настоящими и применяет к запущенной системе:
+
+| Переменная                             | Что генерируется                         | Как применяется                                                                   |
+| -------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------- |
+| `POSTGRES_PASSWORD`                    | 24 случайных байта (base64url)           | `ALTER USER bioauth PASSWORD …` в контейнере db, затем перезапуск api             |
+| `BIO_ENGINE_SECRET`                    | 32 случайных байта                       | общий секрет api ↔ bio-engine, оба контейнера перезапускаются                     |
+| `TEMPLATE_KEYS`, `TEMPLATE_ACTIVE_KEY` | ключ AES-256 `k<дата>`                   | `rekey` перешифровывает шаблоны лица, ритма и секреты TOTP, затем «dev» удаляется |
+| `ADMIN_PASSWORD`                       | пароль из 20 знаков без похожих символов | пароль администратора `ADMIN_LOGIN` меняется, его сеансы завершаются              |
+| `METRICS_TOKEN`, `GRAFANA_PASSWORD`    | токен 32 байта, пароль 20 знаков         | доступ к `/metrics` и Grafana (`--profile monitoring`)                            |
+| `ALLOW_DEV_KEYS`                       | `false`                                  | API больше не запустится с ключом разработки                                      |
+
+Секреты создаются на вашей машине криптографическим генератором и пишутся только в `.env` (в `.gitignore`, права
+600). Уже заданные настоящие значения не меняются: повторный запуск ничего не делает. Новый пароль администратора
+выводится один раз и хранится в `.env`. Для `make dev` перенесите `BIO_ENGINE_SECRET` и `TEMPLATE_KEYS` в
+`apps/api/.env`, а `BIO_ENGINE_SECRET` — ещё и в `BIO_SECRET` bio-engine.

@@ -10,6 +10,7 @@ import type { AuthUser } from '../../shared/auth/auth';
 import { USER_REPOSITORY, type UserRepository } from '../identity/application/ports';
 import { KEYSTROKE_MODEL } from '../keystroke/domain/keystroke';
 import { PolicyService } from '../policy/application/policy.use-cases';
+import { POLICY_REPOSITORY, type PolicyRepository } from '../policy/application/ports';
 import { SCORE_SAMPLES_READER, type ScoreSamplesReader } from '../score-datasets/application/ports';
 import { BatchJobsService } from './application/batch-jobs.service';
 import { CalibrationService } from './application/calibration.service';
@@ -140,6 +141,10 @@ async function run(): Promise<void> {
     const activeBefore = await policies.get((await calibration.overview()).activePolicy.id);
     const faceBefore = activeBefore.steps.find((st) => st.factor === 'face');
     const kdBefore = activeBefore.steps.find((st) => st.factor === 'keystroke');
+    // «До» — исходная политика v1 (порог из рекомендации OpenCV); если действующая уже другая, она идёт отдельной
+    // строкой: повторный прогон не должен показывать «до» = «после».
+    const initial = (await app.get<PolicyRepository>(POLICY_REPOSITORY).list()).find((p) => p.version === 1);
+    const faceInitial = initial?.steps.find((st) => st.factor === 'face');
     const holdout: HoldoutRow[] = [];
     const datasets: HoldoutReport['datasets'][number][] = [];
 
@@ -215,7 +220,13 @@ async function run(): Promise<void> {
           applied,
           ...evaluateAt(all.genuine, all.impostor, tau, costs),
         });
-      if (faceBefore?.factor === 'face') at(`до: v${activeBefore.version}`, faceBefore.tauFace, true);
+      if (faceInitial?.factor === 'face') at('до: исходная v1', faceInitial.tauFace, false);
+      if (
+        faceBefore?.factor === 'face' &&
+        (activeBefore.version !== 1 || faceInitial?.factor !== 'face') &&
+        !(faceInitial?.factor === 'face' && faceInitial.tauFace === faceBefore.tauFace)
+      )
+        at(`действовала: v${activeBefore.version}`, faceBefore.tauFace, true);
       if (faceTau !== null) at('после: целевой FAR (вся выборка)', faceTau, true);
       if (face.threshold.optimal.tau !== null)
         at('τ* по стоимостям (вся выборка)', face.threshold.optimal.tau, false);
@@ -406,7 +417,7 @@ async function run(): Promise<void> {
         generatedAt: new Date().toISOString(),
         costs,
         targetFar,
-        policy: { before: activeBefore.version, after },
+        policy: { before: initial?.version ?? activeBefore.version, after },
         datasets,
         rows: holdout,
       };
