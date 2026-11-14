@@ -1,14 +1,15 @@
 'use client';
 
 import { useSessions } from '@/entities/account';
-import { useViewer } from '@/entities/viewer';
+import { isStaff, useViewer } from '@/entities/viewer';
 import { RevokeOthersButton } from '@/features/account/manage-sessions';
 import { ConsentUpdate } from '@/features/give-consent';
 import { KeystrokePanel } from '@/features/manage-keystroke';
 import { MfaPanel } from '@/features/manage-mfa';
 import { RegisterPasskey } from '@/features/register-passkey';
+import { ConfirmMfaButton } from '@/features/step-up';
 import { useT } from '@/shared/i18n';
-import { ApiErrorNotice, Badge, Panel, Skeleton } from '@/shared/ui';
+import { ApiErrorNotice, Badge, Notice, Panel, Skeleton } from '@/shared/ui';
 import { SessionList } from '@/widgets/account-activity';
 
 export function ProfileSecurityPage() {
@@ -17,8 +18,17 @@ export function ProfileSecurityPage() {
   const sessions = useSessions(!!me);
   if (!me) return null;
   const others = (sessions.data?.length ?? 1) > 1;
+  const confirm = isStaff(me.role) && !me.mfaComplete && (me.passkeys > 0 || me.totp);
   return (
     <div className="flex flex-col gap-6">
+      {confirm && (
+        <Notice tone="caution" title={t('profile.staffNoMfa')}>
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span>{t('stepUp.finishDesc')}</span>
+            <ConfirmMfaButton />
+          </span>
+        </Notice>
+      )}
       <Panel
         title={t('profile.passkeyTitle')}
         description={t('profile.passkeyDesc')}

@@ -233,8 +233,8 @@ urls: ## Адреса интерфейса и API
 	@printf "  Интерфейс  $(CYAN)%s$(RESET)\n  API (Scalar) $(CYAN)%s/api/docs$(RESET)\n" "$(WEB_URL)" "$(API_URL)"
 
 .PHONY: secrets
-secrets: ## Заменить демонстрационные секреты настоящими (.env) и применить их к системе: пароли, ключи, токены
-	@node scripts/secrets.mjs
+secrets: ## Заменить демонстрационные секреты настоящими (.env) и применить к системе; ROTATE=ADMIN_PASSWORD,… — заменить и настоящие
+	@node scripts/secrets.mjs $(if $(ROTATE),--rotate=$(ROTATE),)
 	@if grep -qx POSTGRES_PASSWORD .env.rotated; then \
 		$(COMPOSE) up -d --wait db >/dev/null && \
 		grep '^POSTGRES_PASSWORD=' .env | cut -d= -f2- | \
@@ -250,6 +250,11 @@ secrets: ## Заменить демонстрационные секреты н�
 		node scripts/secrets.mjs --drop-dev >/dev/null && $(COMPOSE) up -d --wait >/dev/null && \
 		echo "  ключ разработки dev удалён из TEMPLATE_KEYS"; fi
 	@rm -f .env.rotated
+
+.PHONY: admin-reset-mfa
+admin-reset-mfa: ## Аварийно: сотрудник LOGIN=… (по умолчанию ADMIN_LOGIN) потерял passkey и TOTP — сбросить второй фактор
+	@$(COMPOSE) exec -T api sh -c 'node dist/modules/identity/staff.cli.js --login "$${1:-$$ADMIN_LOGIN}" --reset-mfa' _ $(LOGIN)
+	$(call log,"войдите паролем и сразу зарегистрируйте новый passkey: Профиль → Безопасность")
 
 .PHONY: calibrate
 calibrate: ## Полная калибровка в запущенной системе (make up): лицо — ORL, ритм — CMU, PAD — по испытаниям

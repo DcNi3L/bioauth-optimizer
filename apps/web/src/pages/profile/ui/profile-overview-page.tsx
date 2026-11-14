@@ -7,6 +7,7 @@ import { isStaff, useViewer } from '@/entities/viewer';
 import { ProfileForm } from '@/features/account/edit-profile';
 import { useDeleteFace } from '@/features/capture-face';
 import { ConsentUpdate, useRevokeConsent } from '@/features/give-consent';
+import { ConfirmMfaButton } from '@/features/step-up';
 import { useT } from '@/shared/i18n';
 import { useFormat } from '@/shared/lib';
 import { ApiErrorNotice, Badge, Button, Notice, Panel } from '@/shared/ui';
@@ -33,10 +34,10 @@ export function ProfileOverviewPage() {
       <div className="flex flex-col gap-6">
         {isStaff(me.role) && !me.mfaComplete && (
           <Notice tone="caution" title={t('profile.staffNoMfa')}>
-            {t('profile.staffNoMfaText')}{' '}
-            <Link href="/profile/security" className="underline underline-offset-4">
-              {t('profile.tab.security')}
-            </Link>
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span>{t('profile.staffNoMfaText')}</span>
+              <ConfirmMfaButton />
+            </span>
           </Notice>
         )}
         <ConsentUpdate me={me} />

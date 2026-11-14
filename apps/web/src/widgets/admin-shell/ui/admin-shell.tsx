@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 
 import { useCalibrationOverview } from '@/entities/calibration';
 import { isStaff, useViewer } from '@/entities/viewer';
+import { ConfirmMfaButton } from '@/features/step-up';
 import { type TKey, useT } from '@/shared/i18n';
 import { Notice, PageHeader, Skeleton } from '@/shared/ui';
 
@@ -67,11 +68,10 @@ export function AdminShell({ children, actions }: { children: ReactNode; actions
       )}
       {!me.mfaComplete && (
         <Notice tone="caution" title={t('admin.mfaTitle')}>
-          {t('admin.mfaText')}{' '}
-          <Link href="/profile/security" className="underline underline-offset-4">
-            {t('admin.mfaLink')}
-          </Link>
-          .
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span>{t('admin.mfaText')}</span>
+            <ConfirmMfaButton />
+          </span>
         </Notice>
       )}
       {overview.data && <DriftBanner alerts={overview.data.drift} canAcknowledge={me.role === 'admin'} />}

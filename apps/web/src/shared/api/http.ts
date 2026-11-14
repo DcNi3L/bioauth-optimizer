@@ -53,6 +53,11 @@ export type StepUpHandler = () => Promise<boolean>;
 let stepUpHandler: StepUpHandler | null = null;
 
 /** Регистрирует окно повторной проверки; возвращает функцию отмены регистрации. */
+/** Открыть окно подтверждения второго фактора без запроса к серверу (кнопка «Подтвердить вход»). */
+export function requestStepUp(): Promise<boolean> {
+  return stepUpHandler ? stepUpHandler() : Promise.resolve(false);
+}
+
 export function setStepUpHandler(handler: StepUpHandler): () => void {
   stepUpHandler = handler;
   return () => {

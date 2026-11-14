@@ -67,8 +67,8 @@ export function StepUpHost() {
     <Dialog
       open={open}
       onClose={() => finish(false)}
-      title={t('stepUp.title')}
-      description={t('stepUp.desc')}
+      title={me?.mfaComplete === false ? t('stepUp.finishTitle') : t('stepUp.title')}
+      description={me?.mfaComplete === false ? t('stepUp.finishDesc') : t('stepUp.desc')}
       size="sm"
     >
       <div className="flex flex-col gap-4 px-5 py-4">
@@ -131,6 +131,12 @@ export function StepUpHost() {
           </form>
         )}
         {!passkey && !totp && <p className="text-sm">{t('stepUp.noFactor')}</p>}
+        <details className="text-xs text-graphite">
+          <summary className="cursor-pointer select-none hover:text-ink">{t('stepUp.lostTitle')}</summary>
+          <p className="mt-1.5">
+            {t('stepUp.lostText')} <code className="rounded bg-paper px-1 py-0.5">make admin-reset-mfa</code>
+          </p>
+        </details>
         <ApiErrorNotice error={error} />
       </div>
     </Dialog>

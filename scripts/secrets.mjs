@@ -3,6 +3,7 @@
  * make secrets — настоящие секреты в .env вместо демонстрационных (docs/06-deployment.md §6.8).
  *
  *   node scripts/secrets.mjs              сгенерировать недостающие и демонстрационные значения
+ *   node scripts/secrets.mjs --rotate=ADMIN_PASSWORD   заменить и уже настоящее значение
  *   node scripts/secrets.mjs --drop-dev   убрать ключ разработки «dev» из TEMPLATE_KEYS (после make rekey)
  *
  * Значения создаются здесь, криптографическим генератором, и пишутся только в .env (он в .gitignore) с правами 600.
@@ -19,6 +20,13 @@ const root = resolve(import.meta.dirname, '..');
 const envPath = resolve(root, '.env');
 const rotatedPath = resolve(root, '.env.rotated');
 const dropDev = process.argv.includes('--drop-dev');
+/** --rotate=ADMIN_PASSWORD,BIO_ENGINE_SECRET — заменить и уже настоящие значения (например, пароль попал в чат). */
+const forced = new Set(
+  (process.argv.find((a) => a.startsWith('--rotate='))?.slice('--rotate='.length) ?? '')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean),
+);
 
 /** Ключ разработки шаблонов (apps/api/src/shared/config/env.ts): 32 байта со значением 7. */
 const DEV_KEY = Buffer.alloc(32, 7).toString('base64');
@@ -79,7 +87,7 @@ if (dropDev) {
 } else {
   for (const [key, make] of Object.entries(GENERATE)) {
     const current = get(key);
-    if (current === undefined || current === '' || DEMO[key].includes(current)) {
+    if (forced.has(key) || current === undefined || current === '' || DEMO[key].includes(current)) {
       set(key, make());
       rotated.push(key);
     }
@@ -91,7 +99,7 @@ if (dropDev) {
     throw new Error('TEMPLATE_KEYS в .env — не JSON; исправьте вручную');
   }
   const active = get('TEMPLATE_ACTIVE_KEY');
-  if (!active || active === 'dev' || !keys[active]) {
+  if (forced.has('TEMPLATE_KEYS') || !active || active === 'dev' || !keys[active]) {
     const id = `k${new Date().toISOString().slice(0, 10).replaceAll('-', '')}`;
     // Новый ключ — первым и активным; «dev» — для расшифровки уже сохранённых шаблонов до make rekey.
     keys = { [id]: randomBytes(32).toString('base64'), ...keys, dev: keys.dev ?? DEV_KEY };

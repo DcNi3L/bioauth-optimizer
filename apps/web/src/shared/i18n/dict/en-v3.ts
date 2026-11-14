@@ -909,6 +909,12 @@ export const enV3: DictV3 = {
   stepUp: {
     title: 'Confirm it’s you',
     desc: 'This action changes roles, keys or the sign-in policy: confirm your second factor. The confirmation lasts 5 minutes.',
+    confirmLogin: 'Confirm sign-in',
+    finishTitle: 'Finish signing in',
+    finishDesc:
+      'Confirm with an existing passkey, an authenticator code or a recovery code to unlock changes.',
+    lostTitle: 'No access to any factor?',
+    lostText: 'Someone with server access can reset the second factor with',
     confirm: 'Confirm',
     noFactor: 'No second factor is set up. Add a passkey or an authenticator app in Profile → Security.',
   },
