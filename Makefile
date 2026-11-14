@@ -238,6 +238,10 @@ calibrate: ## Полная калибровка в запущенной сист
 	@$(COMPOSE) exec -T -e CALIBRATION_CACHE=/tmp/bioauth-calibration api \
 		node dist/modules/calibration/calibrate.cli.js --as $(CALIBRATE_AS) --approve
 
+.PHONY: login-report
+login-report: ## Почему не пускает: последние попытки по лицу — сходство, порог, «живость», причина отказа
+	@$(COMPOSE) exec -T db psql -U bioauth -d bioauth -P pager=off -f - < scripts/login-report.sql
+
 .PHONY: calibrate-local
 calibrate-local: deps ## То же для make dev: API из исходников, БД — DATABASE_URL, bio-engine — apps/api/.env
 	@$(PNPM) --filter @bioauth/api build >/dev/null

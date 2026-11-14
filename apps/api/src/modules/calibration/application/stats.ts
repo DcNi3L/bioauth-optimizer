@@ -23,6 +23,22 @@ export function confirmedRate(k: number, n: number): number {
   return k === 0 ? Math.min(1, 3 / n) : wilson(k, n)[1];
 }
 
+/**
+ * Наименьший порог, при котором верхняя 95%-граница FAR (правило трёх / Уилсон) не выше цели; допуск при s ≥ τ.
+ * Нужен для открытых наборов: распределение злоумышленников переносимо на другую камеру, а genuine-оценки
+ * студийных снимков — нет, поэтому порог берётся у нижней границы допустимого FAR, а не в середине зазора.
+ * null — сравнений слишком мало, чтобы подтвердить цель даже без ложных допусков.
+ */
+export function farTargetThreshold(negatives: Scores, targetFar: number): number | null {
+  const n = negatives.length;
+  if (confirmedRate(0, n) > targetFar) return null;
+  const desc = Array.from(negatives).sort((a, b) => b - a);
+  let k = 0; // сколько злоумышленников допустимо пропустить
+  while (k + 1 < n && confirmedRate(k + 1, n) <= targetFar) k++;
+  // Ровно k оценок ≥ τ: τ чуть выше (k+1)-й по величине; округление вверх до 4 знаков.
+  return Math.ceil((desc[k]! + 1e-9) * 1e4) / 1e4;
+}
+
 export interface OperatingPoint {
   readonly tau: number;
   readonly far: number;

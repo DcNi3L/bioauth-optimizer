@@ -1,6 +1,7 @@
 import { inflateSync } from 'node:zlib';
 
 import { keystrokeScores } from '../../src/modules/calibration/application/keystroke-batch.service';
+import { confirmedRate, farTargetThreshold } from '../../src/modules/calibration/application/stats';
 import {
   parseCmuKeystroke,
   pgmToPng,
@@ -87,5 +88,26 @@ describe('пакетная оценка ритма набора', () => {
     expect(() => keystrokeScores(people.slice(0, 1))).toThrow(/двух/);
     const broken = [people[0]!, { id: 'x', vectors: people[1]!.vectors.map((v) => v.slice(1)) }];
     expect(() => keystrokeScores(broken)).toThrow(/признаков/);
+  });
+});
+
+describe('порог по целевому FAR (открытые наборы)', () => {
+  it('наименьший τ, при котором верхняя 95%-граница FAR не выше цели', () => {
+    // 20 000 злоумышленников 0…0,39998: граница Уилсона допускает несколько ложных допусков при FAR ≤ 1e-3.
+    const neg = Array.from({ length: 20_000 }, (_, i) => i / 50_000);
+    const tau = farTargetThreshold(neg, 1e-3)!;
+    const fa = neg.filter((s) => s >= tau).length;
+    expect(confirmedRate(fa, neg.length)).toBeLessThanOrEqual(1e-3);
+    // На шаг округления (1e-4) ниже — цель уже не подтверждается.
+    const below = neg.filter((s) => s >= tau - 1e-4).length;
+    expect(confirmedRate(below, neg.length)).toBeGreaterThan(1e-3);
+    expect(fa).toBeGreaterThan(0);
+    expect(tau).toBeLessThan(0.4);
+    // При 4000 сравнениях допустим только ноль ложных допусков: τ — сразу над наибольшей оценкой.
+    expect(farTargetThreshold(neg.slice(-4000), 1e-3)).toBe(0.4);
+  });
+
+  it('сравнений мало, чтобы подтвердить цель, — null', () => {
+    expect(farTargetThreshold([0.1, 0.2, 0.3], 1e-3)).toBeNull();
   });
 });

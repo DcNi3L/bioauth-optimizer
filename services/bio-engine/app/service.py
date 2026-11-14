@@ -20,6 +20,8 @@ from .ports import DetectedFace, FaceDetector, FaceEmbedder, Image, ImageMetrics
 
 _IGNORED_FOR_MATCHING = {Issue.POSE, Issue.TOO_SMALL}
 """При сравнении и проверке живости кадры-команды повёрнуты и могут быть ближе/дальше — это не брак."""
+_IGNORED_FOR_FRONTAL = {Issue.TOO_SMALL}
+"""Фронтальный кадр для сравнения с шаблоном: допустимо только мелкое лицо (кадр «отдалиться»)."""
 
 
 @dataclass(slots=True)
@@ -165,8 +167,12 @@ class FaceService:
                 f'шаблон построен моделью {req.template.model_version}, сервис — {self.model_version}',
             )
         tpl = matching.l2_normalize(req.template.embedding)
-        frames = [self._analyze(img, check_pose=False) for img in self._decode(req.frames)]
-        usable = [f for f in frames if self._usable(f, _IGNORED_FOR_MATCHING)]
+        # Шаблон снят анфас: сравниваем по фронтальным кадрам (без замечаний о позе), а повёрнутые
+        # берём, только если фронтальных нет, — иначе поворот головы занижает сходство своего лица.
+        frames = [self._analyze(img) for img in self._decode(req.frames)]
+        usable = [f for f in frames if self._usable(f, _IGNORED_FOR_FRONTAL)] or [
+            f for f in frames if self._usable(f, _IGNORED_FOR_MATCHING)
+        ]
         if not usable:
             raise BioError(
                 422,

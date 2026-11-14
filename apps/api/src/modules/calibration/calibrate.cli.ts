@@ -13,6 +13,7 @@ import { BatchJobsService } from './application/batch-jobs.service';
 import { CalibrationService } from './application/calibration.service';
 import { KeystrokeBatchService } from './application/keystroke-batch.service';
 import { CALIBRATION_QUERY, type CalibrationQuery } from './application/ports';
+import { farTargetThreshold } from './application/stats';
 import {
   CMU_KEYSTROKE,
   loadCmuKeystroke,
@@ -119,6 +120,10 @@ async function run(): Promise<void> {
     log(`Полная калибровка BioAuth · кэш наборов: ${cache}`);
 
     let face: CalibrateResponseDto | null = null;
+    // Порог лица по открытому набору — по целевому FAR, а не τ* по стоимостям: снимки ORL сделаны в одной
+    // студии, и genuine-оценки у них выше, чем у входа с веб-камеры; τ* в середине зазора между
+    // распределениями (0,41) отвергал законных пользователей. Распределение злоумышленников переносимо.
+    let faceTau: number | null = null;
     if (!values['skip-face']) {
       const files = await loadOrl(cache, (m) => log(`  ${m}`));
       const archive = storedZip(
@@ -151,6 +156,10 @@ async function run(): Promise<void> {
         from: since,
         ...common,
       });
+      const impostors = await app
+        .get<CalibrationQuery>(CALIBRATION_QUERY)
+        .scores('face', job.result.modelVersion, 'impostor', { from: new Date(since), to: null });
+      faceTau = farTargetThreshold(impostors, targetFar);
     }
 
     let keystroke: CalibrateResponseDto | null = null;
@@ -189,7 +198,13 @@ async function run(): Promise<void> {
     }
 
     log('\nРезультаты (ядро v1, стоимости активной политики)');
-    if (face) report('Лицо (τ_face, косинусное сходство)', face);
+    if (face) {
+      report('Лицо (τ_face, косинусное сходство)', face);
+      log(
+        `    применяется   τ = ${fmt(faceTau)} — наименьший порог с подтверждённым FAR ≤ ${fmt(targetFar)} ` +
+          '(genuine-оценки студийного набора не переносятся на веб-камеру)',
+      );
+    }
     if (keystroke)
       report('Ритм набора (τ_kd, расстояние)', keystroke, (t) =>
         fmt(Math.min(4, Math.max(0.2, 4 * (1 - t)))),
@@ -206,7 +221,7 @@ async function run(): Promise<void> {
     const hasFace = active.steps.some((s) => s.factor === 'face');
     const id = (r: CalibrateResponseDto | null) =>
       r && r.threshold.optimal.tau !== null ? r.threshold.experimentId : null;
-    const faceId = hasFace ? id(face) : null;
+    const faceId = hasFace && faceTau !== null ? id(face) : null;
     const padId = hasFace ? id(pad) : null;
     // Слабый фактор при жёстких стоимостях даёт τ*, отвергающий почти всех: такой порог не применяется.
     const kdUsable = !!keystroke && keystroke.threshold.optimal.frr <= MAX_FRR;
@@ -224,7 +239,7 @@ async function run(): Promise<void> {
     const faceStep = active.steps.find((s) => s.factor === 'face');
     const kdStep = active.steps.find((s) => s.factor === 'keystroke');
     const unchanged =
-      (!faceId || (faceStep?.calibrated && same(faceStep.tauFace, face?.threshold.optimal.tau))) &&
+      (!faceId || (faceStep?.calibrated && same(faceStep.tauFace, faceTau))) &&
       (!padId || same(faceStep?.tauPad, pad?.threshold.optimal.tau)) &&
       (!kdId ||
         (kdStep?.calibrated &&
@@ -240,9 +255,15 @@ async function run(): Promise<void> {
     ].filter(Boolean);
     const proposed = await calibration.propose(actor, {
       faceExperimentId: faceId,
+      ...(faceTau !== null ? { tauFace: faceTau } : {}),
       padExperimentId: padId,
       keystrokeExperimentId: kdId,
-      rationale: `Полная калибровка (make calibrate): ${sources.join('; ')}`,
+      rationale:
+        `Полная калибровка (make calibrate)` +
+        (faceId
+          ? `: τ_face ${fmt(faceStep?.tauFace)} → ${fmt(faceTau)} (подтверждённый FAR ≤ ${fmt(targetFar)})`
+          : '') +
+        `; данные: ${sources.join('; ')}`,
     });
     log(`\nПредложена политика v${proposed.version}: ${proposed.rationale ?? ''}`);
     if (keystroke && !kdUsable)

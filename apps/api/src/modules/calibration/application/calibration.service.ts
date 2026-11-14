@@ -191,6 +191,8 @@ export class CalibrationService {
       padExperimentId: string | null;
       keystrokeExperimentId?: string | null;
       rationale: string | null;
+      /** Порог лица вместо τ* эксперимента (калибровка по открытому набору, правило целевого FAR). */
+      tauFace?: number;
     },
   ) {
     const policy = await this.policies.active();
@@ -219,7 +221,7 @@ export class CalibrationService {
     ]);
     const next: FaceStep | undefined = face && {
       ...face,
-      tauFace: fe?.optimalTau ?? face.tauFace,
+      tauFace: fe ? (cmd.tauFace ?? fe.optimalTau ?? face.tauFace) : face.tauFace,
       tauPad: pe?.optimalTau ?? face.tauPad,
       calibrated: face.calibrated || !!fe || !!pe,
     };

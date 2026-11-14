@@ -167,14 +167,15 @@ export class AuthService {
       embedding: this.cipher.decrypt(session.userId, stored.modelVersion, stored),
       modelVersion: stored.modelVersion,
     };
-    // Сходство с шаблоном — по фронтальным нейтральным кадрам: шаблон снят анфас, а кадры команд
-    // (поворот, подбородок вверх) закономерно дают меньшее сходство и занижали медиану.
+    // Сходство с шаблоном: нейтральные кадры и последний кадр каждой команды. bio-engine оставляет из них
+    // фронтальные (кадр «ближе» обычно самый чёткий), повёрнутые — отбрасывает: они занижали медиану.
+    const matchFrames = [...body.baseline, ...body.steps.map((s) => s.frames[s.frames.length - 1]!)];
 
     let liveness, verify;
     try {
       [liveness, verify] = await Promise.all([
         this.engine.liveness({ baseline: body.baseline, steps: body.steps }),
-        this.engine.verify(body.baseline, template),
+        this.engine.verify(matchFrames, template),
       ]);
     } catch (err) {
       if (err instanceof FaceRejectedError) {
