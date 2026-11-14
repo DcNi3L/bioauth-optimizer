@@ -27,3 +27,4 @@ _site/
 
 # Наборы для make calibrate-local (ORL, CMU)
 .calibration-cache/
+calibration-report/

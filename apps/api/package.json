@@ -15,7 +15,8 @@
     "lint": "eslint . --max-warnings=0",
     "rekey": "node --env-file-if-exists=.env dist/modules/biometrics/rekey.cli.js",
     "staff": "node --env-file-if-exists=.env dist/modules/identity/staff.cli.js",
-    "calibrate": "node --env-file-if-exists=.env dist/modules/calibration/calibrate.cli.js"
+    "calibrate": "node --env-file-if-exists=.env dist/modules/calibration/calibrate.cli.js",
+    "protocol-cleanup": "node --env-file-if-exists=.env dist/modules/consent/protocol-cleanup.cli.js"
   },
   "dependencies": {
     "@bioauth/contracts": "workspace:*",

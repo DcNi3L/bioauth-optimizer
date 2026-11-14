@@ -13,6 +13,12 @@
   `make calibrate-local`.
 - Пакетная оценка ритма набора (`KeystrokeBatchService`) по протоколу Killourhy & Maxion.
 
+- **Протокол «до/после калибровки»** (#31): `make calibrate` пишет `calibration-report/protocol.{md,csv,json}`.
+  В нём FAR, FRR и E при пороге до и после с интервалами Уилсона, подтверждённый FAR и перекрёстная проверка по
+  людям. Результаты этапа 1 — `docs/protocol/04-results-open-datasets.md`: E лица 0,0117 → 0,0074, FAR ≤ 10⁻³
+  подтверждён.
+- `make protocol-cleanup PREFIX=…` — по окончании испытания отзывает согласия участников. Биометрия удаляется,
+  в аудит пишется `protocol.cleanup`.
 - `make login-report` — последние попытки по лицу: сходство, порог, запас, «живость», причина отказа.
 
 ### Исправлено

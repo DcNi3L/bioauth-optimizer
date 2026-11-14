@@ -41,7 +41,8 @@ export type AuditAction =
   | 'oauth.initial_token_deleted'
   | 'oauth.consent_granted'
   | 'oauth.consent_revoked'
-  | 'tenant.updated';
+  | 'tenant.updated'
+  | 'protocol.cleanup';
 
 export interface AuditEventInput {
   readonly actorId: string | null;

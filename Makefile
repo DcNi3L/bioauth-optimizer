@@ -237,6 +237,9 @@ calibrate: ## Полная калибровка в запущенной сист
 	$(call log,"калибровка: лицо (AT&T ORL) · ритм набора (CMU) · PAD по испытаниям UC-8")
 	@$(COMPOSE) exec -T -e CALIBRATION_CACHE=/tmp/bioauth-calibration api \
 		node dist/modules/calibration/calibrate.cli.js --as $(CALIBRATE_AS) --approve
+	@mkdir -p calibration-report
+	@$(COMPOSE) cp api:/tmp/bioauth-calibration/report/. calibration-report/ >/dev/null && \
+		echo "  протокол «до/после»: calibration-report/protocol.md, .csv, .json"
 
 .PHONY: login-report
 login-report: ## Почему не пускает: последние попытки по лицу — сходство, порог, «живость», причина отказа
@@ -245,7 +248,14 @@ login-report: ## Почему не пускает: последние попыт
 .PHONY: calibrate-local
 calibrate-local: deps ## То же для make dev: API из исходников, БД — DATABASE_URL, bio-engine — apps/api/.env
 	@$(PNPM) --filter @bioauth/api build >/dev/null
-	@DATABASE_URL="$(DATABASE_URL)" $(PNPM) --filter @bioauth/api calibrate --as $(CALIBRATE_AS) --approve
+	@DATABASE_URL="$(DATABASE_URL)" $(PNPM) --filter @bioauth/api calibrate --as $(CALIBRATE_AS) --approve \
+		--report "$(CURDIR)/calibration-report"
+
+.PHONY: protocol-cleanup
+protocol-cleanup: ## Конец испытания: отозвать согласия участников PREFIX=… (без YES=1 — только список)
+	@test -n "$(PREFIX)" || { echo "укажите PREFIX=<префикс логинов участников>, например PREFIX=p26-"; exit 1; }
+	@$(COMPOSE) exec -T api node dist/modules/consent/protocol-cleanup.cli.js \
+		--prefix "$(PREFIX)" --as $(CALIBRATE_AS) $(if $(YES),--yes,)
 
 .PHONY: demo
 demo: ## Загрузить демонстрационный каталог из 10 факторов в запущенный API
