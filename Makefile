@@ -240,7 +240,7 @@ secrets: ## Заменить демонстрационные секреты н�
 		grep '^POSTGRES_PASSWORD=' .env | cut -d= -f2- | \
 			sed "s/.*/ALTER USER bioauth PASSWORD '&';/" | $(COMPOSE) exec -T db psql -q -U bioauth -d bioauth && \
 		echo "  пароль базы данных изменён"; fi
-	@if [ -s .env.rotated ]; then $(COMPOSE) up -d --wait >/dev/null && echo "  контейнеры перезапущены с новыми секретами"; fi
+	@if [ -s .env.rotated ]; then $(COMPOSE) up -d --build --wait >/dev/null && echo "  контейнеры пересобраны и перезапущены с новыми секретами"; fi
 	@if grep -qx ADMIN_PASSWORD .env.rotated; then \
 		$(COMPOSE) exec -T api sh -c 'node dist/modules/identity/staff.cli.js --login "$$ADMIN_LOGIN" --reset-password' >/dev/null && \
 		echo "  пароль администратора: $$(grep '^ADMIN_PASSWORD=' .env | cut -d= -f2-)  (сохранён в .env; сеансы завершены)"; fi

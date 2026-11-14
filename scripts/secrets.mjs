@@ -8,7 +8,8 @@
  * Значения создаются здесь, криптографическим генератором, и пишутся только в .env (он в .gitignore) с правами 600.
  * Уже заданные настоящие значения не трогаются: повторный запуск ничего не меняет. Ключ шаблонов не заменяется,
  * а добавляется: старый «dev» остаётся для расшифровки, пока make rekey не перешифрует шаблоны.
- * Список изменённых переменных — в .env.rotated (по одной на строку), его читает Makefile.
+ * Список изменённых переменных — в .env.rotated (по одной на строку), его читает Makefile и удаляет только после
+ * всех шагов: прерванный make secrets при повторном запуске доделывает их.
  */
 import { randomBytes } from 'node:crypto';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -106,7 +107,12 @@ if (dropDev) {
 
 writeFileSync(envPath, `${lines.join('\n').trimEnd()}\n`, { mode: 0o600 });
 chmodSync(envPath, 0o600);
-writeFileSync(rotatedPath, rotated.length ? `${rotated.join('\n')}\n` : '');
+// Незавершённый прошлый запуск (например, упал перезапуск): его шаги тоже нужно доделать.
+const pending = existsSync(rotatedPath) ? readFileSync(rotatedPath, 'utf8').split('\n').filter(Boolean) : [];
+const steps = [...new Set([...pending, ...rotated])];
+writeFileSync(rotatedPath, steps.length ? `${steps.join('\n')}\n` : '');
+if (pending.length && !dropDev)
+  process.stdout.write(`  доделываю незавершённые шаги прошлого запуска: ${pending.join(', ')}\n`);
 process.stdout.write(
   rotated.length
     ? `  .env: заменено ${rotated.join(', ')}\n`
