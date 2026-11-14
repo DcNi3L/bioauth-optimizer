@@ -234,7 +234,7 @@ urls: ## Адреса интерфейса и API
 
 .PHONY: calibrate
 calibrate: ## Полная калибровка в запущенной системе (make up): лицо — ORL, ритм — CMU, PAD — по испытаниям
-	$(call log,"калибровка: лицо (AT&T ORL), ритм набора (CMU), PAD по испытаниям UC-8")
+	$(call log,"калибровка: лицо (AT&T ORL) · ритм набора (CMU) · PAD по испытаниям UC-8")
 	@$(COMPOSE) exec -T -e CALIBRATION_CACHE=/tmp/bioauth-calibration api \
 		node dist/modules/calibration/calibrate.cli.js --as $(CALIBRATE_AS) --approve
 
